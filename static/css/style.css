@@ -1,0 +1,382 @@
+/* ============================================
+   ESTILOS GLOBALES - afectan toda la app
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* hace que el tamaño incluya padding y border */
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif; /* fuente principal - puedes cambiarla */
+    background: #f0f2f5; /* color de fondo de toda la app - cambia este hex para otro color */
+    color: #1a1a2e; /* color de texto principal */
+}
+
+/* ============================================
+   LOGIN - pantalla de inicio de sesion
+   ============================================ */
+
+/* contenedor que centra la tarjeta en la pantalla */
+.login-container {
+    min-height: 100vh; /* ocupa toda la altura de la pantalla */
+    display: flex;
+    align-items: center; /* centra verticalmente */
+    justify-content: center; /* centra horizontalmente */
+}
+
+/* la tarjeta blanca donde va el formulario */
+.login-card {
+    background: white; /* fondo de la tarjeta - cambia para otro color */
+    padding: 2.5rem; /* espacio interior - mas rem = mas espacio */
+    border-radius: 12px; /* redondez de las esquinas - mas px = mas redondo */
+    width: 100%;
+    max-width: 400px; /* ancho maximo de la tarjeta */
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08); /* sombra suave debajo */
+}
+
+/* titulo "Cabinet MS" */
+.login-card h1 {
+    font-size: 24px; /* tamaño del titulo - cambia px para hacerlo mas grande/pequeno */
+    font-weight: 600; /* grosor - 400 normal, 600 semi-bold, 700 bold */
+    margin-bottom: 6px; /* espacio debajo del titulo */
+}
+
+/* subtitulo "Sign in to your account" */
+.login-subtitle {
+    color: #666; /* color gris del subtitulo - cambia el hex */
+    font-size: 14px;
+    margin-bottom: 2rem; /* espacio entre subtitulo y formulario */
+}
+
+/* ============================================
+   FORMULARIO - campos de entrada
+   ============================================ */
+
+/* cada grupo de label + input */
+.form-group {
+    margin-bottom: 1.25rem; /* espacio entre campos */
+}
+
+/* etiquetas "Email" y "Password" */
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #444; /* color de las etiquetas */
+}
+
+/* campos de texto donde el usuario escribe */
+.form-group input {
+    width: 100%;
+    padding: 10px 14px; /* espacio interior del campo */
+    border: 1px solid #ddd; /* borde gris por defecto */
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s; /* animacion suave al hacer focus */
+}
+
+/* borde cuando el usuario hace click en el campo */
+.form-group input:focus {
+    border-color: #4f46e5; /* color morado al escribir - cambia este hex */
+}
+
+/* ============================================
+   BOTON - "Sign in"
+   ============================================ */
+.btn-primary {
+    width: 100%;
+    padding: 11px;
+    background: #4f46e5; /* color principal del boton - cambia este hex */
+    color: white; /* color del texto del boton */
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s; /* animacion suave al pasar el mouse */
+}
+
+/* color del boton cuando pasas el mouse encima */
+.btn-primary:hover {
+    background: #4338ca; /* un poco mas oscuro que el color principal */
+}
+
+/* ============================================
+   ALERTAS - mensajes de error
+   ============================================ */
+.alert-error {
+    background: #fef2f2; /* fondo rojo muy claro */
+    color: #dc2626; /* texto rojo - cambia para otro color de error */
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    border: 1px solid #fecaca; /* borde rojo claro */
+}/* ============================================
+   NAVBAR - barra de navegacion superior
+   ============================================ */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 60px;
+    background: #1e1b4b; /* color oscuro de la barra - cambia este hex */
+    color: white;
+}
+
+.navbar-brand {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px; /* espacio entre el nombre y el boton logout */
+}
+
+.navbar-user {
+    font-size: 14px;
+    color: #a5b4fc; /* color del nombre del usuario - tono morado claro */
+}
+
+.btn-logout {
+    padding: 6px 14px;
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-logout:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* ============================================
+   MAIN CONTENT - contenido principal
+   ============================================ */
+.main-content {
+    padding: 2rem;
+    max-width: 1200px; /* ancho maximo del contenido */
+    margin: 0 auto; /* centra el contenido */
+}
+
+/* ============================================
+   DASHBOARD HEADER - bienvenida
+   ============================================ */
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.dashboard-header p {
+    color: #666;
+    font-size: 15px;
+}
+
+/* ============================================
+   MODULES GRID - tarjetas de modulos
+   ============================================ */
+.modules-grid {
+    display: grid;
+    /* crea columnas automaticas de minimo 220px */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px; /* espacio entre tarjetas */
+}
+
+/* tarjeta base - estilos comunes a todas */
+.module-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* efecto al pasar el mouse - la tarjeta sube un poco */
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.module-icon {
+    font-size: 28px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.15); /* circulo semitransparente */
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.module-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.module-info p {
+    font-size: 12px;
+    opacity: 0.85; /* un poco transparente para el subtitulo */
+}
+
+/* color individual de cada modulo - cambia estos hex para otros colores */
+.module-card.admin      { background: #4f46e5; } /* morado */
+.module-card.orders     { background: #0891b2; } /* azul */
+.module-card.pick       { background: #059669; } /* verde */
+.module-card.inventory  { background: #d97706; } /* naranja */
+.module-card.receiving  { background: #7c3aed; } /* violeta */
+.module-card.supervision{ background: #0f766e; } /* teal */
+.module-card.losses     { background: #dc2626; } /* rojo */
+
+/* ============================================
+   TABLAS - listados de datos
+   ============================================ */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table thead {
+    background: #f9fafb; /* fondo gris claro del header */
+}
+
+.data-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 13px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.data-table tbody tr:hover {
+    background: #f9fafb; /* resalta la fila al pasar el mouse */
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================
+   BADGES - etiquetas de roles
+   ============================================ */
+.role-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* color de cada rol - cambia estos hex */
+.role-admin      { background: #ede9fe; color: #5b21b6; }
+.role-supervisor { background: #d1fae5; color: #065f46; }
+.role-order_entry{ background: #dbeafe; color: #1e40af; }
+.role-picker     { background: #dcfce7; color: #166534; }
+.role-inventory  { background: #fef3c7; color: #92400e; }
+.role-receiving  { background: #fce7f3; color: #9d174d; }
+
+/* ============================================
+   FORMULARIO CARD - formularios en tarjeta
+   ============================================ */
+.form-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 480px;
+    border: 1px solid #e5e7eb;
+}
+
+/* select - dropdown de seleccion */
+.form-card select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: white;
+    cursor: pointer;
+}
+
+.form-card select:focus {
+    border-color: #4f46e5;
+}
+
+/* boton secundario - cancelar */
+.btn-secondary {
+    padding: 10px 20px;
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+}
+
+/* boton crear - esquina superior derecha */
+.btn-create {
+    padding: 9px 18px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-create:hover {
+    background: #4338ca;
+}
+
+/* boton eliminar */
+.btn-delete {
+    color: #dc2626;
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-delete:hover {
+    text-decoration: underline;
+}

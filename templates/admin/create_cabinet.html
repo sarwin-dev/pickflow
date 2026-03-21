@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}New Cabinet - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>New Cabinet Type</h1>
+    <p>Define a new cabinet profile</p>
+</div>
+
+<div class="form-card">
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/cabinets/create">
+
+        <div class="form-group">
+            <label>Code</label>
+            <input type="text" name="code" placeholder="e.g. B24, W3024, V30" required>
+        </div>
+
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" placeholder="e.g. Base 24, Wall 30x24" required>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group">
+                <label>Width (inches)</label>
+                <input type="number" name="width" placeholder="24" required>
+            </div>
+            <div class="form-group">
+                <label>Height (inches) — Wall only</label>
+                <input type="number" name="height" placeholder="30">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Color</label>
+            <input type="text" name="color" placeholder="e.g. Snow, Espresso">
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" name="is_custom" id="is_custom" 
+                   style="width:18px; height:18px;">
+            <label for="is_custom" style="margin:0;">
+                This is a custom cabinet (OCU, Oven, Refer)
+            </label>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary">Create & Add Parts</button>
+            <a href="/admin/cabinets" class="btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

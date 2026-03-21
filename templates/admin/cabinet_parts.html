@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Parts - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>{{ cabinet.code }} — {{ cabinet.name }}</h1>
+            <p>Manage parts for this cabinet type</p>
+        </div>
+        <a href="/admin/cabinets" class="btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <div class="form-card">
+        <h3 style="margin-bottom:1rem; font-size:16px;">Add New Part</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label>Part Name</label>
+                <input type="text" name="name" placeholder="e.g. B Side L, B Back 24" required>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Cart</label>
+                    <select name="cart">
+                        <option value="1">Case Pick List</option>
+                        <option value="2">DO DF DBX ADJ Pick List</option>
+                    </select>
+                </div>
+            </div>
+            <p style="font-size:13px; font-weight:500; margin-bottom:8px; color:#444; margin-top:12px;">
+                Active Location (Shelves 1-{{ config.active_shelves }})
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Aisle (1 - {{ config.total_aisles }})</label>
+                    <input type="number" name="active_aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Bay (1 - {{ config.total_bays }})</label>
+                    <input type="number" name="active_bay" min="1" max="{{ config.total_bays }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Shelf (1 - {{ config.active_shelves }})</label>
+                    <input type="number" name="active_shelf" min="1" max="{{ config.active_shelves }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Location (optional)</label>
+                    <input type="number" name="active_location" min="1" max="{{ config.total_locations }}"
+                        placeholder="1">
+                </div>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+                <input type="checkbox" name="is_optional" id="is_optional" style="width:18px; height:18px;"
+                    title="Check this if the part is not always included in this cabinet type (e.g. shelves or drawers in sink base cabinets)">
+                <label for="is_optional" style="margin:0;"
+                    title="Check this if the part is not always included in this cabinet type (e.g. shelves or drawers in sink base cabinets)">
+                    Optional part
+                </label>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%; margin-top:1rem;">Add Part</button>
+        </form>
+    </div>
+
+    <div>
+        <h3 style="margin-bottom:1rem; font-size:16px;">Current Parts ({{ parts|length }})</h3>
+        {% if parts %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th>Qty</th>
+                        <th>Cart</th>
+                        <th>Location</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for part in parts %}
+                    <tr>
+                        <td>
+                            {{ part.name }}
+                            {% if part.is_optional %}
+                            <span class="role-badge role-inventory" style="font-size:10px;">optional</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ part.quantity }}</td>
+                        <td>Cart {{ part.cart }}</td>
+                        <td style="font-size:12px; color:#666;">
+                            {% if part.active_aisle %}
+                            A{{ '%02d'|format(part.active_aisle|int) }}
+                            B{{ '%02d'|format(part.active_bay|int) }}
+                            S{{ '%02d'|format(part.active_shelf|int) }}
+                            {% if part.active_location %}
+                            L{{ '%02d'|format(part.active_location|int) }}
+                            {% endif %}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/admin/cabinets/{{ cabinet.id }}/parts/delete/{{ part.id }}" class="btn-delete"
+                                onclick="return confirm('Delete this part?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:#999; font-size:14px;">No parts yet — add the first one.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

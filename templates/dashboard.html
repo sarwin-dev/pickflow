@@ -1,0 +1,95 @@
+<!-- heredamos el molde base -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Welcome back, {{ session['user_name'] }}</h1>
+    <p>What would you like to do today?</p>
+</div>
+
+<!-- modulos del sistema - cada tarjeta es un modulo -->
+<div class="modules-grid">
+
+    <!-- modulo admin - solo visible para admins -->
+    {% if session['user_role'] == 'admin' %}
+    <a href="/admin" class="module-card admin">
+        <div class="module-icon">⚙</div>
+        <div class="module-info">
+            <h3>Admin</h3>
+            <p>Manage cabinets, parts & users</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo order entry -->
+    {% if session['user_role'] in ['admin', 'order_entry'] %}
+    <a href="/orders" class="module-card orders">
+        <div class="module-icon">📋</div>
+        <div class="module-info">
+            <h3>Order Entry</h3>
+            <p>Create and manage work orders</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo picking -->
+    {% if session['user_role'] in ['admin', 'picker'] %}
+    <a href="/pick" class="module-card pick">
+        <div class="module-icon">✓</div>
+        <div class="module-info">
+            <h3>Pick</h3>
+            <p>Start picking orders</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo inventario -->
+    {% if session['user_role'] in ['admin', 'inventory'] %}
+    <a href="/inventory" class="module-card inventory">
+        <div class="module-icon">□</div>
+        <div class="module-info">
+            <h3>Inventory</h3>
+            <p>Track parts and stock levels</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo recepcion -->
+    {% if session['user_role'] in ['admin', 'receiving'] %}
+    <a href="/receiving" class="module-card receiving">
+        <div class="module-icon">↓</div>
+        <div class="module-info">
+            <h3>Receiving</h3>
+            <p>Receive and log incoming parts</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo supervision -->
+    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <a href="/supervision" class="module-card supervision">
+        <div class="module-icon">◉</div>
+        <div class="module-info">
+            <h3>Supervision</h3>
+            <p>Reports and performance</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- modulo perdidas - visible para admin y supervisor -->
+    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <a href="/losses" class="module-card losses">
+        <div class="module-icon">!</div>
+        <div class="module-info">
+            <h3>Losses</h3>
+            <p>Report damaged or defective parts</p>
+        </div>
+    </a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

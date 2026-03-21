@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}New User - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>New User</h1>
+    <p>Create a new system user</p>
+</div>
+
+<div class="form-card">
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/users/create">
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="john@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            <!-- selector de rol - cada opcion es un rol del sistema -->
+            <select name="role">
+                <option value="admin">Admin</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="order_entry">Order Entry</option>
+                <option value="picker">Picker</option>
+                <option value="inventory">Inventory</option>
+                <option value="receiving">Receiving</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary">Create User</button>
+            <a href="/admin/users" class="btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

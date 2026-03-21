@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Admin Panel</h1>
+    <p>Manage your system configuration</p>
+</div>
+
+<div class="modules-grid">
+
+    <a href="/admin/users" class="module-card admin">
+        <div class="module-icon">👤</div>
+        <div class="module-info">
+            <h3>Users</h3>
+            <p>Create and manage users</p>
+        </div>
+    </a>
+
+    <a href="/admin/cabinets" class="module-card orders">
+        <div class="module-icon">□</div>
+        <div class="module-info">
+            <h3>Cabinet Types</h3>
+            <p>Configure cabinets and parts</p>
+        </div>
+    </a>
+
+    <a href="/admin/locations" class="module-card inventory">
+        <div class="module-icon">◎</div>
+        <div class="module-info">
+            <h3>Locations</h3>
+            <p>Manage aisle, bay, shelf locations</p>
+        </div>
+    </a>
+
+    <a href="/admin/warehouse" class="module-card supervision">
+        <div class="module-icon">⊞</div>
+        <div class="module-info">
+            <h3>Warehouse Config</h3>
+            <p>Aisles, bays, shelves and locations</p>
+        </div>
+    </a>
+
+</div>
+
+{% endblock %}

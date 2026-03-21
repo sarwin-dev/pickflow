@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- el titulo cambia en cada pagina -->
+    <title>{% block title %}RTAxpress MS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACION - aparece en todas las paginas -->
+    <nav class="navbar">
+        <div class="navbar-brand">RTAxpress MS</div>
+        <div class="navbar-menu">
+            <!-- mostramos el nombre del usuario conectado -->
+            <span class="navbar-user">{{ session['user_name'] }}</span>
+            <!-- boton para cerrar sesion -->
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO - cada pagina pone su contenido aqui -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>
