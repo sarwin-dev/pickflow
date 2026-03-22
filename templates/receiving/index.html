@@ -22,10 +22,8 @@
             <div class="form-group">
                 <label>Part</label>
                 <!-- campo visible donde el usuario escribe -->
-                <input type="text" id="part-search"
-                       placeholder="Type part name... e.g. B Side L"
-                       autocomplete="off"
-                       style="width:100%;">
+                <input type="text" id="part-search" placeholder="Type part name... e.g. B Side L" autocomplete="off"
+                    style="width:100%;">
                 <!-- campo oculto que guarda el id de la parte seleccionada -->
                 <!-- el usuario no lo ve, lo llena el javascript -->
                 <input type="hidden" name="part_id" id="part-id" required>
@@ -69,23 +67,19 @@
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div class="form-group">
                         <label>Aisle (1 - {{ config.total_aisles }})</label>
-                        <input type="number" name="aisle" min="1"
-                               max="{{ config.total_aisles }}" placeholder="1">
+                        <input type="number" name="aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
                     </div>
                     <div class="form-group">
                         <label>Bay (1 - {{ config.total_bays }})</label>
-                        <input type="number" name="bay" min="1"
-                               max="{{ config.total_bays }}" placeholder="1">
+                        <input type="number" name="bay" min="1" max="{{ config.total_bays }}" placeholder="1">
                     </div>
                     <div class="form-group">
                         <label>Shelf (1 - {{ config.total_shelves }})</label>
-                        <input type="number" name="shelf" min="1"
-                               max="{{ config.total_shelves }}" placeholder="1">
+                        <input type="number" name="shelf" min="1" max="{{ config.total_shelves }}" placeholder="1">
                     </div>
                     <div class="form-group">
                         <label>Location (optional)</label>
-                        <input type="number" name="location" min="1"
-                               max="{{ config.total_locations }}" placeholder="1">
+                        <input type="number" name="location" min="1" max="{{ config.total_locations }}" placeholder="1">
                     </div>
                 </div>
                 <!-- nota informativa sobre shelves activos vs overflow -->
@@ -155,16 +149,13 @@
                         <!-- formulario de pulldown - descuenta unidades -->
                         <!-- se usa cuando bajan una caja de overflow al active -->
                         <td>
-                            <form method="POST"
-                                  action="/receiving/pulldown/{{ record.id }}"
-                                  style="display:flex; gap:6px; align-items:center;">
-                                <input type="number" name="quantity"
-                                       min="1" max="{{ record.quantity }}"
-                                       placeholder="qty"
-                                       style="width:60px; padding:4px 6px; border:1px solid #ddd; border-radius:6px; font-size:12px;">
-                                <button type="submit" class="btn-create"
-                                        style="font-size:11px; padding:4px 8px;"
-                                        onclick="return confirm('Confirm pulldown?')">
+                            <form method="POST" action="/receiving/pulldown/{{ record.id }}"
+                                style="display:flex; gap:6px; align-items:center;">
+                                <input type="number" name="quantity" min="1" max="{{ record.quantity }}"
+                                    placeholder="qty"
+                                    style="width:60px; padding:4px 6px; border:1px solid #ddd; border-radius:6px; font-size:12px;">
+                                <button type="submit" class="btn-create" style="font-size:11px; padding:4px 8px;"
+                                    onclick="return confirm('Confirm pulldown?')">
                                     Pull
                                 </button>
                             </form>
@@ -185,66 +176,95 @@
      JAVASCRIPT - logica del autocomplete y toggle
      ============================================ -->
 <script>
-// lista de partes que viene desde Python/Flask
-// Jinja2 convierte el loop de Python en un array de JavaScript
-const parts = [
-    {% for part in parts %}
+    // lista de partes que viene desde Python/Flask
+    // Jinja2 convierte el loop de Python en un array de JavaScript
+    const parts = [
+        {% for part in parts %}
     { id: {{ part.id }}, name: "{{ part.name }}" },
     {% endfor %}
 ];
 
-const searchInput = document.getElementById('part-search');
-const partIdInput = document.getElementById('part-id');
-const suggestions = document.getElementById('suggestions');
+    const searchInput = document.getElementById('part-search');
+    const partIdInput = document.getElementById('part-id');
+    const suggestions = document.getElementById('suggestions');
 
-// escucha cada letra que el usuario escribe
-searchInput.addEventListener('input', function() {
-    const query = this.value.toLowerCase();
-    suggestions.innerHTML = '';
-    partIdInput.value = '';
+    // escucha cada letra que el usuario escribe
+    searchInput.addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        suggestions.innerHTML = '';
+        partIdInput.value = '';
 
-    // si no hay texto oculta las sugerencias
-    if (query.length < 1) { suggestions.style.display = 'none'; return; }
+        // si no hay texto oculta las sugerencias
+        if (query.length < 1) { suggestions.style.display = 'none'; return; }
 
-    // filtra las partes que contienen el texto escrito
-    const matches = parts.filter(p => p.name.toLowerCase().includes(query));
+        // filtra las partes que contienen el texto escrito
+        const matches = parts.filter(p => p.name.toLowerCase().includes(query));
 
-    if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+        if (matches.length === 0) { suggestions.style.display = 'none'; return; }
 
-    // crea un div por cada coincidencia
-    matches.forEach(part => {
-        const div = document.createElement('div');
-        div.textContent = part.name;
-        div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
-        div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
-        div.addEventListener('mouseout', () => div.style.background = 'white');
-        // cuando el usuario hace click en una sugerencia
-        // llena el campo visible y el campo oculto con el id
-        div.addEventListener('click', () => {
-            searchInput.value = part.name;
-            partIdInput.value = part.id;
-            suggestions.style.display = 'none';
+        // crea un div por cada coincidencia
+        matches.forEach(part => {
+            const div = document.createElement('div');
+            div.textContent = part.name;
+            div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
+            div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
+            div.addEventListener('mouseout', () => div.style.background = 'white');
+            // cuando el usuario hace click en una sugerencia
+            // llena el campo visible y el campo oculto con el id
+            div.addEventListener('click', () => {
+                searchInput.value = part.name;
+                partIdInput.value = part.id;
+                suggestions.style.display = 'none';
+            });
+            suggestions.appendChild(div);
         });
-        suggestions.appendChild(div);
+        suggestions.style.display = 'block';
     });
-    suggestions.style.display = 'block';
-});
 
-// oculta las sugerencias cuando el usuario hace click fuera
-document.addEventListener('click', function(e) {
-    if (!searchInput.contains(e.target)) {
-        suggestions.style.display = 'none';
+    // navegacion con teclado en el autocomplete
+    searchInput.addEventListener('keydown', function (e) {
+        const items = suggestions.querySelectorAll('div');
+        let current = suggestions.querySelector('.highlighted');
+        let index = Array.from(items).indexOf(current);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (current) current.classList.remove('highlighted');
+            index = (index + 1) % items.length;
+            items[index].classList.add('highlighted');
+            items[index].scrollIntoView({ block: 'nearest' });
+
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (current) current.classList.remove('highlighted');
+            index = (index - 1 + items.length) % items.length;
+            items[index].classList.add('highlighted');
+            items[index].scrollIntoView({ block: 'nearest' });
+
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (current) current.click();
+
+        } else if (e.key === 'Escape') {
+            suggestions.style.display = 'none';
+        }
+    });
+
+    // oculta las sugerencias cuando el usuario hace click fuera
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+
+    // muestra u oculta los campos de ubicacion
+    // segun si el usuario elige overflow o direct to active
+    function toggleLocation() {
+        const type = document.getElementById('receiving_type').value;
+        const fields = document.getElementById('location-fields');
+        // si es directo oculta los campos, si es overflow los muestra
+        fields.style.display = type === 'direct' ? 'none' : 'block';
     }
-});
-
-// muestra u oculta los campos de ubicacion
-// segun si el usuario elige overflow o direct to active
-function toggleLocation() {
-    const type = document.getElementById('receiving_type').value;
-    const fields = document.getElementById('location-fields');
-    // si es directo oculta los campos, si es overflow los muestra
-    fields.style.display = type === 'direct' ? 'none' : 'block';
-}
 </script>
 
 {% endblock %}
