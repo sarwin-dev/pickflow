@@ -88,7 +88,7 @@
                     {% for part in parts %}
                     <tr>
                         <td>
-                            {{ part.name }}
+                            {{ part.part.name }}
                             {% if part.is_optional %}
                             <span class="role-badge role-inventory" style="font-size:10px;">optional</span>
                             {% endif %}
@@ -96,12 +96,12 @@
                         <td>{{ part.quantity }}</td>
                         <td>Cart {{ part.cart }}</td>
                         <td style="font-size:12px; color:#666;">
-                            {% if part.active_aisle %}
-                            A{{ '%02d'|format(part.active_aisle|int) }}
-                            B{{ '%02d'|format(part.active_bay|int) }}
-                            S{{ '%02d'|format(part.active_shelf|int) }}
-                            {% if part.active_location %}
-                            L{{ '%02d'|format(part.active_location|int) }}
+                            {% if part.part.active_aisle %}
+                            A{{ '%02d'|format(part.part.active_aisle|int) }}
+                            B{{ '%02d'|format(part.part.active_bay|int) }}
+                            S{{ '%02d'|format(part.part.active_shelf|int) }}
+                            {% if part.part.active_location %}
+                            L{{ '%02d'|format(part.part.active_location|int) }}
                             {% endif %}
                             {% else %}
                             —

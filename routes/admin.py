@@ -1,11 +1,10 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-# funcion auxiliar - verifica que el usuario es admin
 def admin_required():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -13,7 +12,6 @@ def admin_required():
         return redirect(url_for('dashboard'))
     return None
 
-# ruta principal del modulo admin
 @admin_bp.route('/')
 def index():
     check = admin_required()
@@ -22,20 +20,17 @@ def index():
     return render_template('admin/index.html')
 
 # ============================================
-# USERS - gestion de usuarios
+# USERS
 # ============================================
 
-# lista todos los usuarios
 @admin_bp.route('/users')
 def users():
     check = admin_required()
     if check:
         return check
-    # trae todos los usuarios de la base de datos
     all_users = User.query.all()
     return render_template('admin/users.html', users=all_users)
 
-# crea un usuario nuevo
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
 def create_user():
     check = admin_required()
@@ -47,7 +42,6 @@ def create_user():
         email = request.form['email']
         password = request.form['password']
         role = request.form['role']
-        # verificamos que el email no exista ya
         existing = User.query.filter_by(email=email).first()
         if existing:
             error = 'A user with that email already exists'
@@ -63,7 +57,6 @@ def create_user():
             return redirect(url_for('admin.users'))
     return render_template('admin/create_user.html', error=error)
 
-# elimina un usuario
 @admin_bp.route('/users/delete/<int:user_id>')
 def delete_user(user_id):
     check = admin_required()
@@ -74,12 +67,11 @@ def delete_user(user_id):
         db.session.delete(user)
         db.session.commit()
     return redirect(url_for('admin.users'))
-# ============================================
-# CABINET TYPES - gestion de tipos de gabinete
-# ============================================
-from models import CabinetType, PartTemplate
 
-# lista todos los tipos de gabinete
+# ============================================
+# CABINET TYPES
+# ============================================
+
 @admin_bp.route('/cabinets')
 def cabinets():
     check = admin_required()
@@ -88,7 +80,6 @@ def cabinets():
     all_cabinets = CabinetType.query.all()
     return render_template('admin/cabinets.html', cabinets=all_cabinets)
 
-# crea un tipo de gabinete nuevo
 @admin_bp.route('/cabinets/create', methods=['GET', 'POST'])
 def create_cabinet():
     check = admin_required()
@@ -109,42 +100,59 @@ def create_cabinet():
         return redirect(url_for('admin.cabinet_parts', cabinet_id=new_cabinet.id))
     return render_template('admin/create_cabinet.html', error=error)
 
-# ve y agrega partes a un gabinete
-# ve y agrega partes a un gabinete
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts', methods=['GET', 'POST'])
 def cabinet_parts(cabinet_id):
     check = admin_required()
     if check:
         return check
     cabinet = CabinetType.query.get(cabinet_id)
-    # traemos la configuracion del warehouse para validar ubicaciones
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
-        new_part = PartTemplate(
+        # normaliza el nombre - title case y elimina espacios extras
+        part_name = ' '.join(request.form['name'].strip().split()).title()
+        # busca si la parte ya existe en la tabla maestra
+        existing_part = Part.query.filter(
+            Part.name.ilike(part_name)
+        ).first()
+        if existing_part:
+            # la parte ya existe, la reutilizamos
+            part = existing_part
+            # actualizamos ubicacion si se proporciono
+            if request.form.get('active_aisle'):
+                part.active_aisle = request.form.get('active_aisle')
+                part.active_bay = request.form.get('active_bay')
+                part.active_shelf = request.form.get('active_shelf')
+                part.active_location = request.form.get('active_location') or None
+                db.session.commit()
+        else:
+            # la parte no existe, la creamos en la tabla maestra
+            part = Part(
+                name=part_name,
+                is_shared=True if request.form.get('is_shared') else False,
+                active_aisle=request.form.get('active_aisle') or None,
+                active_bay=request.form.get('active_bay') or None,
+                active_shelf=request.form.get('active_shelf') or None,
+                active_location=request.form.get('active_location') or None,
+            )
+            db.session.add(part)
+            db.session.flush()
+        # vincula la parte con el gabinete
+        new_template = PartTemplate(
             cabinet_type_id=cabinet_id,
-            name=request.form['name'],
+            part_id=part.id,
             quantity=request.form['quantity'],
             cart=request.form['cart'],
             is_optional=True if request.form.get('is_optional') else False,
-            active_aisle=request.form.get('active_aisle') or None,
-            active_bay=request.form.get('active_bay') or None,
-            active_shelf=request.form.get('active_shelf') or None,
-            active_location=request.form.get('active_location') or None,
-            overflow_aisle=request.form.get('overflow_aisle') or None,
-            overflow_bay=request.form.get('overflow_bay') or None,
-            overflow_shelf=request.form.get('overflow_shelf') or None,
-            overflow_location=request.form.get('overflow_location') or None,
         )
-        db.session.add(new_part)
+        db.session.add(new_template)
         db.session.commit()
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
     parts = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
-    return render_template('admin/cabinet_parts.html', 
-                         cabinet=cabinet, 
-                         parts=parts,
-                         config=config)  # pasamos config al HTML
+    return render_template('admin/cabinet_parts.html',
+                           cabinet=cabinet,
+                           parts=parts,
+                           config=config)
 
-# elimina un tipo de gabinete
 @admin_bp.route('/cabinets/delete/<int:cabinet_id>')
 def delete_cabinet(cabinet_id):
     check = admin_required()
@@ -156,22 +164,20 @@ def delete_cabinet(cabinet_id):
         db.session.commit()
     return redirect(url_for('admin.cabinets'))
 
-# elimina una parte de un gabinete
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/delete/<int:part_id>')
 def delete_part(cabinet_id, part_id):
     check = admin_required()
     if check:
         return check
-    part = PartTemplate.query.get(part_id)
-    if part:
-        db.session.delete(part)
+    template = PartTemplate.query.get(part_id)
+    if template:
+        db.session.delete(template)
         db.session.commit()
     return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
 
 # ============================================
-# WAREHOUSE CONFIG - configuracion del warehouse
+# WAREHOUSE CONFIG
 # ============================================
-from models import WarehouseConfig
 
 @admin_bp.route('/warehouse', methods=['GET', 'POST'])
 def warehouse_config():
@@ -193,7 +199,7 @@ def warehouse_config():
     return render_template('admin/warehouse_config.html', config=config)
 
 # ============================================
-# LOCATIONS - mapa del warehouse
+# LOCATIONS
 # ============================================
 
 @admin_bp.route('/locations')
@@ -201,15 +207,14 @@ def locations():
     check = admin_required()
     if check:
         return check
-    # busqueda por nombre de parte
     search = request.args.get('search', '')
     if search:
-        parts = PartTemplate.query.filter(
-            PartTemplate.name.ilike(f'%{search}%')
+        parts = Part.query.filter(
+            Part.name.ilike(f'%{search}%')
         ).order_by(
-            PartTemplate.active_aisle,
-            PartTemplate.active_bay,
-            PartTemplate.active_shelf
+            Part.active_aisle,
+            Part.active_bay,
+            Part.active_shelf
         ).all()
     else:
         parts = []

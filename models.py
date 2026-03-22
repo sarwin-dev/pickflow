@@ -21,26 +21,33 @@ class CabinetType(db.Model):
     is_custom = db.Column(db.Boolean, default=False)
     parts = db.relationship('PartTemplate', backref='cabinet', lazy=True)
 
+# tabla maestra de partes - cada parte existe una sola vez
+class Part(db.Model):
+    __tablename__ = 'parts'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    # indica si la parte es compartida entre varios tipos de gabinete
+    # ejemplo: B Side L es compartida, B Back 24 no
+    is_shared = db.Column(db.Boolean, default=False)
+    # ubicacion activa en el almacen - shelves 1 y 2
+    active_aisle = db.Column(db.String(5), nullable=True)
+    active_bay = db.Column(db.String(5), nullable=True)
+    active_shelf = db.Column(db.String(5), nullable=True)
+    active_location = db.Column(db.String(5), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# vincula partes maestras con tipos de gabinete
 class PartTemplate(db.Model):
     __tablename__ = 'part_templates'
     id = db.Column(db.Integer, primary_key=True)
     cabinet_type_id = db.Column(db.Integer, db.ForeignKey('cabinet_types.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
+    # referencia a la parte maestra
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
     quantity = db.Column(db.Integer, default=1)
     cart = db.Column(db.Integer, nullable=False)
     is_optional = db.Column(db.Boolean, default=False)
-    
-    # ubicacion activa - shelves 1 y 2 - caja abierta del dia a dia
-    active_aisle = db.Column(db.String(5), nullable=True)
-    active_bay = db.Column(db.String(5), nullable=True)
-    active_shelf = db.Column(db.String(5), nullable=True)
-    active_location = db.Column(db.String(5), nullable=True)  # opcional
-    
-    # ubicacion overflow - shelves 3 al 6 - cajas selladas de reserva
-    overflow_aisle = db.Column(db.String(5), nullable=True)
-    overflow_bay = db.Column(db.String(5), nullable=True)
-    overflow_shelf = db.Column(db.String(5), nullable=True)
-    overflow_location = db.Column(db.String(5), nullable=True)  # opcional
+    # relacion con la parte maestra
+    part = db.relationship('Part', backref='templates')
 
 class WorkOrder(db.Model):
     __tablename__ = 'work_orders'
@@ -71,28 +78,23 @@ class PickItem(db.Model):
 class Inventory(db.Model):
     __tablename__ = 'inventory'
     id = db.Column(db.Integer, primary_key=True)
-    part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False)
-    # ubicacion exacta de esta caja especifica
+    # ahora referencia a la parte maestra, no a part_template
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
     aisle = db.Column(db.String(5), nullable=True)
     bay = db.Column(db.String(5), nullable=True)
     shelf = db.Column(db.String(5), nullable=True)
     location = db.Column(db.String(5), nullable=True)
-    # cantidad de unidades en esta caja
     quantity = db.Column(db.Integer, default=0)
-    # True = picking diario (shelves 1-2), False = overflow (shelves 3-6)
     is_active = db.Column(db.Boolean, default=False)
-    # cantidad minima antes de generar alerta de restock
     min_quantity = db.Column(db.Integer, default=10)
-    # cuando se recibio esta caja
     received_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    # relacion con la parte
-    part = db.relationship('PartTemplate', backref='inventory_records')
+    part = db.relationship('Part', backref='inventory_records')
 
 class Loss(db.Model):
     __tablename__ = 'losses'
     id = db.Column(db.Integer, primary_key=True)
-    part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False)
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.String(200), nullable=True)
     reported_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -101,13 +103,10 @@ class Loss(db.Model):
 class WarehouseConfig(db.Model):
     __tablename__ = 'warehouse_config'
     id = db.Column(db.Integer, primary_key=True)
-    # nombre del warehouse - util para multiples clientes
     name = db.Column(db.String(100), nullable=False, default='My Warehouse')
-    # limites del warehouse
     total_aisles = db.Column(db.Integer, nullable=False, default=6)
     total_bays = db.Column(db.Integer, nullable=False, default=35)
     total_shelves = db.Column(db.Integer, nullable=False, default=6)
     total_locations = db.Column(db.Integer, nullable=False, default=4)
-    # shelves activos - los primeros dos son picking, el resto overflow
     active_shelves = db.Column(db.Integer, nullable=False, default=2)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
