@@ -191,3 +191,26 @@ def warehouse_config():
         db.session.commit()
         return redirect(url_for('admin.warehouse_config'))
     return render_template('admin/warehouse_config.html', config=config)
+
+# ============================================
+# LOCATIONS - mapa del warehouse
+# ============================================
+
+@admin_bp.route('/locations')
+def locations():
+    check = admin_required()
+    if check:
+        return check
+    # busqueda por nombre de parte
+    search = request.args.get('search', '')
+    if search:
+        parts = PartTemplate.query.filter(
+            PartTemplate.name.ilike(f'%{search}%')
+        ).order_by(
+            PartTemplate.active_aisle,
+            PartTemplate.active_bay,
+            PartTemplate.active_shelf
+        ).all()
+    else:
+        parts = []
+    return render_template('admin/locations.html', parts=parts, search=search)

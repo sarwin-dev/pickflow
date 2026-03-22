@@ -72,9 +72,22 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
     id = db.Column(db.Integer, primary_key=True)
     part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False)
+    # ubicacion exacta de esta caja especifica
+    aisle = db.Column(db.String(5), nullable=True)
+    bay = db.Column(db.String(5), nullable=True)
+    shelf = db.Column(db.String(5), nullable=True)
+    location = db.Column(db.String(5), nullable=True)
+    # cantidad de unidades en esta caja
     quantity = db.Column(db.Integer, default=0)
+    # True = picking diario (shelves 1-2), False = overflow (shelves 3-6)
+    is_active = db.Column(db.Boolean, default=False)
+    # cantidad minima antes de generar alerta de restock
     min_quantity = db.Column(db.Integer, default=10)
+    # cuando se recibio esta caja
+    received_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # relacion con la parte
+    part = db.relationship('PartTemplate', backref='inventory_records')
 
 class Loss(db.Model):
     __tablename__ = 'losses'

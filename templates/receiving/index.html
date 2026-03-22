@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Receiving - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Receiving</h1>
+    <p>Register incoming boxes and update inventory</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <div class="form-card">
+        <h3 style="margin-bottom:1rem; font-size:16px;">Register New Box</h3>
+        <form method="POST" action="/receiving/receive">
+            <div class="form-group">
+                <label>Part</label>
+                <input type="text" id="part-search" placeholder="Type part name... e.g. B Side L" autocomplete="off"
+                    style="width:100%;">
+                <input type="hidden" name="part_id" id="part-id" required>
+                <div id="suggestions" style="
+                    border:1px solid #ddd;
+                    border-radius:8px;
+                    background:white;
+                    display:none;
+                    max-height:200px;
+                    overflow-y:auto;
+                    margin-top:4px;">
+                </div>
+    </div>
+    <div class="form-group">
+        <label>Quantity (units in this box)</label>
+        <input type="number" name="quantity" min="1" placeholder="120" required>
+    </div>
+    <p style="font-size:13px; font-weight:500; color:#444; margin-bottom:8px;">
+        Where are you placing this box?
+    </p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+            <label>Aisle (1 - {{ config.total_aisles }})</label>
+            <input type="number" name="aisle" min="1" max="{{ config.total_aisles }}" placeholder="1" required>
+        </div>
+        <div class="form-group">
+            <label>Bay (1 - {{ config.total_bays }})</label>
+            <input type="number" name="bay" min="1" max="{{ config.total_bays }}" placeholder="1" required>
+        </div>
+        <div class="form-group">
+            <label>Shelf (1 - {{ config.total_shelves }})</label>
+            <input type="number" name="shelf" min="1" max="{{ config.total_shelves }}" placeholder="1" required>
+        </div>
+        <div class="form-group">
+            <label>Location (optional)</label>
+            <input type="number" name="location" min="1" max="{{ config.total_locations }}" placeholder="1">
+        </div>
+    </div>
+    <p style="font-size:12px; color:#999; margin-bottom:1rem;">
+        Shelves 1-{{ config.active_shelves }} = Active picking.
+        Shelves {{ config.active_shelves + 1 }}-{{ config.total_shelves }} = Overflow.
+    </p>
+    <button type="submit" class="btn-primary" style="width:100%;">Register Box</button>
+    </form>
+</div>
+
+<div>
+    <h3 style="margin-bottom:1rem; font-size:16px;">Recent Receiving (last 50)</h3>
+    {% if records %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Part</th>
+                    <th>Location</th>
+                    <th>Qty</th>
+                    <th>Type</th>
+                    <th>Pulldown</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td style="font-size:13px;">{{ record.part.name }}</td>
+                    <td style="font-family:monospace; font-size:12px;">
+                        A{{ '%02d'|format(record.aisle|int) }}
+                        B{{ '%02d'|format(record.bay|int) }}
+                        S{{ '%02d'|format(record.shelf|int) }}
+                        {% if record.location %}
+                        L{{ '%02d'|format(record.location|int) }}
+                        {% endif %}
+                    </td>
+                    <td>{{ record.quantity }}</td>
+                    <td>
+                        {% if record.is_active %}
+                        <span class="role-badge role-picker">Active</span>
+                        {% else %}
+                        <span class="role-badge role-inventory">Overflow</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="/receiving/pulldown/{{ record.id }}"
+                            style="display:flex; gap:6px; align-items:center;">
+                            <input type="number" name="quantity" min="1" max="{{ record.quantity }}" placeholder="qty"
+                                style="width:60px; padding:4px 6px; border:1px solid #ddd; border-radius:6px; font-size:12px;">
+                            <button type="submit" class="btn-create" style="font-size:11px; padding:4px 8px;"
+                                onclick="return confirm('Confirm pulldown?')">Pull</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:#999; font-size:14px;">No receiving records yet.</p>
+    {% endif %}
+</div>
+
+</div>
+<script>
+const parts = [
+    {% for part in parts %}
+    { id: {{ part.id }}, name: "{{ part.name }}", code: "{{ part.cabinet.code }}" },
+    {% endfor %}
+];
+
+const searchInput = document.getElementById('part-search');
+const partIdInput = document.getElementById('part-id');
+const suggestions = document.getElementById('suggestions');
+
+searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    suggestions.innerHTML = '';
+    partIdInput.value = '';
+
+    if (query.length < 1) {
+        suggestions.style.display = 'none';
+        return;
+    }
+
+    const matches = parts.filter(p => 
+        p.name.toLowerCase().includes(query)
+    );
+
+    if (matches.length === 0) {
+        suggestions.style.display = 'none';
+        return;
+    }
+
+    matches.forEach(part => {
+        const div = document.createElement('div');
+        div.textContent = part.name + ' — ' + part.code;
+        div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
+        div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
+        div.addEventListener('mouseout', () => div.style.background = 'white');
+        div.addEventListener('click', () => {
+            searchInput.value = part.name + ' — ' + part.code;
+            partIdInput.value = part.id;
+            suggestions.style.display = 'none';
+        });
+        suggestions.appendChild(div);
+    });
+
+    suggestions.style.display = 'block';
+});
+
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target)) {
+        suggestions.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

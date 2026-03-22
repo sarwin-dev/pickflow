@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Locations - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Warehouse Locations</h1>
+            <p>Find any part and its exact location in the warehouse</p>
+        </div>
+        <a href="/admin" class="btn-secondary">← Back</a>
+    </div>
+</div>
+
+<!-- buscador -->
+<div style="margin-bottom:1.5rem;">
+    <form method="GET" action="/admin/locations">
+        <div style="display:flex; gap:12px; max-width:500px;">
+            <input type="text" 
+                   name="search" 
+                   value="{{ search }}"
+                   placeholder="Search part name... e.g. B Side L, Nailer 24"
+                   style="flex:1; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px; outline:none;">
+            <button type="submit" class="btn-primary" style="width:auto; padding:10px 20px;">
+                Search
+            </button>
+            {% if search %}
+            <a href="/admin/locations" class="btn-secondary">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- resultados -->
+{% if search %}
+<p style="font-size:13px; color:#666; margin-bottom:1rem;">
+    {{ parts|length }} result(s) for "<strong>{{ search }}</strong>"
+</p>
+{% endif %}
+
+{% if parts %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Part Name</th>
+                <th>Cabinet</th>
+                <th>Active Location</th>
+                <th>Cart</th>
+                <th>Optional</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+            <tr>
+                <td><strong>{{ part.name }}</strong></td>
+                <td>{{ part.cabinet.code }} — {{ part.cabinet.name }}</td>
+                <td>
+                    <span style="font-family: monospace; font-size:14px; 
+                                 background:#f3f4f6; padding:4px 8px; 
+                                 border-radius:6px;">
+                        A{{ '%02d'|format(part.active_aisle|int) }}
+                        B{{ '%02d'|format(part.active_bay|int) }}
+                        S{{ '%02d'|format(part.active_shelf|int) }}
+                        {% if part.active_location %}
+                        L{{ '%02d'|format(part.active_location|int) }}
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% if part.cart == 1 %}
+                        Case Pick List
+                    {% else %}
+                        DO DF DBX ADJ
+                    {% endif %}
+                </td>
+                <td>
+                    {% if part.is_optional %}
+                    <span class="role-badge role-inventory">optional</span>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    {% if search %}
+    <p style="font-size:16px;">No parts found for "<strong>{{ search }}</strong>"</p>
+    <p style="font-size:13px; margin-top:8px;">Try a different search term</p>
+    {% else %}
+    <p style="font-size:16px;">No locations configured yet</p>
+    <p style="font-size:13px; margin-top:8px;">Add locations to your cabinet parts in 
+        <a href="/admin/cabinets" style="color:#4f46e5;">Cabinet Types</a>
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

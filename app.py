@@ -48,5 +48,8 @@ def logout():
 from routes.admin import admin_bp
 app.register_blueprint(admin_bp)
 
+from routes.receiving import receiving_bp
+app.register_blueprint(receiving_bp)
+
 if __name__ == '__main__':
     app.run(debug=True)
