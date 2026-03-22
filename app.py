@@ -51,5 +51,8 @@ app.register_blueprint(admin_bp)
 from routes.receiving import receiving_bp
 app.register_blueprint(receiving_bp)
 
+from routes.orders import orders_bp
+app.register_blueprint(orders_bp)
+
 if __name__ == '__main__':
     app.run(debug=True)

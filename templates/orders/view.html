@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Order {{ order.order_number }} - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Order {{ order.order_number }}</h1>
+            <p>Created {{ order.created_at.strftime('%m/%d/%Y at %I:%M %p') }}
+               by {{ order.creator.name if order.creator else '—' }}</p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <!-- badge de status -->
+            {% if order.status == 'pending' %}
+            <span class="role-badge role-inventory" style="font-size:14px; padding:6px 14px;">
+                Pending
+            </span>
+            {% elif order.status == 'in_progress' %}
+            <span class="role-badge role-order_entry" style="font-size:14px; padding:6px 14px;">
+                In Progress
+            </span>
+            {% elif order.status == 'completed' %}
+            <span class="role-badge role-picker" style="font-size:14px; padding:6px 14px;">
+                Completed
+            </span>
+            {% else %}
+            <span class="role-badge" style="background:#f3f4f6; color:#6b7280; font-size:14px; padding:6px 14px;">
+                Cancelled
+            </span>
+            {% endif %}
+            {% if order.status == 'pending' %}
+            <a href="/pick/{{ order.id }}" class="btn-create">Start Pick</a>
+            <a href="/orders/{{ order.id }}/cancel" class="btn-delete"
+               onclick="return confirm('Cancel this order?')"
+               style="margin-left:8px;">Cancel Order</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- resumen de la orden -->
+<div class="table-container" style="margin-bottom:1.5rem;">
+    <div style="padding:12px 16px; background:#f9fafb; 
+                border-bottom:1px solid #e5e7eb;
+                display:flex; gap:2rem;">
+        <span style="font-size:13px; color:#666;">
+            Total cabinets: <strong>{{ order.items|length }}</strong>
+        </span>
+        <span style="font-size:13px; color:#666;">
+            Case Pick List: 
+            <strong>{{ order.items|selectattr('cart', 'eq', 1)|list|length }}</strong>
+        </span>
+        <span style="font-size:13px; color:#666;">
+            DO DF DBX ADJ: 
+            <strong>{{ order.items|selectattr('cart', 'eq', 2)|list|length }}</strong>
+        </span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Slot</th>
+                <th>Cabinet</th>
+                <th>Pick List</th>
+                <th>Parts</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items|sort(attribute='slot') %}
+            <tr>
+                <td style="font-weight:500; color:#6b7280;">{{ item.slot }}</td>
+                <td>
+                    <strong>{{ item.cabinet.code }}</strong>
+                    {% if item.cabinet.color %}
+                    <span style="color:#666;">{{ item.cabinet.color }}</span>
+                    {% endif %}
+                    <div style="font-size:12px; color:#999;">{{ item.cabinet.name }}</div>
+                </td>
+                <td>
+                    {% if item.cart == 1 %}
+                    <span class="role-badge role-order_entry">Case</span>
+                    {% else %}
+                    <span class="role-badge role-receiving">DO DF DBX ADJ</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:13px;">
+                    <!-- lista de partes del gabinete -->
+                    {% for template in item.cabinet.parts %}
+                    <div style="padding:2px 0; color:#374151;">
+                        {{ template.part.name }}
+                        {% if template.quantity > 1 %}
+                        <span style="color:#9ca3af;">x{{ template.quantity }}</span>
+                        {% endif %}
+                        {% if template.is_optional %}
+                        <span class="role-badge role-inventory" 
+                              style="font-size:10px;">opt</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </td>
+                <td>
+                    <!-- estado del pick de este slot -->
+                    {% set picked = item.picks|selectattr('is_picked', 'eq', true)|list|length %}
+                    {% set total = item.picks|list|length %}
+                    {% if total == 0 %}
+                    <span style="color:#9ca3af; font-size:13px;">Not started</span>
+                    {% elif picked == total %}
+                    <span class="role-badge role-picker">Done</span>
+                    {% else %}
+                    <span class="role-badge role-inventory">{{ picked }}/{{ total }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

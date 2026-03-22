@@ -53,10 +53,14 @@ class WorkOrder(db.Model):
     __tablename__ = 'work_orders'
     id = db.Column(db.Integer, primary_key=True)
     order_number = db.Column(db.String(50), unique=True, nullable=False)
+    job_name = db.Column(db.String(100), nullable=True)
+    lot_number = db.Column(db.String(50), nullable=True)
     status = db.Column(db.String(20), default='pending')
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.relationship('OrderItem', backref='order', lazy=True)
+    creator = db.relationship('User', backref='orders')
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
@@ -65,6 +69,10 @@ class OrderItem(db.Model):
     cabinet_type_id = db.Column(db.Integer, db.ForeignKey('cabinet_types.id'), nullable=False)
     slot = db.Column(db.Integer, nullable=False)
     cart = db.Column(db.Integer, nullable=False)
+    # relacion con el gabinete
+    cabinet = db.relationship('CabinetType', backref='order_items')
+    # relacion con los picks de este slot
+    picks = db.relationship('PickItem', backref='order_item', lazy=True)
 
 class PickItem(db.Model):
     __tablename__ = 'pick_items'

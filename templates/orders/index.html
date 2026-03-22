@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Entry - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Order Entry</h1>
+            <p>Create and manage work orders</p>
+        </div>
+        <a href="/orders/create" class="btn-create">+ New Order</a>
+    </div>
+</div>
+
+{% if orders %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Status</th>
+                <th>Cabinets</th>
+                <th>Created by</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>{{ order.order_number }}</strong></td>
+                <td>
+                    {% if order.status == 'pending' %}
+                    <span class="role-badge role-inventory">Pending</span>
+                    {% elif order.status == 'in_progress' %}
+                    <span class="role-badge role-order_entry">In Progress</span>
+                    {% elif order.status == 'completed' %}
+                    <span class="role-badge role-picker">Completed</span>
+                    {% else %}
+                    <span class="role-badge" style="background:#f3f4f6; color:#6b7280;">Cancelled</span>
+                    {% endif %}
+                </td>
+                <td>{{ order.items|length }} cabinets</td>
+                <td>{{ order.creator.name if order.creator else '—' }}</td>
+                <td style="font-size:13px; color:#666;">
+                    {{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}
+                </td>
+                <td style="display:flex; gap:8px;">
+                    <a href="/orders/{{ order.id }}" class="btn-create" 
+                       style="font-size:12px; padding:4px 10px;">View</a>
+                    {% if order.status == 'pending' %}
+                    <a href="/orders/{{ order.id }}/cancel" 
+                       class="btn-delete"
+                       onclick="return confirm('Cancel this order?')">Cancel</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    <p style="font-size:16px;">No orders yet</p>
+    <p style="font-size:13px; margin-top:8px;">
+        <a href="/orders/create" style="color:#4f46e5;">Create your first order</a>
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

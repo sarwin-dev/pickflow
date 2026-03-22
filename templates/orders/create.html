@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}New Order - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>New Work Order</h1>
+    <p>Add cabinets to this order — up to 24 slots per cart</p>
+</div>
+
+{% if error %}
+<div class="alert-error" style="max-width:700px; margin-bottom:1rem;">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="/orders/create">
+
+    <<div class="form-card" style="max-width:700px; margin-bottom:1.5rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group">
+                <label>Job Name</label>
+                <input type="text" name="job_name" placeholder="e.g. Modena1, Piazza Paradise">
+            </div>
+            <div class="form-group">
+                <label>Lot #</label>
+                <input type="text" name="lot_number" placeholder="e.g. Lot097">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Work Order (W.O)</label>
+            <input type="text" name="order_number" placeholder="e.g. 2650272.1" required>
+        </div>
+        </div>
+
+        <!-- slots del carrito - hasta 24 gabinetes -->
+        <div style="max-width:700px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size:16px; font-weight:500;">Cart Slots</h3>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn-secondary" onclick="addSlot()">+ Add Slot</button>
+                    <button type="button" class="btn-secondary" onclick="removeSlot()">- Remove</button>
+                </div>
+            </div>
+
+            <div id="slots-container" class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">Slot</th>
+                            <th>Cabinet Type</th>
+                            <th style="width:200px;">Pick List</th>
+                        </tr>
+                    </thead>
+                    <tbody id="slots-body">
+                        <!-- los slots se generan dinamicamente con javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:1.5rem; max-width:700px;">
+            <button type="submit" class="btn-primary" style="width:auto; padding:10px 24px;">
+                Create Order
+            </button>
+            <a href="/orders" class="btn-secondary">Cancel</a>
+        </div>
+
+</form>
+
+<script>
+    // lista de gabinetes que viene desde Python
+    const cabinets = [
+        {% for cabinet in cabinets %}
+    {
+        id: { { cabinet.id } },
+        code: "{{ cabinet.code }}",
+            name: "{{ cabinet.name }}",
+                color: "{{ cabinet.color or '' }}"
+    },
+    {% endfor %}
+];
+
+    let slotCount = 0;
+
+    // crea las opciones del select de gabinetes
+    function cabinetOptions(selectedId) {
+        let opts = '<option value="">— Select cabinet —</option>';
+        cabinets.forEach(c => {
+            const label = c.code + (c.color ? ' ' + c.color : '') + ' — ' + c.name;
+            const selected = selectedId == c.id ? 'selected' : '';
+            opts += `<option value="${c.id}" ${selected}>${label}</option>`;
+        });
+        return opts;
+    }
+
+    // agrega un slot nuevo a la tabla
+    function addSlot() {
+        if (slotCount >= 24) {
+            alert('Maximum 24 slots per cart');
+            return;
+        }
+        slotCount++;
+        const tbody = document.getElementById('slots-body');
+        const row = document.createElement('tr');
+        row.id = 'slot-' + slotCount;
+        row.innerHTML = `
+        <td style="font-weight:500; color:#6b7280;">${slotCount}</td>
+        <td>
+            <select name="cabinet_id" style="width:100%; padding:6px 10px; 
+                    border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                ${cabinetOptions(null)}
+            </select>
+        </td>
+        <td>
+            <select name="cart" style="width:100%; padding:6px 10px; 
+                    border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                <option value="1">Case Pick List</option>
+                <option value="2">DO DF DBX ADJ</option>
+            </select>
+        </td>
+    `;
+        tbody.appendChild(row);
+    }
+
+    // elimina el ultimo slot
+    function removeSlot() {
+        if (slotCount === 0) return;
+        const row = document.getElementById('slot-' + slotCount);
+        if (row) row.remove();
+        slotCount--;
+    }
+
+    // agrega 6 slots por defecto al cargar la pagina
+    for (let i = 0; i < 6; i++) addSlot();
+</script>
+
+{% endblock %}
