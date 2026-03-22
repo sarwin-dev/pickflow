@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Pick {{ order.order_number }} - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<!-- header con info de la orden -->
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h1>{{ order.job_name or 'Work Order' }} — {{ order.lot_number or '' }}</h1>
+            <p>WO: {{ order.order_number }} · {{ order.items|length }} cabinets</p>
+        </div>
+        <!-- barra de progreso -->
+        <div style="text-align:right;">
+            <div style="font-size:13px; color:#666; margin-bottom:4px;">
+                <span id="picked-count">0</span> / <span id="total-count">0</span> parts picked
+            </div>
+            <div style="width:200px; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+                <div id="progress-bar" style="height:100%; background:#059669; width:0%; transition:width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- filtro por aisle -->
+<div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <button class="btn-secondary aisle-filter active-filter" onclick="filterAisle('all')">
+        All Aisles
+    </button>
+    {% set aisles = [] %}
+    {% for group in groups %}
+        {% if group.aisle not in aisles %}
+            {% set _ = aisles.append(group.aisle) %}
+            <button class="btn-secondary aisle-filter" 
+                    onclick="filterAisle({{ group.aisle }})">
+                Aisle {{ '%02d'|format(group.aisle) }}
+            </button>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<!-- pick list -->
+<div id="pick-list">
+    {% for group in groups %}
+    <div class="pick-group" 
+         data-aisle="{{ group.aisle }}"
+         style="background:white; border:1px solid #e5e7eb; border-radius:12px; 
+                margin-bottom:10px; overflow:hidden;">
+
+        <!-- header de ubicacion -->
+        <div style="background:#f9fafb; padding:10px 16px; 
+                    border-bottom:1px solid #e5e7eb;
+                    display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <!-- ubicacion en formato ABSL -->
+                <span style="font-family:monospace; font-size:14px; 
+                             font-weight:500; color:#1e1b4b;">
+                    {{ group.location }}
+                </span>
+                <!-- nombre de la parte -->
+                <span style="font-size:14px; color:#374151;">
+                    {{ group.part_name }}
+                </span>
+            </div>
+            <!-- cantidad total en esta ubicacion -->
+            <span style="font-size:13px; color:#6b7280;">
+                QTY: {{ group.slots|length }}
+            </span>
+        </div>
+
+        <!-- slots que necesitan esta parte -->
+        <div style="padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px;">
+            {% for slot in group.slots %}
+            <div style="display:flex; align-items:center; gap:6px;">
+                <!-- checkbox individual por slot -->
+                <input type="checkbox" 
+                       id="pick-{{ slot.pick_item_id }}"
+                       class="pick-checkbox"
+                       data-id="{{ slot.pick_item_id }}"
+                       {% if slot.is_picked %}checked{% endif %}
+                       style="width:18px; height:18px; cursor:pointer; accent-color:#059669;">
+                <!-- numero de slot -->
+                <label for="pick-{{ slot.pick_item_id }}"
+                       style="font-size:13px; cursor:pointer;
+                              color:{% if slot.is_picked %}#9ca3af{% else %}#374151{% endif %};"
+                       id="label-{{ slot.pick_item_id }}">
+                    #{{ slot.slot }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+<!-- mensaje cuando esta completa -->
+<div id="order-complete" style="display:none; text-align:center; padding:2rem;">
+    <div style="font-size:48px; margin-bottom:1rem;">✓</div>
+    <h2 style="color:#059669; margin-bottom:8px;">Order Complete!</h2>
+    <p style="color:#666;">All parts have been picked for this order.</p>
+    <a href="/pick" class="btn-primary" style="display:inline-block; margin-top:1rem; width:auto; padding:10px 24px;">
+        Back to Orders
+    </a>
+</div>
+
+<style>
+.active-filter {
+    background: #1e1b4b;
+    color: white;
+    border-color: #1e1b4b;
+}
+.pick-group.hidden { display: none; }
+</style>
+
+<script>
+// cuenta total de checkboxes
+const allCheckboxes = document.querySelectorAll('.pick-checkbox');
+let total = allCheckboxes.length;
+let picked = document.querySelectorAll('.pick-checkbox:checked').length;
+
+document.getElementById('total-count').textContent = total;
+updateProgress();
+
+// maneja el click en cada checkbox
+allCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', async function() {
+        const pickId = this.dataset.id;
+        const isChecked = this.checked;
+        const label = document.getElementById('label-' + pickId);
+
+        // envia al servidor
+        try {
+            const response = await fetch(`/pick/toggle/${pickId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // actualiza el estilo del label
+                label.style.color = isChecked ? '#9ca3af' : '#374151';
+                picked = data.picked;
+                total = data.total;
+                updateProgress();
+
+                // si esta completa muestra el mensaje
+                if (picked === total) {
+                    setTimeout(() => {
+                        document.getElementById('pick-list').style.display = 'none';
+                        document.getElementById('order-complete').style.display = 'block';
+                    }, 500);
+                }
+            } else {
+                // revierte el checkbox si hubo error
+                this.checked = !isChecked;
+            }
+        } catch(e) {
+            this.checked = !isChecked;
+        }
+    });
+});
+
+// actualiza la barra de progreso
+function updateProgress() {
+    document.getElementById('picked-count').textContent = picked;
+    document.getElementById('total-count').textContent = total;
+    const pct = total > 0 ? Math.round(picked / total * 100) : 0;
+    document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// filtra por aisle
+function filterAisle(aisle) {
+    document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
+    event.target.classList.add('active-filter');
+    document.querySelectorAll('.pick-group').forEach(group => {
+        if (aisle === 'all' || group.dataset.aisle == aisle) {
+            group.classList.remove('hidden');
+        } else {
+            group.classList.add('hidden');
+        }
+    });
+}
+</script>
+
+{% endblock %}

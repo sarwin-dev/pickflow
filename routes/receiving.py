@@ -30,8 +30,13 @@ def receive():
     check = warehouse_required()
     if check:
         return check
+    
+    # valida que se haya seleccionado una parte
+    part_id = request.form.get('part_id')
+    if not part_id:
+        return redirect(url_for('receiving.index'))
+    
     config = WarehouseConfig.query.first()
-    part_id = request.form['part_id']
     quantity = int(request.form['quantity'])
     receiving_type = request.form.get('receiving_type', 'overflow')
     location = request.form.get('location') or None

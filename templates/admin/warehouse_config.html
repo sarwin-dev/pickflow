@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
-{% block title %}Warehouse Config - RTAxpress MS{% endblock %}
-
+{% block title %}Warehouse Config - PickFlow{% endblock %}
 {% block content %}
 
 <div class="dashboard-header">
@@ -10,7 +8,6 @@
 </div>
 
 <div class="form-card" style="max-width:560px;">
-
     <form method="POST" action="/admin/warehouse">
 
         <div class="form-group">
@@ -22,37 +19,26 @@
             <p style="font-size:13px; font-weight:500; color:#444; margin-bottom:1rem;">
                 Warehouse dimensions — enter the total count of each
             </p>
-
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-
                 <div class="form-group">
                     <label>Total Aisles</label>
-                    <input type="number" name="total_aisles" 
-                           value="{{ config.total_aisles }}" 
-                           min="1" max="999" required>
+                    <input type="number" name="total_aisles" value="{{ config.total_aisles }}" min="1" max="999"
+                        required>
                 </div>
-
                 <div class="form-group">
                     <label>Total Bays per Aisle</label>
-                    <input type="number" name="total_bays" 
-                           value="{{ config.total_bays }}" 
-                           min="1" max="999" required>
+                    <input type="number" name="total_bays" value="{{ config.total_bays }}" min="1" max="999" required>
                 </div>
-
                 <div class="form-group">
                     <label>Total Shelves per Bay</label>
-                    <input type="number" name="total_shelves" 
-                           value="{{ config.total_shelves }}" 
-                           min="1" max="999" required>
+                    <input type="number" name="total_shelves" value="{{ config.total_shelves }}" min="1" max="999"
+                        required>
                 </div>
-
                 <div class="form-group">
                     <label>Total Locations per Shelf</label>
-                    <input type="number" name="total_locations" 
-                           value="{{ config.total_locations }}" 
-                           min="1" max="999" required>
+                    <input type="number" name="total_locations" value="{{ config.total_locations }}" min="1" max="999"
+                        required>
                 </div>
-
             </div>
         </div>
 
@@ -65,9 +51,56 @@
             </p>
             <div class="form-group">
                 <label>Number of Active Shelves</label>
-                <input type="number" name="active_shelves" 
-                       value="{{ config.active_shelves }}" 
-                       min="1" max="999" required>
+                <input type="number" name="active_shelves" value="{{ config.active_shelves }}" min="1" max="999"
+                    required>
+            </div>
+        </div>
+
+        <div style="border-top:1px solid #e5e7eb; margin:1.5rem 0; padding-top:1.5rem;">
+            <p style="font-size:13px; font-weight:500; color:#444; margin-bottom:4px;">
+                Location labels
+            </p>
+            <p style="font-size:12px; color:#999; margin-bottom:1rem;">
+                These are default values. Customize them to match your warehouse terminology.
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Aisle label</label>
+                    <input type="text" name="label_aisle" value="{{ config.label_aisle }}" placeholder="Aisle" required>
+                </div>
+                <div class="form-group">
+                    <label>Aisle prefix</label>
+                    <input type="text" name="prefix_aisle" value="{{ config.prefix_aisle }}" placeholder="A"
+                        maxlength="5" required>
+                </div>
+                <div class="form-group">
+                    <label>Bay label</label>
+                    <input type="text" name="label_bay" value="{{ config.label_bay }}" placeholder="Bay" required>
+                </div>
+                <div class="form-group">
+                    <label>Bay prefix</label>
+                    <input type="text" name="prefix_bay" value="{{ config.prefix_bay }}" placeholder="B" maxlength="5"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Shelf label</label>
+                    <input type="text" name="label_shelf" value="{{ config.label_shelf }}" placeholder="Shelf" required>
+                </div>
+                <div class="form-group">
+                    <label>Shelf prefix</label>
+                    <input type="text" name="prefix_shelf" value="{{ config.prefix_shelf }}" placeholder="S"
+                        maxlength="5" required>
+                </div>
+                <div class="form-group">
+                    <label>Location label</label>
+                    <input type="text" name="label_location" value="{{ config.label_location }}" placeholder="Location"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Location prefix</label>
+                    <input type="text" name="prefix_location" value="{{ config.prefix_location }}" placeholder="L"
+                        maxlength="5" required>
+                </div>
             </div>
         </div>
 

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Pick - RTAxpress MS{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Pick Orders</h1>
+    <p>Select an order to start picking</p>
+</div>
+
+{% if orders %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>W.O</th>
+                <th>Job Name</th>
+                <th>Lot #</th>
+                <th>Cabinets</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>{{ order.order_number }}</strong></td>
+                <td>{{ order.job_name or '—' }}</td>
+                <td>{{ order.lot_number or '—' }}</td>
+                <td>{{ order.items|length }}</td>
+                <td>
+                    {% if order.status == 'pending' %}
+                    <span class="role-badge role-inventory">Pending</span>
+                    {% else %}
+                    <span class="role-badge role-order_entry">In Progress</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:13px; color:#666;">
+                    {{ order.created_at.strftime('%m/%d/%Y') }}
+                </td>
+                <td>
+                    <a href="/pick/{{ order.id }}" class="btn-create"
+                       style="font-size:12px; padding:4px 10px;">
+                        {% if order.status == 'pending' %}
+                        Start Pick
+                        {% else %}
+                        Continue
+                        {% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    <p style="font-size:16px;">No orders available for picking</p>
+    <p style="font-size:13px; margin-top:8px;">
+        All orders are completed or there are no pending orders
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

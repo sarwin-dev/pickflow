@@ -117,4 +117,14 @@ class WarehouseConfig(db.Model):
     total_shelves = db.Column(db.Integer, nullable=False, default=6)
     total_locations = db.Column(db.Integer, nullable=False, default=4)
     active_shelves = db.Column(db.Integer, nullable=False, default=2)
+    # etiquetas dinamicas - cada empresa usa su propia terminologia
+    label_aisle = db.Column(db.String(50), nullable=False, default='Aisle')
+    label_bay = db.Column(db.String(50), nullable=False, default='Bay')
+    label_shelf = db.Column(db.String(50), nullable=False, default='Shelf')
+    label_location = db.Column(db.String(50), nullable=False, default='Location')
+    # prefijos para los codigos - ej: A para Aisle, B para Bay
+    prefix_aisle = db.Column(db.String(5), nullable=False, default='A')
+    prefix_bay = db.Column(db.String(5), nullable=False, default='B')
+    prefix_shelf = db.Column(db.String(5), nullable=False, default='S')
+    prefix_location = db.Column(db.String(5), nullable=False, default='L')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)

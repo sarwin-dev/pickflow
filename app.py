@@ -54,5 +54,8 @@ app.register_blueprint(receiving_bp)
 from routes.orders import orders_bp
 app.register_blueprint(orders_bp)
 
+from routes.pick import pick_bp
+app.register_blueprint(pick_bp)
+
 if __name__ == '__main__':
     app.run(debug=True)

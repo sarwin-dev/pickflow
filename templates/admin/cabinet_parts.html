@@ -7,8 +7,8 @@
 <div class="dashboard-header">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-            <h1>{{ cabinet.code }} — {{ cabinet.name }}</h1>
-            <p>Manage parts for this cabinet type</p>
+            <h1>{{ cabinet.name }}</h1>
+            <p>Cabinet type · {{ cabinet.code }}{% if cabinet.color %} · {{ cabinet.color }}{% endif %}</p>
         </div>
         <a href="/admin/cabinets" class="btn-secondary">← Back</a>
     </div>
