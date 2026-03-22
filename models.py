@@ -49,12 +49,23 @@ class PartTemplate(db.Model):
     # relacion con la parte maestra
     part = db.relationship('Part', backref='templates')
 
+class Color(db.Model):
+    __tablename__ = 'colors'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    # codigo hex opcional para mostrar visualmente el color
+    hex_code = db.Column(db.String(7), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  
+
 class WorkOrder(db.Model):
     __tablename__ = 'work_orders'
     id = db.Column(db.Integer, primary_key=True)
     order_number = db.Column(db.String(50), unique=True, nullable=False)
     job_name = db.Column(db.String(100), nullable=True)
     lot_number = db.Column(db.String(50), nullable=True)
+    # color del trabajo - define que aisle visita el picker
+    color_id = db.Column(db.Integer, db.ForeignKey('colors.id'), nullable=True)
+    color = db.relationship('Color', backref='orders')
     status = db.Column(db.String(20), default='pending')
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

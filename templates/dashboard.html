@@ -1,8 +1,5 @@
-<!-- heredamos el molde base -->
 {% extends 'base.html' %}
-
-{% block title %}Dashboard - RTAxpress MS{% endblock %}
-
+{% block title %}Dashboard - PickFlow{% endblock %}
 {% block content %}
 
 <div class="dashboard-header">
@@ -10,10 +7,9 @@
     <p>What would you like to do today?</p>
 </div>
 
-<!-- modulos del sistema - cada tarjeta es un modulo -->
 <div class="modules-grid">
 
-    <!-- modulo admin - solo visible para admins -->
+    <!-- admin -->
     {% if session['user_role'] == 'admin' %}
     <a href="/admin" class="module-card admin">
         <div class="module-icon">⚙</div>
@@ -24,8 +20,8 @@
     </a>
     {% endif %}
 
-    <!-- modulo order entry -->
-    {% if session['user_role'] in ['admin', 'order_entry'] %}
+    <!-- order entry -->
+    {% if session['user_role'] in ['admin', 'order_entry', 'supervisor'] %}
     <a href="/orders" class="module-card orders">
         <div class="module-icon">📋</div>
         <div class="module-info">
@@ -35,8 +31,8 @@
     </a>
     {% endif %}
 
-    <!-- modulo picking -->
-    {% if session['user_role'] in ['admin', 'picker'] %}
+    <!-- pick -->
+    {% if session['user_role'] in ['admin', 'warehouse', 'supervisor'] %}
     <a href="/pick" class="module-card pick">
         <div class="module-icon">✓</div>
         <div class="module-info">
@@ -46,19 +42,8 @@
     </a>
     {% endif %}
 
-    <!-- modulo inventario -->
-    {% if session['user_role'] in ['admin', 'inventory'] %}
-    <a href="/inventory" class="module-card inventory">
-        <div class="module-icon">□</div>
-        <div class="module-info">
-            <h3>Inventory</h3>
-            <p>Track parts and stock levels</p>
-        </div>
-    </a>
-    {% endif %}
-
-    <!-- modulo recepcion -->
-    {% if session['user_role'] in ['admin', 'receiving'] %}
+    <!-- receiving -->
+    {% if session['user_role'] in ['admin', 'warehouse', 'supervisor'] %}
     <a href="/receiving" class="module-card receiving">
         <div class="module-icon">↓</div>
         <div class="module-info">
@@ -68,7 +53,18 @@
     </a>
     {% endif %}
 
-    <!-- modulo supervision -->
+    <!-- inventory -->
+    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <a href="/inventory" class="module-card inventory">
+        <div class="module-icon">□</div>
+        <div class="module-info">
+            <h3>Inventory</h3>
+            <p>Track parts and stock levels</p>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- supervision -->
     {% if session['user_role'] in ['admin', 'supervisor'] %}
     <a href="/supervision" class="module-card supervision">
         <div class="module-icon">◉</div>
@@ -79,8 +75,8 @@
     </a>
     {% endif %}
 
-    <!-- modulo perdidas - visible para admin y supervisor -->
-    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <!-- losses -->
+    {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
     <a href="/losses" class="module-card losses">
         <div class="module-icon">!</div>
         <div class="module-info">

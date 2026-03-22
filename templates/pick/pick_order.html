@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Pick {{ order.order_number }} - RTAxpress MS{% endblock %}
+{% block title %}Pick {{ order.order_number }} - PickFlow{% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
             <h1>{{ order.job_name or 'Work Order' }} — {{ order.lot_number or '' }}</h1>
-            <p>WO: {{ order.order_number }} · {{ order.items|length }} cabinets</p>
+            <p>Order: {{ order.order_number }} · {{ order.items|length }} cabinets</p>
         </div>
         <!-- barra de progreso -->
         <div style="text-align:right;">

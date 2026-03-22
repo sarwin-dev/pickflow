@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Colors - PickFlow{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Colors</h1>
+            <p>Define the finish colors used in your orders</p>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <!-- formulario para agregar color -->
+    <div class="form-card">
+        <h3 style="margin-bottom:1rem; font-size:16px;">Add New Color</h3>
+        <form method="POST" action="/admin/colors/create">
+            <div class="form-group">
+                <label>Color Name</label>
+                <input type="text" name="name" 
+                       placeholder="Enter color name" required>
+            </div>
+            <div class="form-group">
+                <label>Hex Code (optional)</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="color" name="hex_code" 
+                           value="#ffffff"
+                           style="width:50px; height:38px; padding:2px; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                    <span style="font-size:13px; color:#999;">
+                        Pick a color to represent it visually
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">
+                Add Color
+            </button>
+        </form>
+    </div>
+
+    <!-- lista de colores -->
+    <div>
+        <h3 style="margin-bottom:1rem; font-size:16px;">
+            Current Colors ({{ colors|length }})
+        </h3>
+        {% if colors %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Name</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for color in colors %}
+                    <tr>
+                        <td>
+                            {% if color.hex_code %}
+                            <div style="width:28px; height:28px; 
+                                        border-radius:6px; 
+                                        background:{{ color.hex_code }};
+                                        border:1px solid #e5e7eb;">
+                            </div>
+                            {% else %}
+                            <div style="width:28px; height:28px; 
+                                        border-radius:6px; 
+                                        background:#f3f4f6;
+                                        border:1px solid #e5e7eb;">
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ color.name }}</strong></td>
+                        <td>
+                            <a href="/admin/colors/delete/{{ color.id }}"
+                               class="btn-delete"
+                               onclick="return confirm('Delete this color?')">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:#999; font-size:14px;">No colors yet — add the first one.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

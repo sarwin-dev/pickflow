@@ -219,3 +219,41 @@ def locations():
     else:
         parts = []
     return render_template('admin/locations.html', parts=parts, search=search)
+
+# ============================================
+# COLORS - gestion de colores
+# ============================================
+from models import Color
+
+@admin_bp.route('/colors')
+def colors():
+    check = admin_required()
+    if check:
+        return check
+    all_colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/colors.html', colors=all_colors)
+
+@admin_bp.route('/colors/create', methods=['POST'])
+def create_color():
+    check = admin_required()
+    if check:
+        return check
+    name = ' '.join(request.form['name'].strip().split()).title()
+    hex_code = request.form.get('hex_code') or None
+    existing = Color.query.filter(Color.name.ilike(name)).first()
+    if not existing:
+        new_color = Color(name=name, hex_code=hex_code)
+        db.session.add(new_color)
+        db.session.commit()
+    return redirect(url_for('admin.colors'))
+
+@admin_bp.route('/colors/delete/<int:color_id>')
+def delete_color(color_id):
+    check = admin_required()
+    if check:
+        return check
+    color = Color.query.get(color_id)
+    if color:
+        db.session.delete(color)
+        db.session.commit()
+    return redirect(url_for('admin.colors'))

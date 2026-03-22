@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
-{% block title %}Admin - RTAxpress MS{% endblock %}
-
+{% block title %}Admin - PickFlow{% endblock %}
 {% block content %}
 
 <div class="dashboard-header">
@@ -31,7 +29,7 @@
         <div class="module-icon">◎</div>
         <div class="module-info">
             <h3>Locations</h3>
-            <p>Manage aisle, bay, shelf locations</p>
+            <p>Search parts and locations</p>
         </div>
     </a>
 
@@ -40,6 +38,14 @@
         <div class="module-info">
             <h3>Warehouse Config</h3>
             <p>Aisles, bays, shelves and locations</p>
+        </div>
+    </a>
+
+    <a href="/admin/colors" class="module-card losses">
+        <div class="module-icon">◉</div>
+        <div class="module-info">
+            <h3>Colors</h3>
+            <p>Define finish colors for orders</p>
         </div>
     </a>
 
