@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>{% block title %}RTAxpress MS{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
     <!-- BARRA DE NAVEGACION - aparece en todas las paginas -->
@@ -22,8 +24,55 @@
 
     <!-- CONTENIDO - cada pagina pone su contenido aqui -->
     <main class="main-content">
+        <!-- breadcrumb - ruta de navegacion -->
+        <div id="breadcrumb"
+            style="margin-bottom:1rem; font-size:13px; color:#666; display:flex; align-items:center; gap:6px;">
+        </div>
         {% block content %}{% endblock %}
     </main>
+    <script>
+        // genera el breadcrumb automaticamente segun la URL actual
+        const breadcrumb = document.getElementById('breadcrumb');
+        const path = window.location.pathname;
+        const segments = path.split('/').filter(s => s);
 
+        // mapa de nombres legibles para cada segmento de URL
+        const names = {
+            'admin': 'Admin',
+            'users': 'Users',
+            'create': 'New',
+            'cabinets': 'Cabinet Types',
+            'parts': 'Parts',
+            'locations': 'Locations',
+            'warehouse': 'Warehouse Config',
+            'receiving': 'Receiving',
+            'orders': 'Order Entry',
+            'pick': 'Pick',
+            'inventory': 'Inventory',
+            'supervision': 'Supervision',
+            'losses': 'Losses',
+            'dashboard': 'Dashboard'
+        };
+
+        // construye los items del breadcrumb
+        let html = '<a href="/dashboard" class="breadcrumb-item">Home</a>';
+        let currentPath = '';
+
+        segments.forEach((segment, index) => {
+            // ignora segmentos que son solo numeros (IDs)
+            if (!isNaN(segment)) return;
+            currentPath += '/' + segment;
+            const name = names[segment] || segment;
+            html += '<span class="breadcrumb-separator">›</span>';
+            if (index === segments.length - 1) {
+                html += `<span class="breadcrumb-current">${name}</span>`;
+            } else {
+                html += `<a href="${currentPath}" class="breadcrumb-item">${name}</a>`;
+            }
+        });
+
+        breadcrumb.innerHTML = html;
+    </script>
 </body>
+
 </html>
