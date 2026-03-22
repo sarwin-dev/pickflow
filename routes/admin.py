@@ -68,6 +68,25 @@ def delete_user(user_id):
         db.session.commit()
     return redirect(url_for('admin.users'))
 
+@admin_bp.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    check = admin_required()
+    if check:
+        return check
+    user = User.query.get(user_id)
+    error = None
+    if request.method == 'POST':
+        user.name = ' '.join(request.form['name'].strip().split()).title()
+        user.email = request.form['email']
+        user.role = request.form['role']
+        # solo actualiza contraseña si se ingreso una nueva
+        new_password = request.form.get('password')
+        if new_password:
+            user.password = generate_password_hash(new_password)
+        db.session.commit()
+        return redirect(url_for('admin.users'))
+    return render_template('admin/edit_user.html', user=user, error=error)
+
 # ============================================
 # CABINET TYPES
 # ============================================

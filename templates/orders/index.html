@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}Order Entry - PickFlow{% endblock %}
-
 {% block content %}
 
 <div class="dashboard-header">
@@ -48,12 +46,16 @@
                     {{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}
                 </td>
                 <td style="display:flex; gap:8px;">
-                    <a href="/orders/{{ order.id }}" class="btn-create" 
+                    <a href="/orders/{{ order.id }}" class="btn-create"
                        style="font-size:12px; padding:4px 10px;">View</a>
                     {% if order.status == 'pending' %}
-                    <a href="/orders/{{ order.id }}/cancel" 
-                       class="btn-delete"
+                    <a href="/orders/{{ order.id }}/cancel" class="btn-delete"
                        onclick="return confirm('Cancel this order?')">Cancel</a>
+                    {% endif %}
+                    {% if session['user_role'] == 'admin' %}
+                    <a href="/orders/{{ order.id }}/delete" class="btn-delete"
+                       style="color:#7c3aed;"
+                       onclick="return confirm('Permanently delete this order? This cannot be undone.')">Delete</a>
                     {% endif %}
                 </td>
             </tr>

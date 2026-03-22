@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from extensions import db
-from models import WorkOrder, OrderItem, PartTemplate, CabinetType, User
+from models import WorkOrder, OrderItem, PartTemplate, CabinetType, User, PickItem
 from datetime import datetime
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/orders')
@@ -80,5 +80,22 @@ def cancel(order_id):
     order = WorkOrder.query.get(order_id)
     if order and order.status == 'pending':
         order.status = 'cancelled'
+        db.session.commit()
+    return redirect(url_for('orders.index'))
+
+# elimina una orden permanentemente - solo admin
+@orders_bp.route('/<int:order_id>/delete')
+def delete(order_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if session['user_role'] != 'admin':
+        return redirect(url_for('dashboard'))
+    order = WorkOrder.query.get(order_id)
+    if order:
+        # borra primero los items relacionados
+        for item in order.items:
+            PickItem.query.filter_by(order_item_id=item.id).delete()
+        OrderItem.query.filter_by(work_order_id=order_id).delete()
+        db.session.delete(order)
         db.session.commit()
     return redirect(url_for('orders.index'))

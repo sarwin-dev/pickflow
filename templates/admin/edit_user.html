@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User - PickFlow{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Edit User</h1>
+    <p>Update user information and role</p>
+</div>
+
+<div class="form-card">
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/users/edit/{{ user.id }}">
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" value="{{ user.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            <select name="role">
+                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                <option value="supervisor" {% if user.role == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                <option value="order_entry" {% if user.role == 'order_entry' %}selected{% endif %}>Order Entry</option>
+                <option value="warehouse" {% if user.role == 'warehouse' %}selected{% endif %}>Warehouse</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>New Password <span style="color:#999; font-size:12px;">(leave blank to keep current)</span></label>
+            <input type="password" name="password" placeholder="••••••••">
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary">Save Changes</button>
+            <a href="/admin/users" class="btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}
