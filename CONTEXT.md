@@ -29,3 +29,7 @@ admin, supervisor, order_entry, warehouse
 - PDF con reportlab
 - Mobile-first para Pick
 EOF
+
+
+<!-- "Hola, estamos trabajando en un proyecto llamado PickFlow — un sistema de gestión de picking para almacenes. Aquí está el contexto del proyecto:"
+Y luego pega el contenido del archivo CONTEXT.md>
