@@ -18,12 +18,12 @@
 
         <div class="form-group">
             <label>Code</label>
-            <input type="text" name="code" placeholder="e.g. B24, W3024, V30" required>
+            <input type="text" name="code" placeholder="e.g. Cab-A, Cab-B" required>
         </div>
 
         <div class="form-group">
             <label>Name</label>
-            <input type="text" name="name" placeholder="e.g. Base 24, Wall 30x24" required>
+            <input type="text" name="name" placeholder="e.g. Cabinet Type A" required>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -32,7 +32,7 @@
                 <input type="number" name="width" placeholder="24" required>
             </div>
             <div class="form-group">
-                <label>Height (inches) — Wall only</label>
+                <label>Height (inches) — optional</label>
                 <input type="number" name="height" placeholder="30">
             </div>
         </div>
@@ -46,7 +46,7 @@
             <input type="checkbox" name="is_custom" id="is_custom" 
                    style="width:18px; height:18px;">
             <label for="is_custom" style="margin:0;">
-                This is a custom cabinet (OCU, Oven, Refer)
+                This is a custom cabinet
             </label>
         </div>
 

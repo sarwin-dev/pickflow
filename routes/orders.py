@@ -28,6 +28,9 @@ def create():
     if check:
         return check
     cabinets = CabinetType.query.order_by(CabinetType.code).all()
+    # traemos config para el maximo de slots
+    from models import WarehouseConfig
+    config = WarehouseConfig.query.first()
     error = None
     if request.method == 'POST':
         order_number = request.form['order_number']
@@ -38,12 +41,12 @@ def create():
         else:
             # crea la orden
             new_order = WorkOrder(
-            order_number=order_number,
-            job_name=request.form.get('job_name') or None,
-            lot_number=request.form.get('lot_number') or None,
-            created_by=session['user_id'],
-            status='pending'
-)
+                order_number=order_number,
+                job_name=request.form.get('job_name') or None,
+                lot_number=request.form.get('lot_number') or None,
+                created_by=session['user_id'],
+                status='pending'
+            )
             db.session.add(new_order)
             db.session.flush()
             # agrega los gabinetes a la orden
@@ -60,7 +63,10 @@ def create():
                     db.session.add(item)
             db.session.commit()
             return redirect(url_for('orders.view', order_id=new_order.id))
-    return render_template('orders/create.html', cabinets=cabinets, error=error)
+    return render_template('orders/create.html', 
+                           cabinets=cabinets, 
+                           error=error,
+                           config=config)
 
 # ve una orden especifica
 @orders_bp.route('/<int:order_id>')

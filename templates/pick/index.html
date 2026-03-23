@@ -14,11 +14,12 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>W.O</th>
                 <th>Job Name</th>
-                <th>Batch #</th>
+                <th>Batch</th>
+                <th>W.O</th>
                 <th>Cabinets</th>
                 <th>Status</th>
+                <th>Picker</th>
                 <th>Created</th>
                 <th></th>
             </tr>
@@ -26,15 +27,31 @@
         <tbody>
             {% for order in orders %}
             <tr>
-                <td><strong>{{ order.order_number }}</strong></td>
-                <td>{{ order.job_name or '—' }}</td>
+                <td><strong>{{ order.job_name or '—' }}</strong></td>
                 <td>{{ order.lot_number or '—' }}</td>
+                <td style="font-size:13px; color:#666;">{{ order.order_number }}</td>
                 <td>{{ order.items|length }}</td>
                 <td>
                     {% if order.status == 'pending' %}
-                    <span class="role-badge role-inventory">Pending</span>
+                    <span class="role-badge role-inventory">Pending Pick</span>
+                    {% elif order.status == 'in_progress' %}
+                    <span class="role-badge role-order_entry">Picking</span>
+                    {% elif order.status == 'completed' %}
+                    <span class="role-badge role-picker">Picked</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:13px;">
+                    <!-- muestra el picker si la orden esta en progreso -->
+                    {% if order.status == 'in_progress' %}
+                        {% set pick_items = order.items|map(attribute='picks')|sum(start=[]) %}
+                        {% set pickers = pick_items|selectattr('picked_by')|map(attribute='picked_by')|unique|list %}
+                        {% if pickers %}
+                            {{ pickers|length }} picker(s)
+                        {% else %}
+                            —
+                        {% endif %}
                     {% else %}
-                    <span class="role-badge role-order_entry">In Progress</span>
+                    —
                     {% endif %}
                 </td>
                 <td style="font-size:13px; color:#666;">

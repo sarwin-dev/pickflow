@@ -139,3 +139,5 @@ class WarehouseConfig(db.Model):
     prefix_shelf = db.Column(db.String(5), nullable=False, default='S')
     prefix_location = db.Column(db.String(5), nullable=False, default='L')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # numero maximo de slots por carrito
+    max_cart_slots = db.Column(db.Integer, nullable=False, default=24)
