@@ -100,20 +100,23 @@ def pick_order(order_id):
                            order=order,
                            groups=sorted_groups)
 
-# marca o desmarca un pick item
 @pick_bp.route('/toggle/<int:pick_item_id>', methods=['POST'])
 def toggle(pick_item_id):
     check = picker_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 401
+
     pick_item = PickItem.query.get(pick_item_id)
+    action = request.json.get('action', 'pick')
+
     if pick_item:
-        pick_item.is_picked = not pick_item.is_picked
-        if pick_item.is_picked:
+        if action == 'pick':
+            # marca como picked
+            pick_item.is_picked = True
+            pick_item.is_missing = False
             pick_item.picked_by = session['user_id']
             pick_item.picked_at = datetime.utcnow()
             # descuenta del inventario activo
-            part = pick_item.order_item.cabinet.parts
             template = PartTemplate.query.get(pick_item.part_template_id)
             inventory = Inventory.query.filter_by(
                 part_id=template.part_id,
@@ -124,11 +127,24 @@ def toggle(pick_item_id):
                 inventory.updated_at = datetime.utcnow()
                 if inventory.quantity <= 0:
                     db.session.delete(inventory)
-        else:
+
+        elif action == 'missing':
+            # marca como missing
+            pick_item.is_picked = False
+            pick_item.is_missing = True
             pick_item.picked_by = None
             pick_item.picked_at = None
+
+        elif action == 'reset':
+            # vuelve a pending
+            pick_item.is_picked = False
+            pick_item.is_missing = False
+            pick_item.picked_by = None
+            pick_item.picked_at = None
+
         db.session.commit()
-        # verifica si la orden esta completa
+
+        # recuenta desde la base de datos
         order = pick_item.order_item.order
         total = PickItem.query.join(OrderItem).filter(
             OrderItem.work_order_id == order.id
@@ -137,13 +153,22 @@ def toggle(pick_item_id):
             OrderItem.work_order_id == order.id,
             PickItem.is_picked == True
         ).count()
-        if total == picked:
+        missing = PickItem.query.join(OrderItem).filter(
+            OrderItem.work_order_id == order.id,
+            PickItem.is_missing == True
+        ).count()
+
+        # completa la orden solo si todo esta picked o missing
+        if picked + missing == total:
             order.status = 'completed'
             db.session.commit()
+
         return jsonify({
             'success': True,
             'is_picked': pick_item.is_picked,
+            'is_missing': pick_item.is_missing,
             'picked': picked,
+            'missing': missing,
             'total': total
         })
     return jsonify({'error': 'not found'}), 404

@@ -4,14 +4,12 @@
 
 {% block content %}
 
-<!-- header con info de la orden -->
 <div class="dashboard-header">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
             <h1>{{ order.job_name or 'Work Order' }} — {{ order.lot_number or '' }}</h1>
             <p>Order: {{ order.order_number }} · {{ order.items|length }} cabinets</p>
         </div>
-        <!-- barra de progreso -->
         <div style="text-align:right;">
             <div style="font-size:13px; color:#666; margin-bottom:4px;">
                 <span id="picked-count">0</span> / <span id="total-count">0</span> parts picked
@@ -30,61 +28,59 @@
     </button>
     {% set aisles = [] %}
     {% for group in groups %}
-        {% if group.aisle not in aisles %}
-            {% set _ = aisles.append(group.aisle) %}
-            <button class="btn-secondary aisle-filter" 
-                    onclick="filterAisle({{ group.aisle }})">
-                Aisle {{ '%02d'|format(group.aisle) }}
-            </button>
-        {% endif %}
+    {% if group.aisle not in aisles %}
+    {% set _ = aisles.append(group.aisle) %}
+    <button class="btn-secondary aisle-filter" onclick="filterAisle({{ group.aisle }})">
+        Aisle {{ '%02d'|format(group.aisle) }}
+    </button>
+    {% endif %}
     {% endfor %}
 </div>
 
 <!-- pick list -->
 <div id="pick-list">
     {% for group in groups %}
-    <div class="pick-group" 
-         data-aisle="{{ group.aisle }}"
-         style="background:white; border:1px solid #e5e7eb; border-radius:12px; 
+    <div class="pick-group" data-aisle="{{ group.aisle }}" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
                 margin-bottom:10px; overflow:hidden;">
 
-        <!-- header de ubicacion -->
-        <div style="background:#f9fafb; padding:10px 16px; 
+        <div style="background:#f9fafb; padding:10px 16px;
                     border-bottom:1px solid #e5e7eb;
                     display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:12px;">
-                <!-- ubicacion en formato ABSL -->
-                <span style="font-family:monospace; font-size:14px; 
+                <span style="font-family:monospace; font-size:14px;
                              font-weight:500; color:#1e1b4b;">
                     {{ group.location }}
                 </span>
-                <!-- nombre de la parte -->
                 <span style="font-size:14px; color:#374151;">
                     {{ group.part_name }}
                 </span>
             </div>
-            <!-- cantidad total en esta ubicacion -->
             <span style="font-size:13px; color:#6b7280;">
                 QTY: {{ group.slots|length }}
             </span>
         </div>
 
-        <!-- slots que necesitan esta parte -->
         <div style="padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px;">
             {% for slot in group.slots %}
             <div style="display:flex; align-items:center; gap:6px;">
-                <!-- checkbox individual por slot -->
-                <input type="checkbox" 
-                       id="pick-{{ slot.pick_item_id }}"
-                       class="pick-checkbox"
-                       data-id="{{ slot.pick_item_id }}"
-                       {% if slot.is_picked %}checked{% endif %}
-                       style="width:18px; height:18px; cursor:pointer; accent-color:#059669;">
+                <!-- tristate button -->
+                <button type="button" class="tristate-btn" data-id="{{ slot.pick_item_id }}"
+                    data-state="{% if slot.is_picked %}picked{% elif slot.is_missing %}missing{% else %}pending{% endif %}"
+                    id="tristate-{{ slot.pick_item_id }}"
+                    style="width:26px; height:26px; border-radius:6px; border:1px solid;
+                               {% if slot.is_picked %}background:#dcfce7; border-color:#86efac;
+                               {% elif slot.is_missing %}background:#fef3c7; border-color:#f59e0b;
+                               {% else %}background:white; border-color:#e5e7eb;{% endif %}
+                               cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">
+                    {% if slot.is_picked %}✓
+                    {% elif slot.is_missing %}✕
+                    {% else %}&nbsp;{% endif %}
+                </button>
                 <!-- numero de slot -->
-                <label for="pick-{{ slot.pick_item_id }}"
-                       style="font-size:13px; cursor:pointer;
-                              color:{% if slot.is_picked %}#9ca3af{% else %}#374151{% endif %};"
-                       id="label-{{ slot.pick_item_id }}">
+                <label id="label-{{ slot.pick_item_id }}" style="font-size:13px;
+                              {% if slot.is_picked %}text-decoration:line-through; color:#9ca3af;
+                              {% elif slot.is_missing %}color:#92400e; font-weight:500;
+                              {% else %}color:#374151;{% endif %}">
                     #{{ slot.slot }}
                 </label>
             </div>
@@ -106,82 +102,124 @@
 </div>
 
 <style>
-.active-filter {
-    background: #1e1b4b;
-    color: white;
-    border-color: #1e1b4b;
-}
-.pick-group.hidden { display: none; }
+    .active-filter {
+        background: #1e1b4b;
+        color: white;
+        border-color: #1e1b4b;
+    }
+
+    .pick-group.hidden {
+        display: none;
+    }
 </style>
 
 <script>
-// cuenta total de checkboxes
-const allCheckboxes = document.querySelectorAll('.pick-checkbox');
-let total = allCheckboxes.length;
-let picked = document.querySelectorAll('.pick-checkbox:checked').length;
+    const allButtons = document.querySelectorAll('.tristate-btn');
+    let total = allButtons.length;
+    let picked = 0;
+    let missing = 0;
 
-document.getElementById('total-count').textContent = total;
-updateProgress();
-
-// maneja el click en cada checkbox
-allCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', async function() {
-        const pickId = this.dataset.id;
-        const isChecked = this.checked;
-        const label = document.getElementById('label-' + pickId);
-
-        // envia al servidor
-        try {
-            const response = await fetch(`/pick/toggle/${pickId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                // actualiza el estilo del label
-                label.style.color = isChecked ? '#9ca3af' : '#374151';
-                picked = data.picked;
-                total = data.total;
-                updateProgress();
-
-                // si esta completa muestra el mensaje
-                if (picked === total) {
-                    setTimeout(() => {
-                        document.getElementById('pick-list').style.display = 'none';
-                        document.getElementById('order-complete').style.display = 'block';
-                    }, 500);
-                }
-            } else {
-                // revierte el checkbox si hubo error
-                this.checked = !isChecked;
-            }
-        } catch(e) {
-            this.checked = !isChecked;
-        }
+    // cuenta estados iniciales
+    allButtons.forEach(btn => {
+        if (btn.dataset.state === 'picked') picked++;
+        else if (btn.dataset.state === 'missing') missing++;
     });
-});
 
-// actualiza la barra de progreso
-function updateProgress() {
-    document.getElementById('picked-count').textContent = picked;
     document.getElementById('total-count').textContent = total;
-    const pct = total > 0 ? Math.round(picked / total * 100) : 0;
-    document.getElementById('progress-bar').style.width = pct + '%';
-}
+    updateProgress();
 
-// filtra por aisle
-function filterAisle(aisle) {
-    document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
-    event.target.classList.add('active-filter');
-    document.querySelectorAll('.pick-group').forEach(group => {
-        if (aisle === 'all' || group.dataset.aisle == aisle) {
-            group.classList.remove('hidden');
-        } else {
-            group.classList.add('hidden');
-        }
+    // cicla entre los 3 estados
+    allButtons.forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const pickId = this.dataset.id;
+            const currentState = this.dataset.state;
+            const label = document.getElementById('label-' + pickId);
+
+            // determina el siguiente estado
+            let nextState, action;
+            if (currentState === 'pending') {
+                nextState = 'picked';
+                action = 'pick';
+            } else if (currentState === 'picked') {
+                nextState = 'missing';
+                action = 'missing';
+            } else {
+                nextState = 'pending';
+                action = 'reset';
+            }
+
+            try {
+                const response = await fetch(`/pick/toggle/${pickId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log('picked:', data.picked, 'missing:', data.missing, 'total:', data.total);
+                    // actualiza visual del boton
+                    this.dataset.state = nextState;
+
+                    if (nextState === 'picked') {
+                        this.textContent = '✓';
+                        this.style.background = '#dcfce7';
+                        this.style.borderColor = '#86efac';
+                        label.style.textDecoration = 'line-through';
+                        label.style.color = '#9ca3af';
+                        label.style.fontWeight = 'normal';
+                    } else if (nextState === 'missing') {
+                        this.textContent = '✕';
+                        this.style.background = '#fef3c7';
+                        this.style.borderColor = '#f59e0b';
+                        label.style.textDecoration = 'none';
+                        label.style.color = '#92400e';
+                        label.style.fontWeight = '500';
+                    } else {
+                        this.textContent = '';
+                        this.style.background = 'white';
+                        this.style.borderColor = '#e5e7eb';
+                        label.style.textDecoration = 'none';
+                        label.style.color = '#374151';
+                        label.style.fontWeight = 'normal';
+                    }
+
+                    picked = data.picked;
+                    missing = data.missing;
+                    total = data.total;
+                    updateProgress();
+
+                    if (picked + missing === total) {
+                        setTimeout(() => {
+                            document.getElementById('pick-list').style.display = 'none';
+                            document.getElementById('order-complete').style.display = 'block';
+                        }, 500);
+                    }
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        });
     });
-}
+
+    function updateProgress() {
+        document.getElementById('picked-count').textContent = picked;
+        document.getElementById('total-count').textContent = total;
+        const pct = total > 0 ? Math.round(picked / total * 100) : 0;
+        document.getElementById('progress-bar').style.width = pct + '%';
+    }
+
+    function filterAisle(aisle) {
+        document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
+        event.target.classList.add('active-filter');
+        document.querySelectorAll('.pick-group').forEach(group => {
+            if (aisle === 'all' || group.dataset.aisle == aisle) {
+                group.classList.remove('hidden');
+            } else {
+                group.classList.add('hidden');
+            }
+        });
+    }
 </script>
 
 {% endblock %}

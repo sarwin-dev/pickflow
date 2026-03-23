@@ -91,6 +91,7 @@ class PickItem(db.Model):
     order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id'), nullable=False)
     part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False)
     is_picked = db.Column(db.Boolean, default=False)
+    is_missing = db.Column(db.Boolean, default=False)
     picked_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     picked_at = db.Column(db.DateTime, nullable=True)
 
