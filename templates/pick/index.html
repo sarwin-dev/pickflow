@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}Pick - PickFlow{% endblock %}
-
 {% block content %}
 
 <div class="dashboard-header">
@@ -41,14 +39,13 @@
                     {% endif %}
                 </td>
                 <td style="font-size:13px;">
-                    <!-- muestra el picker si la orden esta en progreso -->
                     {% if order.status == 'in_progress' %}
                         {% set pick_items = order.items|map(attribute='picks')|sum(start=[]) %}
                         {% set pickers = pick_items|selectattr('picked_by')|map(attribute='picked_by')|unique|list %}
                         {% if pickers %}
-                            {{ pickers|length }} picker(s)
+                        {{ pickers|length }} picker(s)
                         {% else %}
-                            —
+                        —
                         {% endif %}
                     {% else %}
                     —
@@ -57,7 +54,8 @@
                 <td style="font-size:13px; color:#666;">
                     {{ order.created_at.strftime('%m/%d/%Y') }}
                 </td>
-                <td>
+                <!-- botones con gap para separacion -->
+                <td style="display:flex; gap:8px; align-items:center;">
                     <a href="/pick/{{ order.id }}" class="btn-create"
                        style="font-size:12px; padding:4px 10px;">
                         {% if order.status == 'pending' %}
@@ -66,6 +64,14 @@
                         Continue
                         {% endif %}
                     </a>
+                    {% if session['user_role'] in ['admin', 'supervisor'] %}
+                    <a href="/pick/reset/{{ order.id }}"
+                       class="btn-delete"
+                       style="font-size:12px;"
+                       onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">
+                        Reset
+                    </a>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

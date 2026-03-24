@@ -172,3 +172,24 @@ def toggle(pick_item_id):
             'total': total
         })
     return jsonify({'error': 'not found'}), 404
+
+# resetea una orden a pending - solo supervisor y admin
+@pick_bp.route('/reset/<int:order_id>')
+def reset_order(order_id):
+    check = picker_required()
+    if check:
+        return check
+    if session['user_role'] not in ['admin', 'supervisor']:
+        return redirect(url_for('dashboard'))
+    order = WorkOrder.query.get(order_id)
+    if order:
+        # resetea todos los pick items
+        for item in order.items:
+            for pick in item.picks:
+                pick.is_picked = False
+                pick.is_missing = False
+                pick.picked_by = None
+                pick.picked_at = None
+        order.status = 'pending'
+        db.session.commit()
+    return redirect(url_for('pick.index'))
