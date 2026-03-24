@@ -40,13 +40,13 @@
                 </td>
                 <td style="font-size:13px;">
                     {% if order.status == 'in_progress' %}
-                        {% set pick_items = order.items|map(attribute='picks')|sum(start=[]) %}
-                        {% set pickers = pick_items|selectattr('picked_by')|map(attribute='picked_by')|unique|list %}
-                        {% if pickers %}
-                        {{ pickers|length }} picker(s)
-                        {% else %}
-                        —
-                        {% endif %}
+                    {% set pick_items = order.items|map(attribute='picks')|sum(start=[]) %}
+                    {% set pickers = pick_items|selectattr('picked_by')|map(attribute='picked_by')|unique|list %}
+                    {% if pickers %}
+                    {{ pickers|length }} picker(s)
+                    {% else %}
+                    —
+                    {% endif %}
                     {% else %}
                     —
                     {% endif %}
@@ -56,19 +56,20 @@
                 </td>
                 <!-- botones con gap para separacion -->
                 <td style="display:flex; gap:8px; align-items:center;">
-                    <a href="/pick/{{ order.id }}" class="btn-create"
-                       style="font-size:12px; padding:4px 10px;">
+                    <a href="/pick/{{ order.id }}" class="btn-create" style="font-size:12px; padding:4px 10px;">
                         {% if order.status == 'pending' %}
                         Start Pick
                         {% else %}
                         Continue
                         {% endif %}
                     </a>
+                    <a href="/orders/{{ order.id }}/picklist/pdf" target="_blank" class="btn-secondary"
+                        style="font-size:12px; padding:4px 10px; background:#4CAF50; color:white; border-radius:3px;">
+                        Download Pick List PDF
+                    </a>
                     {% if session['user_role'] in ['admin', 'supervisor'] %}
-                    <a href="/pick/reset/{{ order.id }}"
-                       class="btn-delete"
-                       style="font-size:12px;"
-                       onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">
+                    <a href="/pick/reset/{{ order.id }}" class="btn-delete" style="font-size:12px;"
+                        onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">
                         Reset
                     </a>
                     {% endif %}

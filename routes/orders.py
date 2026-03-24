@@ -105,3 +105,43 @@ def delete(order_id):
         db.session.delete(order)
         db.session.commit()
     return redirect(url_for('orders.index'))
+
+# 📄 Genera PDF del pick list
+from flask import send_file
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+@orders_bp.route('/<int:order_id>/picklist/pdf')
+def picklist_pdf(order_id):
+    order = WorkOrder.query.get(order_id)
+    if not order:
+        return "Order not found", 404
+
+    # Crear PDF en memoria
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Header
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, height - 50, f"Pick List for Order {order.order_number}")
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 70, f"Job: {order.job_name or ''} | Lot: {order.lot_number or ''}")
+    c.drawString(50, height - 90, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Y empezamos a listar los items
+    y = height - 120
+    for item in order.items:
+        c.drawString(50, y, f"Cabinet: {item.cabinet_type.name} | Slot: {item.slot}")
+        y -= 20
+        if y < 50:  # nueva página
+            c.showPage()
+            y = height - 50
+
+    c.save()
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True,
+                     download_name=f"picklist_{order.order_number}.pdf",
+                     mimetype='application/pdf')
