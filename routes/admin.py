@@ -211,6 +211,7 @@ def warehouse_config():
         config.total_shelves = int(request.form['total_shelves'])
         config.total_locations = int(request.form['total_locations'])
         config.active_shelves = int(request.form['active_shelves'])
+        config.max_cart_slots = int(request.form.get('max_cart_slots', 24))
         from datetime import datetime
         config.updated_at = datetime.utcnow()
         db.session.commit()
