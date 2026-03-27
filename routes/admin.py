@@ -1,7 +1,8 @@
+import re
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User, CabinetType, PartTemplate, Part, WarehouseConfig
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -38,7 +39,7 @@ def create_user():
         return check
     error = None
     if request.method == 'POST':
-        name = request.form['name']
+        name = ' '.join(request.form['name'].strip().split()).title()
         email = request.form['email']
         password = request.form['password']
         role = request.form['role']
@@ -57,17 +58,6 @@ def create_user():
             return redirect(url_for('admin.users'))
     return render_template('admin/create_user.html', error=error)
 
-@admin_bp.route('/users/delete/<int:user_id>')
-def delete_user(user_id):
-    check = admin_required()
-    if check:
-        return check
-    user = User.query.get(user_id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-    return redirect(url_for('admin.users'))
-
 @admin_bp.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
 def edit_user(user_id):
     check = admin_required()
@@ -79,13 +69,23 @@ def edit_user(user_id):
         user.name = ' '.join(request.form['name'].strip().split()).title()
         user.email = request.form['email']
         user.role = request.form['role']
-        # solo actualiza contraseña si se ingreso una nueva
         new_password = request.form.get('password')
         if new_password:
             user.password = generate_password_hash(new_password)
         db.session.commit()
         return redirect(url_for('admin.users'))
     return render_template('admin/edit_user.html', user=user, error=error)
+
+@admin_bp.route('/users/delete/<int:user_id>')
+def delete_user(user_id):
+    check = admin_required()
+    if check:
+        return check
+    user = User.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+    return redirect(url_for('admin.users'))
 
 # ============================================
 # CABINET TYPES
@@ -127,16 +127,14 @@ def cabinet_parts(cabinet_id):
     cabinet = CabinetType.query.get(cabinet_id)
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
-        # normaliza el nombre - title case y elimina espacios extras
-        part_name = ' '.join(request.form['name'].strip().split()).title()
+        # normaliza el nombre - title case, separa letras de numeros y limpia espacios
+        raw_name = request.form['name'].strip()
+        formatted = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_name)
+        part_name = ' '.join(formatted.split()).title()
         # busca si la parte ya existe en la tabla maestra
-        existing_part = Part.query.filter(
-            Part.name.ilike(part_name)
-        ).first()
+        existing_part = Part.query.filter(Part.name.ilike(part_name)).first()
         if existing_part:
-            # la parte ya existe, la reutilizamos
             part = existing_part
-            # actualizamos ubicacion si se proporciono
             if request.form.get('active_aisle'):
                 part.active_aisle = request.form.get('active_aisle')
                 part.active_bay = request.form.get('active_bay')
@@ -144,7 +142,6 @@ def cabinet_parts(cabinet_id):
                 part.active_location = request.form.get('active_location') or None
                 db.session.commit()
         else:
-            # la parte no existe, la creamos en la tabla maestra
             part = Part(
                 name=part_name,
                 is_shared=True if request.form.get('is_shared') else False,
@@ -155,7 +152,6 @@ def cabinet_parts(cabinet_id):
             )
             db.session.add(part)
             db.session.flush()
-        # vincula la parte con el gabinete
         new_template = PartTemplate(
             cabinet_type_id=cabinet_id,
             part_id=part.id,
@@ -212,6 +208,14 @@ def warehouse_config():
         config.total_locations = int(request.form['total_locations'])
         config.active_shelves = int(request.form['active_shelves'])
         config.max_cart_slots = int(request.form.get('max_cart_slots', 24))
+        config.label_aisle = request.form.get('label_aisle', 'Aisle')
+        config.label_bay = request.form.get('label_bay', 'Bay')
+        config.label_shelf = request.form.get('label_shelf', 'Shelf')
+        config.label_location = request.form.get('label_location', 'Location')
+        config.prefix_aisle = request.form.get('prefix_aisle', 'A')
+        config.prefix_bay = request.form.get('prefix_bay', 'B')
+        config.prefix_shelf = request.form.get('prefix_shelf', 'S')
+        config.prefix_location = request.form.get('prefix_location', 'L')
         from datetime import datetime
         config.updated_at = datetime.utcnow()
         db.session.commit()
@@ -241,9 +245,8 @@ def locations():
     return render_template('admin/locations.html', parts=parts, search=search)
 
 # ============================================
-# COLORS - gestion de colores
+# COLORS
 # ============================================
-from models import Color
 
 @admin_bp.route('/colors')
 def colors():
