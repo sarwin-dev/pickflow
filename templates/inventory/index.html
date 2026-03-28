@@ -3,117 +3,164 @@
 {% block content %}
 
 <div class="dashboard-header">
-    <h1>Inventory</h1>
-    <p>Overflow stock levels per part — active shelves are not counted</p>
+    <h1>Inventory Lookup</h1>
+    <p>Search a part to see its stock locations</p>
 </div>
 
-<!-- barra de busqueda y filtros -->
-<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center;">
-    <form method="GET" action="/inventory/" style="display:flex; gap:8px; flex:1; min-width:220px;">
-        <input type="text" name="search" value="{{ search }}"
-               placeholder="Search part name..."
-               style="flex:1; padding:7px 12px; border:1px solid #e5e7eb; border-radius:6px; font-size:14px;">
-        <input type="hidden" name="filter" value="{{ filter_status }}">
-        <button type="submit" class="btn-primary" style="padding:7px 16px; font-size:13px;">Search</button>
-        {% if search %}
-        <a href="/inventory/?filter={{ filter_status }}" class="btn-secondary" style="padding:7px 12px; font-size:13px;">Clear</a>
-        {% endif %}
-    </form>
-
-    <div style="display:flex; gap:6px;">
-        <a href="/inventory/?search={{ search }}&filter=all"
-           class="btn-secondary" style="font-size:13px; padding:5px 14px;
-           {% if filter_status == 'all' %}background:#1e1b4b; color:white;{% endif %}">
-            All
-        </a>
-        <a href="/inventory/?search={{ search }}&filter=low"
-           class="btn-secondary" style="font-size:13px; padding:5px 14px;
-           {% if filter_status == 'low' %}background:#dc2626; color:white; border-color:#dc2626;{% endif %}">
-            ⚠ Low / Out  {% if low_count > 0 %}({{ low_count }}){% endif %}
-        </a>
-    </div>
-</div>
-
-{% if stock_list %}
-<div class="table-container">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Part</th>
-                <th>Location</th>
-                <th style="text-align:center;">Active Shelf</th>
-                <th style="text-align:center;">Overflow</th>
-                <th style="text-align:center;">Min. Overflow</th>
-                <th style="text-align:center;">Status</th>
-                {% if session['user_role'] in ['admin', 'supervisor'] %}
-                <th style="text-align:center;">Set Min</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in stock_list %}
-            <tr style="{% if s.status == 'out' %}background:#fef2f2;{% elif s.status == 'low' %}background:#fffbeb;{% endif %}">
-                <td><strong>{{ s.part.name }}</strong></td>
-                <td style="font-size:13px; color:#666;">
-                    {% if s.part.active_aisle %}
-                        A{{ s.part.active_aisle }} · B{{ s.part.active_bay }} · S{{ s.part.active_shelf }}
-                        {% if s.part.active_location %} · L{{ s.part.active_location }}{% endif %}
-                    {% else %}
-                        <span style="color:#ccc;">—</span>
-                    {% endif %}
-                </td>
-                <td style="text-align:center; font-size:14px;">
-                    {{ s.active_qty if s.active_qty > 0 else '—' }}
-                </td>
-                <td style="text-align:center; font-weight:600; font-size:14px;
-                    color:{% if s.status == 'out' %}#dc2626{% elif s.status == 'low' %}#d97706{% else %}#111{% endif %};">
-                    {{ s.overflow_qty }}
-                </td>
-                <td style="text-align:center; font-size:13px; color:#6b7280;">
-                    {{ s.min_qty }}
-                </td>
-                <td style="text-align:center;">
-                    {% if s.status == 'out' %}
-                    <span class="role-badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca;">Out of Stock</span>
-                    {% elif s.status == 'low' %}
-                    <span class="role-badge" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a;">Low Stock</span>
-                    {% else %}
-                    <span class="role-badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">OK</span>
-                    {% endif %}
-                </td>
-                {% if session['user_role'] in ['admin', 'supervisor'] %}
-                <td style="text-align:center;">
-                    <form method="POST" action="/inventory/set-min/{{ s.part.id }}"
-                          style="display:flex; gap:4px; justify-content:center; align-items:center;">
-                        <input type="number" name="min_qty" value="{{ s.min_qty }}" min="0"
-                               style="width:60px; padding:4px 6px; border:1px solid #e5e7eb;
-                                      border-radius:4px; font-size:13px; text-align:center;">
-                        <input type="hidden" name="search" value="{{ search }}">
-                        <input type="hidden" name="filter" value="{{ filter_status }}">
-                        <button type="submit" class="btn-secondary"
-                                style="padding:4px 8px; font-size:12px;">Set</button>
-                    </form>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-<div style="text-align:center; padding:3rem; color:#999;">
-    <p style="font-size:16px;">No parts found</p>
+<!-- barra de busqueda -->
+<form method="GET" action="/inventory/" style="display:flex; gap:8px; margin-bottom:2rem; max-width:500px;">
+    <input type="text" name="search" value="{{ search }}"
+           placeholder="Search part name (e.g. toe33, Left Panel...)"
+           style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
+           autofocus>
+    <button type="submit" class="btn-primary" style="padding:10px 20px;">Search</button>
     {% if search %}
-    <p style="font-size:13px; margin-top:8px;">
-        No results for "{{ search }}".
-        <a href="/inventory/" style="color:#1e1b4b;">View all</a>
-    </p>
-    {% else %}
-    <p style="font-size:13px; margin-top:8px;">
-        No parts have been received yet. Go to
-        <a href="/receiving/" style="color:#1e1b4b;">Receiving</a> to add stock.
-    </p>
+    <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
     {% endif %}
+</form>
+
+{% if search %}
+    {% if part_results %}
+        {% for item in part_results %}
+        <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:24px; margin-bottom:24px;">
+
+            <!-- encabezado: nombre de la parte + totales en la esquina derecha -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+
+                <div>
+                    <h2 style="font-size:20px; font-weight:700; margin:0;">{{ item.part.name }}</h2>
+                    <!-- badge de status -->
+                    <div style="margin-top:8px;">
+                        {% if item.status == 'out' %}
+                        <span style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
+                            ● Out of Stock
+                        </span>
+                        {% elif item.status == 'low' %}
+                        <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
+                            ● Low Stock
+                        </span>
+                        {% else %}
+                        <span style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
+                            ● OK
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- totales grandes en la esquina superior derecha -->
+                <div style="display:flex; gap:16px; text-align:center;">
+                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:100px;">
+                        <div style="font-size:2rem; font-weight:800; color:#1e1b4b; line-height:1;">
+                            {{ item.overflow_total }}
+                        </div>
+                        <div style="font-size:11px; color:#6b7280; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
+                            Overflow
+                        </div>
+                    </div>
+                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:100px;">
+                        <div style="font-size:2rem; font-weight:800; color:#6b7280; line-height:1;">
+                            {{ item.active_total }}
+                        </div>
+                        <div style="font-size:11px; color:#6b7280; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
+                            Active
+                        </div>
+                    </div>
+                    <div style="background:#1e1b4b; border-radius:8px; padding:12px 20px; min-width:100px;">
+                        <div style="font-size:2rem; font-weight:800; color:white; line-height:1;">
+                            {{ item.overflow_total + item.active_total }}
+                        </div>
+                        <div style="font-size:11px; color:#a5b4fc; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
+                            Total
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- tabla de cajas individuales -->
+            {% if item.records %}
+            <table class="data-table" style="margin-bottom:16px;">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th style="text-align:center;">Qty</th>
+                        <th style="text-align:center;">Type</th>
+                        <th style="font-size:12px; color:#999;">Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in item.records %}
+                    <tr>
+                        <td>
+                            {% if record.aisle %}
+                            <span style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
+                                A{{ '%02d'|format(record.aisle|int) }}
+                                B{{ '%02d'|format(record.bay|int) }}
+                                S{{ '%02d'|format(record.shelf|int) }}
+                                {% if record.location %}
+                                L{{ '%02d'|format(record.location|int) }}
+                                {% endif %}
+                            </span>
+                            {% else %}
+                            <span style="color:#ccc;">No location</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align:center; font-size:16px; font-weight:700;">
+                            {{ record.quantity }}
+                        </td>
+                        <td style="text-align:center;">
+                            {% if record.is_active %}
+                            <span class="role-badge role-picker">Active</span>
+                            {% else %}
+                            <span class="role-badge role-inventory">Overflow</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:12px; color:#999;">
+                            {{ record.received_at.strftime('%m/%d/%Y') if record.received_at else '—' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color:#999; font-size:14px; margin-bottom:16px;">No inventory records for this part.</p>
+            {% endif %}
+
+            <!-- seccion de minimo - solo supervisor y admin -->
+            {% if session['user_role'] in ['admin', 'supervisor'] %}
+            <div style="border-top:1px solid #f3f4f6; padding-top:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <span style="font-size:13px; color:#6b7280;">
+                    Min. Overflow: <strong>{{ item.min_qty }}</strong>
+                </span>
+                <form method="POST" action="/inventory/set-min/{{ item.part.id }}"
+                      style="display:flex; gap:8px; align-items:center;">
+                    <input type="number" name="min_qty" value="{{ item.min_qty }}" min="0"
+                           style="width:80px; padding:6px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; text-align:center;">
+                    <input type="hidden" name="search" value="{{ search }}">
+                    <button type="submit" class="btn-primary" style="padding:6px 14px; font-size:13px;">
+                        Set Minimum
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    {% else %}
+    <div style="text-align:center; padding:3rem; color:#999;">
+        <p style="font-size:16px;">No parts found for "{{ search }}"</p>
+        <p style="font-size:13px; margin-top:8px;">Try a different name or check the spelling.</p>
+    </div>
+    {% endif %}
+
+{% else %}
+<!-- estado inicial - sin busqueda -->
+<div style="text-align:center; padding:4rem 2rem; color:#999;">
+    <div style="font-size:3rem; margin-bottom:1rem;">⬆</div>
+    <p style="font-size:16px; color:#374151;">Type a part name to look up its locations</p>
+    <p style="font-size:13px; margin-top:8px;">
+        e.g. "toe33", "Left Panel", "Hinge"
+    </p>
 </div>
 {% endif %}
 
