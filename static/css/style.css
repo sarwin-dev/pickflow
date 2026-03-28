@@ -10,11 +10,15 @@
 
 body {
     font-family: 'Segoe UI', sans-serif;
-    /* fuente principal - puedes cambiarla */
     background: #f0f2f5;
-    /* color de fondo de toda la app - cambia este hex para otro color */
     color: #1a1a2e;
-    /* color de texto principal */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
 }
 
 /* ============================================
