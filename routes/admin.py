@@ -201,6 +201,19 @@ def delete_cabinet(cabinet_id):
         db.session.commit()
     return redirect(url_for('admin.cabinets'))
 
+@admin_bp.route('/cabinets/<int:cabinet_id>/parts/edit/<int:part_id>', methods=['POST'])
+def edit_part(cabinet_id, part_id):
+    check = admin_required()
+    if check:
+        return check
+    template = PartTemplate.query.get(part_id)
+    if template:
+        template.quantity = int(request.form['quantity'])
+        template.cart = int(request.form['cart'])
+        template.is_optional = True if request.form.get('is_optional') else False
+        db.session.commit()
+    return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
+
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/delete/<int:part_id>')
 def delete_part(cabinet_id, part_id):
     check = admin_required()

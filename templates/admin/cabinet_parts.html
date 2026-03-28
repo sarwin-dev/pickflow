@@ -86,7 +86,8 @@
                 </thead>
                 <tbody>
                     {% for part in parts %}
-                    <tr>
+                    <!-- fila de visualizacion -->
+                    <tr id="view-{{ part.id }}">
                         <td>
                             {{ part.part.name }}
                             {% if part.is_optional %}
@@ -107,10 +108,40 @@
                             —
                             {% endif %}
                         </td>
-                        <td>
+                        <td style="display:flex; gap:6px;">
+                            <button class="btn-secondary" style="font-size:12px; padding:4px 10px;"
+                                onclick="toggleEdit({{ part.id }})">Edit</button>
                             <a href="/admin/cabinets/{{ cabinet.id }}/parts/delete/{{ part.id }}" class="btn-delete"
                                 onclick="return confirm('Delete this part?')">Delete</a>
                         </td>
+                    </tr>
+                    <!-- fila de edicion (oculta por defecto) -->
+                    <tr id="edit-{{ part.id }}" style="display:none; background:#f9fafb;">
+                        <td><strong style="font-size:13px;">{{ part.part.name }}</strong></td>
+                        <form method="POST" action="/admin/cabinets/{{ cabinet.id }}/parts/edit/{{ part.id }}"
+                              style="display:contents;">
+                        <td>
+                            <input type="number" name="quantity" value="{{ part.quantity }}" min="1"
+                                   style="width:60px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;">
+                        </td>
+                        <td>
+                            <select name="cart" style="padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;">
+                                <option value="1" {% if part.cart == 1 %}selected{% endif %}>Cart 1</option>
+                                <option value="2" {% if part.cart == 2 %}selected{% endif %}>Cart 2</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label style="font-size:12px; display:flex; align-items:center; gap:4px;">
+                                <input type="checkbox" name="is_optional" {% if part.is_optional %}checked{% endif %}>
+                                Optional
+                            </label>
+                        </td>
+                        <td style="display:flex; gap:6px;">
+                            <button type="submit" class="btn-primary" style="font-size:12px; padding:4px 10px;">Save</button>
+                            <button type="button" class="btn-secondary" style="font-size:12px; padding:4px 10px;"
+                                onclick="toggleEdit({{ part.id }})">Cancel</button>
+                        </td>
+                        </form>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -122,5 +153,15 @@
     </div>
 
 </div>
+
+<script>
+function toggleEdit(partId) {
+    const viewRow = document.getElementById('view-' + partId);
+    const editRow = document.getElementById('edit-' + partId);
+    const isEditing = editRow.style.display !== 'none';
+    viewRow.style.display = isEditing ? '' : 'none';
+    editRow.style.display = isEditing ? 'none' : '';
+}
+</script>
 
 {% endblock %}
