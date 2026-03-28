@@ -43,6 +43,14 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
+
+    <footer style="margin-top:3rem; border-top:1px solid #e5e7eb; padding:20px 2rem;
+                   display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+                   background:white; font-size:12px; color:#9ca3af;">
+        <span><strong style="color:#1e1b4b;">PickFlow</strong> — Warehouse Pick Management</span>
+        <span>v1.0 &nbsp;·&nbsp; &copy; 2025 PickFlow</span>
+    </footer>
+
     <script>
         // genera el breadcrumb automaticamente segun la URL actual
         const breadcrumb = document.getElementById('breadcrumb');
