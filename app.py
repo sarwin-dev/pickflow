@@ -40,6 +40,7 @@ def dashboard():
     stats = {}
 
     if role in ['admin', 'supervisor']:
+        from models import ShoppingListItem
         today = date.today()
         stats['pending'] = WorkOrder.query.filter_by(status='pending').count()
         stats['in_progress'] = WorkOrder.query.filter_by(status='in_progress').count()
@@ -50,6 +51,9 @@ def dashboard():
         stats['low_stock'] = Inventory.query.filter(
             Inventory.is_active == True,
             Inventory.quantity <= Inventory.min_quantity
+        ).count()
+        stats['on_the_way'] = ShoppingListItem.query.filter(
+            ShoppingListItem.ordered_at.isnot(None)
         ).count()
 
     elif role == 'warehouse':

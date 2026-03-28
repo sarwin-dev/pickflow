@@ -119,6 +119,7 @@ class ShoppingListItem(db.Model):
     notes = db.Column(db.String(200), nullable=True)
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ordered_at = db.Column(db.DateTime, nullable=True)
     part = db.relationship('Part', backref='shopping_items')
     requester = db.relationship('User', backref='shopping_items')
 
