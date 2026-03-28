@@ -50,7 +50,11 @@
                         View Parts ({{ cabinet.parts|length }})
                     </a>
                 </td>
-                <td>
+                <td style="display:flex; gap:6px; align-items:center;">
+                    <a href="/admin/cabinets/edit/{{ cabinet.id }}"
+                       class="btn-secondary" style="font-size:12px; padding:4px 10px;">
+                        Edit
+                    </a>
                     <a href="/admin/cabinets/delete/{{ cabinet.id }}"
                        class="btn-delete"
                        onclick="return confirm('Delete this cabinet type?')">

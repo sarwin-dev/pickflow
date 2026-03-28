@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Edit Cabinet - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Edit Cabinet Type</h1>
+    <p>Update cabinet profile — parts are managed separately</p>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="/admin/cabinets/edit/{{ cabinet.id }}">
+
+        <div class="form-group">
+            <label>Code</label>
+            <input type="text" name="code" value="{{ cabinet.code }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" value="{{ cabinet.name }}" required>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group">
+                <label>Width (inches)</label>
+                <input type="number" name="width" value="{{ cabinet.width }}" required>
+            </div>
+            <div class="form-group">
+                <label>Height (inches) — optional</label>
+                <input type="number" name="height" value="{{ cabinet.height or '' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Color</label>
+            <input type="text" name="color" value="{{ cabinet.color or '' }}" placeholder="Enter color name">
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" name="is_custom" id="is_custom"
+                   style="width:18px; height:18px;"
+                   {% if cabinet.is_custom %}checked{% endif %}>
+            <label for="is_custom" style="margin:0;">This is a custom cabinet</label>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary">Save Changes</button>
+            <a href="/admin/cabinets/{{ cabinet.id }}/parts" class="btn-secondary">Edit Parts</a>
+            <a href="/admin/cabinets" class="btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

@@ -122,6 +122,25 @@ def create_cabinet():
         return redirect(url_for('admin.cabinet_parts', cabinet_id=new_cabinet.id))
     return render_template('admin/create_cabinet.html', error=error)
 
+@admin_bp.route('/cabinets/edit/<int:cabinet_id>', methods=['GET', 'POST'])
+def edit_cabinet(cabinet_id):
+    check = admin_required()
+    if check:
+        return check
+    cabinet = CabinetType.query.get(cabinet_id)
+    if request.method == 'POST':
+        raw_code = request.form['code'].strip()
+        formatted_code = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_code)
+        cabinet.code = ' '.join(formatted_code.split()).title()
+        cabinet.name = ' '.join(request.form['name'].strip().split()).title()
+        cabinet.width = request.form['width']
+        cabinet.height = request.form.get('height') or None
+        cabinet.color = request.form.get('color') or None
+        cabinet.is_custom = True if request.form.get('is_custom') else False
+        db.session.commit()
+        return redirect(url_for('admin.cabinets'))
+    return render_template('admin/edit_cabinet.html', cabinet=cabinet)
+
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts', methods=['GET', 'POST'])
 def cabinet_parts(cabinet_id):
     check = admin_required()
