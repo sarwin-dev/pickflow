@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from extensions import db
 from models import Part, Inventory
@@ -22,7 +23,10 @@ def index():
 
     parts_query = Part.query.order_by(Part.name)
     if search:
-        parts_query = parts_query.filter(Part.name.ilike(f'%{search}%'))
+        # normaliza el termino: "toe33" -> "toe 33" para encontrar "Toe 33"
+        normalized = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', search)
+        normalized = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', normalized).strip()
+        parts_query = parts_query.filter(Part.name.ilike(f'%{normalized}%'))
 
     parts = parts_query.all()
 
