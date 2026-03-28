@@ -258,28 +258,6 @@ def warehouse_config():
     return render_template('admin/warehouse_config.html', config=config)
 
 # ============================================
-# LOCATIONS
-# ============================================
-
-@admin_bp.route('/locations')
-def locations():
-    check = admin_required()
-    if check:
-        return check
-    search = request.args.get('search', '')
-    if search:
-        parts = Part.query.filter(
-            Part.name.ilike(f'%{search}%')
-        ).order_by(
-            Part.active_aisle,
-            Part.active_bay,
-            Part.active_shelf
-        ).all()
-    else:
-        parts = []
-    return render_template('admin/locations.html', parts=parts, search=search)
-
-# ============================================
 # COLORS
 # ============================================
 

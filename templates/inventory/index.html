@@ -153,6 +153,10 @@
     </div>
     {% endif %}
 
+{% elif filter_mode == 'low' and not part_results %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    <p style="font-size:16px; color:#16a34a; font-weight:600;">All parts are above minimum stock levels</p>
+</div>
 {% else %}
 <!-- estado inicial - sin busqueda -->
 <div style="text-align:center; padding:4rem 2rem; color:#999;">

@@ -26,14 +26,16 @@ def index():
         return check
 
     search = request.args.get('search', '').strip()
+    filter_mode = request.args.get('filter', '')
     part_results = []
 
-    if search:
-        # normaliza el termino de busqueda: "toe33" -> "toe 33"
-        normalized = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', search)
-        normalized = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', normalized).strip()
-
-        parts = Part.query.filter(Part.name.ilike(f'%{normalized}%')).order_by(Part.name).all()
+    if search or filter_mode == 'low':
+        if search:
+            normalized = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', search)
+            normalized = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', normalized).strip()
+            parts = Part.query.filter(Part.name.ilike(f'%{normalized}%')).order_by(Part.name).all()
+        else:
+            parts = Part.query.order_by(Part.name).all()
 
         for part in parts:
             records = Inventory.query.filter_by(part_id=part.id).order_by(
@@ -43,8 +45,6 @@ def index():
 
             overflow_total = sum(r.quantity for r in records if not r.is_active)
             active_total = sum(r.quantity for r in records if r.is_active)
-
-            # min_quantity viene de cualquier registro de la parte
             min_qty = records[0].min_quantity if records else 0
 
             if overflow_total == 0:
@@ -53,6 +53,10 @@ def index():
                 status = 'low'
             else:
                 status = 'ok'
+
+            # si el filtro es low, solo incluye las q tienen problema
+            if filter_mode == 'low' and status == 'ok':
+                continue
 
             part_results.append({
                 'part': part,
@@ -65,7 +69,8 @@ def index():
 
     return render_template('inventory/index.html',
                            part_results=part_results,
-                           search=search)
+                           search=search,
+                           filter_mode=filter_mode)
 
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
 def set_min(part_id):
