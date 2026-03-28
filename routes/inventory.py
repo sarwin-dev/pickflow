@@ -59,8 +59,11 @@ def index():
             if filter_mode == 'low' and status == 'ok':
                 continue
 
-            # verifica si ya esta en el shopping list
             in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
+
+            # en modo low, ocultar partes que ya estan en el reorder list
+            if filter_mode == 'low' and in_list:
+                continue
 
             part_results.append({
                 'part': part,
