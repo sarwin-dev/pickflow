@@ -1,6 +1,7 @@
+import re
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from extensions import db
-from models import Inventory, PartTemplate, WarehouseConfig, Part
+from models import Inventory, WarehouseConfig, Part
 from datetime import datetime
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
@@ -31,11 +32,26 @@ def receive():
     if check:
         return check
     
-    # valida que se haya seleccionado una parte
+    # acepta part_id (seleccion del autocomplete) o part_name (texto libre)
     part_id = request.form.get('part_id')
-    if not part_id:
+    part_name_raw = request.form.get('part_name', '').strip()
+
+    if not part_id and not part_name_raw:
         return redirect(url_for('receiving.index'))
-    
+
+    if not part_id:
+        # formatea el nombre: separa letras de numeros, title case
+        formatted = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', part_name_raw)
+        formatted = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', formatted)
+        part_name = ' '.join(formatted.split()).title()
+        # busca la parte o la crea si no existe
+        part = Part.query.filter(Part.name.ilike(part_name)).first()
+        if not part:
+            part = Part(name=part_name)
+            db.session.add(part)
+            db.session.flush()
+        part_id = part.id
+
     config = WarehouseConfig.query.first()
     quantity = int(request.form['quantity'])
     receiving_type = request.form.get('receiving_type', 'overflow')

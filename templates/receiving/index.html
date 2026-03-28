@@ -21,12 +21,14 @@
             <!-- campo de busqueda con autocomplete -->
             <div class="form-group">
                 <label>Part</label>
-                <!-- campo visible donde el usuario escribe -->
-                <input type="text" id="part-search" placeholder="Type part name..." autocomplete="off"
-                    style="width:100%;">
-                <!-- campo oculto que guarda el id de la parte seleccionada -->
-                <!-- el usuario no lo ve, lo llena el javascript -->
-                <input type="hidden" name="part_id" id="part-id" required>
+                <!-- campo visible: acepta nombre libre o seleccion del autocomplete -->
+                <input type="text" id="part-search" name="part_name" placeholder="Type part name (e.g. toe33, Left Panel...)"
+                    autocomplete="off" style="width:100%;" required>
+                <!-- si el usuario selecciona del autocomplete, se guarda el id aqui -->
+                <input type="hidden" name="part_id" id="part-id">
+                <p style="font-size:11px; color:#999; margin-top:4px;">
+                    Select from list or type a new name — it will be created automatically
+                </p>
                 <!-- contenedor donde aparecen las sugerencias del autocomplete -->
                 <div id="suggestions" style="
                     border:1px solid #ddd;
