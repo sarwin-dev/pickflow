@@ -6,27 +6,20 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
             <h1>Reorder List</h1>
-            <p>Parts flagged for reorder — review quantities, then mark as ordered when sent to purchasing</p>
+            <p>Parts flagged for reorder — review quantities before sending to purchasing</p>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center;">
             {% if items %}
-            <a href="/inventory/shopping/pdf" class="btn-primary" style="padding:8px 16px; font-size:13px;">
+            <a href="/inventory/shopping/pdf" class="btn-primary" style="padding:6px 14px; font-size:13px;">
                 Download PDF
             </a>
-            <a href="/inventory/shopping/mark-all-ordered" class="btn-primary"
-               style="padding:8px 16px; font-size:13px; background:#2563eb;"
-               onclick="return confirm('Mark all items as ordered and move them to On the Way?')">
-                ✓ Mark All as Ordered
-            </a>
             <a href="/inventory/shopping/clear" class="btn-delete"
+               style="padding:6px 14px; font-size:13px;"
                onclick="return confirm('Clear the entire reorder list?')">
                 Clear List
             </a>
             {% endif %}
-            <a href="/inventory/shopping/on-the-way/" class="btn-secondary" style="padding:8px 14px; font-size:13px;">
-                🚚 On the Way
-            </a>
-            <a href="/inventory/?filter=low" class="btn-secondary" style="padding:8px 14px; font-size:13px;">
+            <a href="/inventory/?filter=low" class="btn-secondary" style="padding:6px 14px; font-size:13px;">
                 ← Back to Low Stock
             </a>
         </div>
@@ -57,9 +50,6 @@
                 <td style="display:flex; gap:6px;">
                     <button class="btn-secondary" style="font-size:12px; padding:4px 10px;"
                         onclick="toggleEdit({{ item.id }})">Edit</button>
-                    <a href="/inventory/shopping/mark-ordered/{{ item.id }}" class="btn-primary"
-                       style="font-size:12px; padding:4px 10px; background:#2563eb;"
-                       onclick="return confirm('Mark as ordered and move to On the Way?')">Ordered</a>
                     <a href="/inventory/shopping/remove/{{ item.id }}" class="btn-delete"
                        style="font-size:12px;"
                        onclick="return confirm('Remove from reorder list?')">Remove</a>

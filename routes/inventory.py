@@ -127,48 +127,8 @@ def shopping_list():
     check = supervisor_required()
     if check:
         return check
-    # solo los items pendientes (no marcados como ordenados)
-    items = ShoppingListItem.query.filter_by(ordered_at=None).order_by(ShoppingListItem.added_at.desc()).all()
+    items = ShoppingListItem.query.order_by(ShoppingListItem.added_at.desc()).all()
     return render_template('inventory/shopping_list.html', items=items)
-
-@inventory_bp.route('/shopping/mark-ordered/<int:item_id>')
-def shopping_mark_ordered(item_id):
-    check = supervisor_required()
-    if check:
-        return check
-    item = ShoppingListItem.query.get(item_id)
-    if item:
-        item.ordered_at = datetime.utcnow()
-        db.session.commit()
-    return redirect(url_for('inventory.shopping_list'))
-
-@inventory_bp.route('/shopping/mark-all-ordered')
-def shopping_mark_all_ordered():
-    check = supervisor_required()
-    if check:
-        return check
-    ShoppingListItem.query.filter_by(ordered_at=None).update({'ordered_at': datetime.utcnow()})
-    db.session.commit()
-    return redirect(url_for('inventory.on_the_way'))
-
-@inventory_bp.route('/shopping/on-the-way/')
-def on_the_way():
-    check = supervisor_required()
-    if check:
-        return check
-    items = ShoppingListItem.query.filter(
-        ShoppingListItem.ordered_at.isnot(None)
-    ).order_by(ShoppingListItem.ordered_at.desc()).all()
-    return render_template('inventory/on_the_way.html', items=items)
-
-@inventory_bp.route('/shopping/clear-ordered')
-def shopping_clear_ordered():
-    check = supervisor_required()
-    if check:
-        return check
-    ShoppingListItem.query.filter(ShoppingListItem.ordered_at.isnot(None)).delete()
-    db.session.commit()
-    return redirect(url_for('inventory.on_the_way'))
 
 @inventory_bp.route('/shopping/update/<int:item_id>', methods=['POST'])
 def shopping_update(item_id):
@@ -198,7 +158,7 @@ def shopping_clear():
     check = supervisor_required()
     if check:
         return check
-    ShoppingListItem.query.filter_by(ordered_at=None).delete()
+    ShoppingListItem.query.delete()
     db.session.commit()
     return redirect(url_for('inventory.shopping_list'))
 
@@ -214,7 +174,7 @@ def shopping_pdf():
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import inch
 
-    items = ShoppingListItem.query.filter_by(ordered_at=None).order_by(ShoppingListItem.added_at).all()
+    items = ShoppingListItem.query.order_by(ShoppingListItem.added_at).all()
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,

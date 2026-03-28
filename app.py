@@ -52,9 +52,7 @@ def dashboard():
             Inventory.is_active == True,
             Inventory.quantity <= Inventory.min_quantity
         ).count()
-        stats['on_the_way'] = ShoppingListItem.query.filter(
-            ShoppingListItem.ordered_at.isnot(None)
-        ).count()
+        stats['on_the_way'] = ShoppingListItem.query.count()
 
     elif role == 'warehouse':
         stats['available'] = WorkOrder.query.filter(
