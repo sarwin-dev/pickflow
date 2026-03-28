@@ -106,8 +106,11 @@ def create_cabinet():
         return check
     error = None
     if request.method == 'POST':
+        raw_code = request.form['code'].strip()
+        formatted_code = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_code)
+        cabinet_code = ' '.join(formatted_code.split()).title()
         new_cabinet = CabinetType(
-            code=request.form['code'],
+            code=cabinet_code,
             name=request.form['name'],
             width=request.form['width'],
             height=request.form.get('height') or None,
