@@ -148,17 +148,12 @@
                             {% endif %}
                         </td>
 
-                        <!-- formulario de pulldown - descuenta unidades -->
-                        <!-- se usa cuando bajan una caja de overflow al active -->
+                        <!-- pulldown: baja la caja completa y libera la ubicacion -->
                         <td>
-                            <form method="POST" action="/receiving/pulldown/{{ record.id }}"
-                                style="display:flex; gap:6px; align-items:center;">
-                                <input type="number" name="quantity" min="1" max="{{ record.quantity }}"
-                                    placeholder="qty"
-                                    style="width:60px; padding:4px 6px; border:1px solid #ddd; border-radius:6px; font-size:12px;">
-                                <button type="submit" class="btn-create" style="font-size:11px; padding:4px 8px;"
-                                    onclick="return confirm('Confirm pulldown?')">
-                                    Pull
+                            <form method="POST" action="/receiving/pulldown/{{ record.id }}">
+                                <button type="submit" class="btn-create" style="font-size:11px; padding:5px 10px;"
+                                    onclick="return confirm('Pull down entire box ({{ record.quantity }} units)? This will free the location.')">
+                                    Pulldown
                                 </button>
                             </form>
                         </td>

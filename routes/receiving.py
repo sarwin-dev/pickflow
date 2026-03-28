@@ -140,11 +140,8 @@ def pulldown(record_id):
     if check:
         return check
     record = Inventory.query.get(record_id)
-    quantity = int(request.form['quantity'])
     if record:
-        record.quantity -= quantity
-        record.updated_at = datetime.utcnow()
-        if record.quantity <= 0:
-            db.session.delete(record)
+        # el pulldown siempre baja la caja completa — libera la ubicacion
+        db.session.delete(record)
         db.session.commit()
     return redirect(url_for('receiving.index'))
