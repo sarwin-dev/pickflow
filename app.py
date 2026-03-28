@@ -34,7 +34,37 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html')
+    from models import WorkOrder, Inventory
+    from datetime import date
+    role = session['user_role']
+    stats = {}
+
+    if role in ['admin', 'supervisor']:
+        today = date.today()
+        stats['pending'] = WorkOrder.query.filter_by(status='pending').count()
+        stats['in_progress'] = WorkOrder.query.filter_by(status='in_progress').count()
+        stats['completed_today'] = WorkOrder.query.filter(
+            WorkOrder.status == 'completed',
+            db.func.date(WorkOrder.updated_at) == today
+        ).count()
+        stats['low_stock'] = Inventory.query.filter(
+            Inventory.is_active == True,
+            Inventory.quantity <= Inventory.min_quantity
+        ).count()
+
+    elif role == 'warehouse':
+        stats['available'] = WorkOrder.query.filter(
+            WorkOrder.status.in_(['pending', 'in_progress'])
+        ).count()
+        stats['in_progress'] = WorkOrder.query.filter_by(status='in_progress').count()
+
+    elif role == 'order_entry':
+        stats['my_orders'] = WorkOrder.query.filter_by(
+            created_by=session['user_id']
+        ).count()
+        stats['pending'] = WorkOrder.query.filter_by(status='pending').count()
+
+    return render_template('dashboard.html', stats=stats)
 
 @app.route('/logout')
 def logout():

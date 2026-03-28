@@ -7,6 +7,54 @@
     <p>What would you like to do today?</p>
 </div>
 
+<!-- stats cards - solo si hay datos para mostrar -->
+{% if stats %}
+<div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:2rem;">
+
+    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#1e1b4b;">{{ stats.pending }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">Pending Orders</div>
+    </div>
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ stats.in_progress }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">In Progress</div>
+    </div>
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#16a34a;">{{ stats.completed_today }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">Completed Today</div>
+    </div>
+    {% if stats.low_stock > 0 %}
+    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#dc2626;">{{ stats.low_stock }}</div>
+        <div style="font-size:12px; color:#dc2626; margin-top:4px;">⚠ Low Stock</div>
+    </div>
+    {% endif %}
+
+    {% elif session['user_role'] == 'warehouse' %}
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#1e1b4b;">{{ stats.available }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">Orders to Pick</div>
+    </div>
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ stats.in_progress }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">In Progress</div>
+    </div>
+
+    {% elif session['user_role'] == 'order_entry' %}
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#1e1b4b;">{{ stats.my_orders }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">My Orders</div>
+    </div>
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ stats.pending }}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px;">Pending Orders</div>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
 <div class="modules-grid">
 
     <!-- admin -->
