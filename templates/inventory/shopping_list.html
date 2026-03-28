@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Reorder List - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Reorder List</h1>
+            <p>Parts flagged for reorder — review quantities before sending to purchasing</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+            {% if items %}
+            <a href="/inventory/shopping/pdf" class="btn-primary" style="padding:8px 16px; font-size:13px;">
+                Download PDF
+            </a>
+            <a href="/inventory/shopping/clear" class="btn-delete"
+               onclick="return confirm('Clear the entire reorder list?')">
+                Clear List
+            </a>
+            {% endif %}
+            <a href="/inventory/?filter=low" class="btn-secondary" style="padding:8px 14px; font-size:13px;">
+                ← Back to Low Stock
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if items %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Part</th>
+                <th style="text-align:center;">Qty Needed</th>
+                <th>Notes</th>
+                <th>Added By</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr id="view-{{ item.id }}">
+                <td style="color:#999; font-size:13px;">{{ loop.index }}</td>
+                <td><strong>{{ item.part.name }}</strong></td>
+                <td style="text-align:center; font-size:16px; font-weight:700;">{{ item.quantity_needed }}</td>
+                <td style="font-size:13px; color:#555;">{{ item.notes or '—' }}</td>
+                <td style="font-size:13px;">{{ item.requester.name if item.requester else '—' }}</td>
+                <td style="font-size:12px; color:#999;">{{ item.added_at.strftime('%m/%d/%Y') }}</td>
+                <td style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="font-size:12px; padding:4px 10px;"
+                        onclick="toggleEdit({{ item.id }})">Edit</button>
+                    <a href="/inventory/shopping/remove/{{ item.id }}" class="btn-delete"
+                       style="font-size:12px;"
+                       onclick="return confirm('Remove from reorder list?')">Remove</a>
+                </td>
+            </tr>
+            <!-- fila de edicion -->
+            <tr id="edit-{{ item.id }}" style="display:none; background:#f9fafb;">
+                <td style="color:#999;">{{ loop.index }}</td>
+                <form method="POST" action="/inventory/shopping/update/{{ item.id }}" style="display:contents;">
+                <td><strong>{{ item.part.name }}</strong></td>
+                <td style="text-align:center;">
+                    <input type="number" name="quantity_needed" value="{{ item.quantity_needed }}" min="1"
+                           style="width:70px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px;
+                                  font-size:14px; text-align:center;">
+                </td>
+                <td>
+                    <input type="text" name="notes" value="{{ item.notes or '' }}"
+                           placeholder="Add notes..."
+                           style="width:100%; padding:4px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;">
+                </td>
+                <td colspan="2"></td>
+                <td style="display:flex; gap:6px;">
+                    <button type="submit" class="btn-primary" style="font-size:12px; padding:4px 10px;">Save</button>
+                    <button type="button" class="btn-secondary" style="font-size:12px; padding:4px 10px;"
+                        onclick="toggleEdit({{ item.id }})">Cancel</button>
+                </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:4rem; color:#999;">
+    <p style="font-size:16px;">The reorder list is empty</p>
+    <p style="font-size:13px; margin-top:8px;">
+        Go to <a href="/inventory/?filter=low" style="color:#1e1b4b;">Low Stock</a>
+        and add parts to the list.
+    </p>
+</div>
+{% endif %}
+
+<script>
+function toggleEdit(id) {
+    const view = document.getElementById('view-' + id);
+    const edit = document.getElementById('edit-' + id);
+    const editing = edit.style.display !== 'none';
+    view.style.display = editing ? '' : 'none';
+    edit.style.display = editing ? 'none' : '';
+}
+</script>
+
+{% endblock %}

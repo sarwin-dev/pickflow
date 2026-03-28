@@ -1,7 +1,9 @@
 import re
-from flask import Blueprint, render_template, session, redirect, url_for, request
+from io import BytesIO
+from flask import Blueprint, render_template, session, redirect, url_for, request, send_file
 from extensions import db
-from models import Part, Inventory
+from models import Part, Inventory, ShoppingListItem
+from datetime import datetime
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 
@@ -54,9 +56,11 @@ def index():
             else:
                 status = 'ok'
 
-            # si el filtro es low, solo incluye las q tienen problema
             if filter_mode == 'low' and status == 'ok':
                 continue
+
+            # verifica si ya esta en el shopping list
+            in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
 
             part_results.append({
                 'part': part,
@@ -65,12 +69,16 @@ def index():
                 'active_total': active_total,
                 'min_qty': min_qty,
                 'status': status,
+                'in_list': in_list,
             })
+
+    shopping_count = ShoppingListItem.query.count()
 
     return render_template('inventory/index.html',
                            part_results=part_results,
                            search=search,
-                           filter_mode=filter_mode)
+                           filter_mode=filter_mode,
+                           shopping_count=shopping_count)
 
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
 def set_min(part_id):
@@ -82,4 +90,131 @@ def set_min(part_id):
     for record in records:
         record.min_quantity = min_qty
     db.session.commit()
-    return redirect(url_for('inventory.index', search=request.form.get('search', '')))
+    return redirect(url_for('inventory.index',
+                            search=request.form.get('search', ''),
+                            filter=request.form.get('filter', '')))
+
+# ============================================
+# SHOPPING LIST
+# ============================================
+
+@inventory_bp.route('/shopping/add/<int:part_id>', methods=['POST'])
+def shopping_add(part_id):
+    check = supervisor_required()
+    if check:
+        return check
+    existing = ShoppingListItem.query.filter_by(part_id=part_id).first()
+    if not existing:
+        quantity = int(request.form.get('quantity_needed', 1))
+        notes = request.form.get('notes', '').strip() or None
+        item = ShoppingListItem(
+            part_id=part_id,
+            quantity_needed=quantity,
+            notes=notes,
+            added_by=session['user_id'],
+            added_at=datetime.utcnow()
+        )
+        db.session.add(item)
+        db.session.commit()
+    # regresa a donde venia
+    return redirect(request.referrer or url_for('inventory.index', filter='low'))
+
+@inventory_bp.route('/shopping/')
+def shopping_list():
+    check = supervisor_required()
+    if check:
+        return check
+    items = ShoppingListItem.query.order_by(ShoppingListItem.added_at.desc()).all()
+    return render_template('inventory/shopping_list.html', items=items)
+
+@inventory_bp.route('/shopping/update/<int:item_id>', methods=['POST'])
+def shopping_update(item_id):
+    check = supervisor_required()
+    if check:
+        return check
+    item = ShoppingListItem.query.get(item_id)
+    if item:
+        item.quantity_needed = int(request.form.get('quantity_needed', 1))
+        item.notes = request.form.get('notes', '').strip() or None
+        db.session.commit()
+    return redirect(url_for('inventory.shopping_list'))
+
+@inventory_bp.route('/shopping/remove/<int:item_id>')
+def shopping_remove(item_id):
+    check = supervisor_required()
+    if check:
+        return check
+    item = ShoppingListItem.query.get(item_id)
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+    return redirect(url_for('inventory.shopping_list'))
+
+@inventory_bp.route('/shopping/clear')
+def shopping_clear():
+    check = supervisor_required()
+    if check:
+        return check
+    ShoppingListItem.query.delete()
+    db.session.commit()
+    return redirect(url_for('inventory.shopping_list'))
+
+@inventory_bp.route('/shopping/pdf')
+def shopping_pdf():
+    check = supervisor_required()
+    if check:
+        return check
+
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
+
+    items = ShoppingListItem.query.order_by(ShoppingListItem.added_at).all()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=0.5*inch, leftMargin=0.5*inch,
+                            topMargin=0.5*inch, bottomMargin=0.5*inch)
+
+    style_title = ParagraphStyle('title', fontSize=16, fontName='Helvetica-Bold', spaceAfter=4)
+    style_sub   = ParagraphStyle('sub',   fontSize=10, fontName='Helvetica', spaceAfter=2,
+                                 textColor=colors.grey)
+
+    elements = []
+    elements.append(Paragraph('REORDER LIST', style_title))
+    elements.append(Paragraph(
+        f"Generated: {datetime.now().strftime('%m/%d/%Y %I:%M %p')} · {len(items)} item(s)",
+        style_sub))
+    elements.append(Spacer(1, 0.2*inch))
+
+    table_data = [['#', 'Part', 'Qty Needed', 'Notes', 'Requested By']]
+    for i, item in enumerate(items, 1):
+        table_data.append([
+            str(i),
+            item.part.name if item.part else '—',
+            str(item.quantity_needed),
+            item.notes or '—',
+            item.requester.name if item.requester else '—',
+        ])
+
+    col_widths = [0.3*inch, 2.2*inch, 0.9*inch, 2.8*inch, 1.3*inch]
+    t = Table(table_data, colWidths=col_widths, repeatRows=1)
+    t.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#1e1b4b')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,-1), 9),
+        ('PADDING',        (0,0), (-1,-1), 6),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f9fafb')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e5e7eb')),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    buffer.seek(0)
+
+    filename = f"ReorderList_{datetime.now().strftime('%Y%m%d')}.pdf"
+    return send_file(buffer, mimetype='application/pdf',
+                     as_attachment=True, download_name=filename)

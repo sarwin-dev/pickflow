@@ -19,6 +19,15 @@
     {% endif %}
 </form>
 
+{% if session['user_role'] in ['admin', 'supervisor'] and shopping_count > 0 %}
+<div style="margin-bottom:1rem; padding:10px 16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:14px; color:#16a34a; font-weight:600;">
+        📋 {{ shopping_count }} part{{ 's' if shopping_count != 1 }} in the reorder list
+    </span>
+    <a href="/inventory/shopping/" style="font-size:13px; color:#16a34a; font-weight:600; text-decoration:underline;">View Reorder List →</a>
+</div>
+{% endif %}
+
 {% if filter_mode == 'low' and not search %}
 <div style="margin-bottom:1.5rem; padding:12px 16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
     <span style="font-size:14px; color:#dc2626; font-weight:600;">⚠ Showing parts at or below minimum stock level</span>
@@ -132,21 +141,42 @@
             <p style="color:#999; font-size:14px; margin-bottom:16px;">No inventory records for this part.</p>
             {% endif %}
 
-            <!-- seccion de minimo - solo supervisor y admin -->
+            <!-- seccion de minimo + añadir a reorder list - solo supervisor y admin -->
             {% if session['user_role'] in ['admin', 'supervisor'] %}
-            <div style="border-top:1px solid #f3f4f6; padding-top:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-                <span style="font-size:13px; color:#6b7280;">
-                    Min. Overflow: <strong>{{ item.min_qty }}</strong>
-                </span>
-                <form method="POST" action="/inventory/set-min/{{ item.part.id }}"
-                      style="display:flex; gap:8px; align-items:center;">
-                    <input type="number" name="min_qty" value="{{ item.min_qty }}" min="0"
-                           style="width:80px; padding:6px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; text-align:center;">
-                    <input type="hidden" name="search" value="{{ search }}">
-                    <button type="submit" class="btn-primary" style="padding:6px 14px; font-size:13px;">
-                        Set Minimum
+            <div style="border-top:1px solid #f3f4f6; padding-top:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <span style="font-size:13px; color:#6b7280;">
+                        Min. Overflow: <strong>{{ item.min_qty }}</strong>
+                    </span>
+                    <form method="POST" action="/inventory/set-min/{{ item.part.id }}"
+                          style="display:flex; gap:8px; align-items:center;">
+                        <input type="number" name="min_qty" value="{{ item.min_qty }}" min="0"
+                               style="width:80px; padding:6px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; text-align:center;">
+                        <input type="hidden" name="search" value="{{ search }}">
+                        <input type="hidden" name="filter" value="{{ filter_mode }}">
+                        <button type="submit" class="btn-primary" style="padding:6px 14px; font-size:13px;">
+                            Set Minimum
+                        </button>
+                    </form>
+                </div>
+
+                <!-- boton añadir a reorder list -->
+                {% if item.in_list %}
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:13px; color:#16a34a; font-weight:600;">✓ On reorder list</span>
+                    <a href="/inventory/shopping/" style="font-size:12px; color:#6b7280; text-decoration:underline;">View</a>
+                </div>
+                {% else %}
+                <form method="POST" action="/inventory/shopping/add/{{ item.part.id }}"
+                      style="display:flex; align-items:center; gap:8px;">
+                    <input type="number" name="quantity_needed" value="1" min="1"
+                           style="width:65px; padding:5px 6px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; text-align:center;"
+                           title="Qty needed">
+                    <button type="submit" class="btn-secondary" style="padding:6px 14px; font-size:13px;">
+                        + Add to Reorder List
                     </button>
                 </form>
+                {% endif %}
             </div>
             {% endif %}
 

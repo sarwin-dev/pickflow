@@ -111,6 +111,17 @@ class Inventory(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     part = db.relationship('Part', backref='inventory_records')
 
+class ShoppingListItem(db.Model):
+    __tablename__ = 'shopping_list'
+    id = db.Column(db.Integer, primary_key=True)
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
+    quantity_needed = db.Column(db.Integer, default=1)
+    notes = db.Column(db.String(200), nullable=True)
+    added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    part = db.relationship('Part', backref='shopping_items')
+    requester = db.relationship('User', backref='shopping_items')
+
 class Loss(db.Model):
     __tablename__ = 'losses'
     id = db.Column(db.Integer, primary_key=True)
