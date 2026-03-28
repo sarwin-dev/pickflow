@@ -88,17 +88,48 @@ def receive():
         bay = request.form.get('bay')
         shelf = int(request.form.get('shelf', 0))
         is_active = shelf <= config.active_shelves
-        new_record = Inventory(
-            part_id=part_id,
-            aisle=aisle,
-            bay=bay,
-            shelf=str(shelf),
-            location=location,
-            quantity=quantity,
-            is_active=is_active,
-            received_at=datetime.utcnow()
-        )
-        db.session.add(new_record)
+
+        # verifica que la ubicacion no este ocupada por una parte diferente
+        conflict = Inventory.query.filter(
+            Inventory.aisle == aisle,
+            Inventory.bay == bay,
+            Inventory.shelf == str(shelf),
+            Inventory.location == location,
+            Inventory.part_id != int(part_id)
+        ).first()
+        if conflict:
+            from flask import flash
+            flash(
+                f'Location A{int(aisle):02d}.B{int(bay):02d}.S{int(shelf):02d} '
+                f'is already occupied by "{conflict.part.name}". '
+                f'Choose a different location or pull down the existing box first.',
+                'error'
+            )
+            return redirect(url_for('receiving.index'))
+
+        # si la misma parte ya tiene un registro en esa ubicacion, suma cantidad
+        existing = Inventory.query.filter(
+            Inventory.aisle == aisle,
+            Inventory.bay == bay,
+            Inventory.shelf == str(shelf),
+            Inventory.location == location,
+            Inventory.part_id == int(part_id)
+        ).first()
+        if existing:
+            existing.quantity += quantity
+            existing.updated_at = datetime.utcnow()
+        else:
+            new_record = Inventory(
+                part_id=part_id,
+                aisle=aisle,
+                bay=bay,
+                shelf=str(shelf),
+                location=location,
+                quantity=quantity,
+                is_active=is_active,
+                received_at=datetime.utcnow()
+            )
+            db.session.add(new_record)
 
     db.session.commit()
     return redirect(url_for('receiving.index'))

@@ -8,16 +8,15 @@
 </div>
 
 {% if orders %}
-<div class="table-container">
+<!-- vista desktop: tabla -->
+<div class="table-container pick-desktop">
     <table class="data-table">
         <thead>
             <tr>
                 <th>Job Name</th>
-                <th>Batch</th>
                 <th>W.O</th>
                 <th>Cabinets</th>
                 <th>Status</th>
-                <th>Picker</th>
                 <th>Created</th>
                 <th></th>
             </tr>
@@ -25,8 +24,12 @@
         <tbody>
             {% for order in orders %}
             <tr>
-                <td><strong>{{ order.job_name or '—' }}</strong></td>
-                <td>{{ order.lot_number or '—' }}</td>
+                <td>
+                    <strong>{{ order.job_name or '—' }}</strong>
+                    {% if order.lot_number %}
+                    <div style="font-size:12px; color:#999;">Lot: {{ order.lot_number }}</div>
+                    {% endif %}
+                </td>
                 <td style="font-size:13px; color:#666;">{{ order.order_number }}</td>
                 <td>{{ order.items|length }}</td>
                 <td>
@@ -34,44 +37,20 @@
                     <span class="role-badge role-inventory">Pending Pick</span>
                     {% elif order.status == 'in_progress' %}
                     <span class="role-badge role-order_entry">Picking</span>
-                    {% elif order.status == 'completed' %}
-                    <span class="role-badge role-picker">Picked</span>
                     {% endif %}
                 </td>
-                <td style="font-size:13px;">
-                    {% if order.status == 'in_progress' %}
-                    {% set pick_items = order.items|map(attribute='picks')|sum(start=[]) %}
-                    {% set pickers = pick_items|selectattr('picked_by')|map(attribute='picked_by')|unique|list %}
-                    {% if pickers %}
-                    {{ pickers|length }} picker(s)
-                    {% else %}
-                    —
-                    {% endif %}
-                    {% else %}
-                    —
-                    {% endif %}
-                </td>
-                <td style="font-size:13px; color:#666;">
-                    {{ order.created_at.strftime('%m/%d/%Y') }}
-                </td>
-                <!-- botones con gap para separacion -->
+                <td style="font-size:13px; color:#666;">{{ order.created_at.strftime('%m/%d/%Y') }}</td>
                 <td style="display:flex; gap:8px; align-items:center;">
-                    <a href="/pick/{{ order.id }}" class="btn-create" style="font-size:12px; padding:4px 10px;">
-                        {% if order.status == 'pending' %}
-                        Start Pick
-                        {% else %}
-                        Continue
-                        {% endif %}
+                    <a href="/pick/{{ order.id }}" class="btn-create" style="font-size:12px; padding:4px 12px;">
+                        {% if order.status == 'pending' %}Start Pick{% else %}Continue{% endif %}
                     </a>
                     <a href="/orders/{{ order.id }}/picklist/pdf" target="_blank" class="btn-secondary"
-                        style="font-size:12px; padding:4px 10px; background:#4CAF50; color:white; border-radius:3px;">
-                        Download Pick List PDF
+                       style="font-size:12px; padding:4px 10px; background:#4CAF50; color:white; border-radius:3px;">
+                        PDF
                     </a>
                     {% if session['user_role'] in ['admin', 'supervisor'] %}
                     <a href="/pick/reset/{{ order.id }}" class="btn-delete" style="font-size:12px;"
-                        onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">
-                        Reset
-                    </a>
+                       onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">Reset</a>
                     {% endif %}
                 </td>
             </tr>
@@ -79,13 +58,62 @@
         </tbody>
     </table>
 </div>
+
+<!-- vista móvil/tablet: cards -->
+<div class="pick-mobile">
+    {% for order in orders %}
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div>
+                <div style="font-size:17px; font-weight:700; color:#1e1b4b;">
+                    {{ order.job_name or order.order_number }}
+                </div>
+                <div style="font-size:13px; color:#999; margin-top:2px;">
+                    {{ order.order_number }}{% if order.lot_number %} · Lot {{ order.lot_number }}{% endif %}
+                </div>
+            </div>
+            {% if order.status == 'pending' %}
+            <span class="role-badge role-inventory">Pending</span>
+            {% elif order.status == 'in_progress' %}
+            <span class="role-badge role-order_entry">Picking</span>
+            {% endif %}
+        </div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:14px;">
+            {{ order.items|length }} cabinet(s) · {{ order.created_at.strftime('%m/%d/%Y') }}
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="/pick/{{ order.id }}" class="btn-create"
+               style="flex:1; text-align:center; padding:12px; font-size:15px;">
+                {% if order.status == 'pending' %}Start Pick{% else %}Continue{% endif %}
+            </a>
+            <a href="/orders/{{ order.id }}/picklist/pdf" target="_blank" class="btn-secondary"
+               style="padding:12px 16px; background:#4CAF50; color:white; border-radius:6px; font-size:14px;">
+                PDF
+            </a>
+            {% if session['user_role'] in ['admin', 'supervisor'] %}
+            <a href="/pick/reset/{{ order.id }}" class="btn-delete"
+               style="padding:12px 14px; font-size:14px;"
+               onclick="return confirm('Reset this order to pending?')">Reset</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">
     <p style="font-size:16px;">No orders available for picking</p>
-    <p style="font-size:13px; margin-top:8px;">
-        All orders are completed or there are no pending orders
-    </p>
+    <p style="font-size:13px; margin-top:8px;">All orders are completed or there are no pending orders</p>
 </div>
 {% endif %}
+
+<style>
+.pick-mobile { display: none; }
+
+@media (max-width: 768px) {
+    .pick-desktop { display: none; }
+    .pick-mobile { display: block; }
+}
+</style>
 
 {% endblock %}

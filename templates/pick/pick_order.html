@@ -10,11 +10,11 @@
             <h1>{{ order.job_name or 'Work Order' }} — {{ order.lot_number or '' }}</h1>
             <p>Order: {{ order.order_number }} · {{ order.items|length }} cabinets</p>
         </div>
-        <div style="text-align:right;">
-            <div style="font-size:13px; color:#666; margin-bottom:4px;">
+        <div style="text-align:right; min-width:180px;">
+            <div style="font-size:14px; color:#666; margin-bottom:6px;">
                 <span id="picked-count">0</span> / <span id="total-count">0</span> parts picked
             </div>
-            <div style="width:200px; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+            <div style="width:100%; height:10px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
                 <div id="progress-bar" style="height:100%; background:#059669; width:0%; transition:width 0.3s;"></div>
             </div>
         </div>
@@ -60,29 +60,37 @@
             </span>
         </div>
 
-        <div style="padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px;">
+        <div style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px;">
             {% for slot in group.slots %}
-            <div style="display:flex; align-items:center; gap:6px;">
-                <!-- tristate button -->
+            <div style="display:flex; align-items:center; gap:8px;">
+                <!-- tristate button — tamaño tactil para tablet/movil -->
+                {% if slot.is_picked %}
                 <button type="button" class="tristate-btn" data-id="{{ slot.pick_item_id }}"
-                    data-state="{% if slot.is_picked %}picked{% elif slot.is_missing %}missing{% else %}pending{% endif %}"
-                    id="tristate-{{ slot.pick_item_id }}"
-                    style="width:26px; height:26px; border-radius:6px; border:1px solid;
-                               {% if slot.is_picked %}background:#dcfce7; border-color:#86efac;
-                               {% elif slot.is_missing %}background:#fef3c7; border-color:#f59e0b;
-                               {% else %}background:white; border-color:#e5e7eb;{% endif %}
-                               cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">
-                    {% if slot.is_picked %}✓
-                    {% elif slot.is_missing %}✕
-                    {% else %}&nbsp;{% endif %}
-                </button>
+                    data-state="picked" id="tristate-{{ slot.pick_item_id }}"
+                    style="width:44px; height:44px; border-radius:8px; border:2px solid #86efac;
+                           background:#dcfce7; cursor:pointer; font-size:20px;
+                           display:flex; align-items:center; justify-content:center;">✓</button>
+                {% elif slot.is_missing %}
+                <button type="button" class="tristate-btn" data-id="{{ slot.pick_item_id }}"
+                    data-state="missing" id="tristate-{{ slot.pick_item_id }}"
+                    style="width:44px; height:44px; border-radius:8px; border:2px solid #f59e0b;
+                           background:#fef3c7; cursor:pointer; font-size:20px;
+                           display:flex; align-items:center; justify-content:center;">✕</button>
+                {% else %}
+                <button type="button" class="tristate-btn" data-id="{{ slot.pick_item_id }}"
+                    data-state="pending" id="tristate-{{ slot.pick_item_id }}"
+                    style="width:44px; height:44px; border-radius:8px; border:2px solid #e5e7eb;
+                           background:white; cursor:pointer; font-size:20px;
+                           display:flex; align-items:center; justify-content:center;">&nbsp;</button>
+                {% endif %}
                 <!-- numero de slot -->
-                <label id="label-{{ slot.pick_item_id }}" style="font-size:13px;
-                              {% if slot.is_picked %}text-decoration:line-through; color:#9ca3af;
-                              {% elif slot.is_missing %}color:#92400e; font-weight:500;
-                              {% else %}color:#374151;{% endif %}">
-                    #{{ slot.slot }}
-                </label>
+                {% if slot.is_picked %}
+                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; text-decoration:line-through; color:#9ca3af;">#{{ slot.slot }}</label>
+                {% elif slot.is_missing %}
+                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; color:#92400e; font-weight:600;">#{{ slot.slot }}</label>
+                {% else %}
+                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; color:#374151;">#{{ slot.slot }}</label>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -107,9 +115,24 @@
         color: white;
         border-color: #1e1b4b;
     }
-
     .pick-group.hidden {
         display: none;
+    }
+    @media (max-width: 768px) {
+        .dashboard-header > div {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        .dashboard-header > div > div:last-child {
+            width: 100%;
+        }
+        .dashboard-header > div > div:last-child > div:last-child {
+            width: 100% !important;
+        }
+        .aisle-filter {
+            font-size: 14px !important;
+            padding: 8px 14px !important;
+        }
     }
 </style>
 

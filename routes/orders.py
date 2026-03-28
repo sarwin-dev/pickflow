@@ -20,8 +20,22 @@ def index():
     check = order_entry_required()
     if check:
         return check
-    orders = WorkOrder.query.order_by(WorkOrder.created_at.desc()).all()
-    return render_template('orders/index.html', orders=orders)
+    search = request.args.get('search', '').strip()
+    status_filter = request.args.get('status', '')
+    query = WorkOrder.query
+    if search:
+        query = query.filter(
+            db.or_(
+                WorkOrder.order_number.ilike(f'%{search}%'),
+                WorkOrder.job_name.ilike(f'%{search}%'),
+                WorkOrder.lot_number.ilike(f'%{search}%'),
+            )
+        )
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    orders = query.order_by(WorkOrder.created_at.desc()).all()
+    return render_template('orders/index.html', orders=orders,
+                           search=search, status_filter=status_filter)
 
 @orders_bp.route('/create', methods=['GET', 'POST'])
 def create():

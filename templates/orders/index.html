@@ -12,12 +12,58 @@
     </div>
 </div>
 
+<!-- buscador + filtros -->
+<div style="display:flex; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+    <form method="GET" action="/orders/" style="display:flex; gap:8px; flex:1; min-width:220px; max-width:420px;">
+        <input type="text" name="search" value="{{ search }}"
+               placeholder="Search order #, job name, lot..."
+               style="flex:1; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px; font-size:14px;">
+        {% if status_filter %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+        <button type="submit" class="btn-primary" style="padding:8px 14px; font-size:13px;">Search</button>
+        {% if search %}
+        <a href="/orders/?status={{ status_filter }}" class="btn-secondary" style="padding:8px 10px; font-size:13px;">✕</a>
+        {% endif %}
+    </form>
+
+    <!-- filtros de status -->
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <a href="/orders/?search={{ search }}"
+           class="btn-secondary" style="font-size:13px; padding:6px 12px;
+           {% if not status_filter %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
+            All
+        </a>
+        <a href="/orders/?search={{ search }}&status=pending"
+           class="btn-secondary" style="font-size:13px; padding:6px 12px;
+           {% if status_filter == 'pending' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
+            Pending
+        </a>
+        <a href="/orders/?search={{ search }}&status=in_progress"
+           class="btn-secondary" style="font-size:13px; padding:6px 12px;
+           {% if status_filter == 'in_progress' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
+            In Progress
+        </a>
+        <a href="/orders/?search={{ search }}&status=completed"
+           class="btn-secondary" style="font-size:13px; padding:6px 12px;
+           {% if status_filter == 'completed' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
+            Completed
+        </a>
+        <a href="/orders/?search={{ search }}&status=cancelled"
+           class="btn-secondary" style="font-size:13px; padding:6px 12px;
+           {% if status_filter == 'cancelled' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
+            Cancelled
+        </a>
+    </div>
+</div>
+
 {% if orders %}
 <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
                 <th>Order #</th>
+                <th>Job Name</th>
                 <th>Status</th>
                 <th>Cabinets</th>
                 <th>Created by</th>
@@ -29,6 +75,7 @@
             {% for order in orders %}
             <tr>
                 <td><strong>{{ order.order_number }}</strong></td>
+                <td style="font-size:13px; color:#555;">{{ order.job_name or '—' }}</td>
                 <td>
                     {% if order.status == 'pending' %}
                     <span class="role-badge role-inventory">Pending</span>
@@ -40,10 +87,10 @@
                     <span class="role-badge" style="background:#f3f4f6; color:#6b7280;">Cancelled</span>
                     {% endif %}
                 </td>
-                <td>{{ order.items|length }} cabinets</td>
-                <td>{{ order.creator.name if order.creator else '—' }}</td>
+                <td>{{ order.items|length }}</td>
+                <td style="font-size:13px;">{{ order.creator.name if order.creator else '—' }}</td>
                 <td style="font-size:13px; color:#666;">
-                    {{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}
+                    {{ order.created_at.strftime('%m/%d/%Y') }}
                 </td>
                 <td style="display:flex; gap:8px;">
                     <a href="/orders/{{ order.id }}" class="btn-create"
@@ -65,10 +112,17 @@
 </div>
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">
+    {% if search or status_filter %}
+    <p style="font-size:16px;">No orders match your search</p>
+    <p style="font-size:13px; margin-top:8px;">
+        <a href="/orders/" style="color:#4f46e5;">Clear filters</a>
+    </p>
+    {% else %}
     <p style="font-size:16px;">No orders yet</p>
     <p style="font-size:13px; margin-top:8px;">
         <a href="/orders/create" style="color:#4f46e5;">Create your first order</a>
     </p>
+    {% endif %}
 </div>
 {% endif %}
 

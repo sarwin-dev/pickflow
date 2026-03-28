@@ -74,6 +74,7 @@ def pick_order(order_id):
                     'aisle': int(part.active_aisle) if part.active_aisle else 99,
                     'bay': int(part.active_bay) if part.active_bay else 99,
                     'shelf': int(part.active_shelf) if part.active_shelf else 99,
+                    'loc': int(part.active_location) if part.active_location else 99,
                     'slots': []
                 }
 
@@ -93,7 +94,7 @@ def pick_order(order_id):
     # ordena por aisle, bay, shelf
     sorted_groups = sorted(
         location_groups.values(),
-        key=lambda x: (x['aisle'], x['bay'], x['shelf'])
+        key=lambda x: (x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
     return render_template('pick/pick_order.html',
@@ -218,13 +219,14 @@ def generate_pdf(order_id):
                     'aisle': int(part.active_aisle) if part.active_aisle else 99,
                     'bay': int(part.active_bay) if part.active_bay else 99,
                     'shelf': int(part.active_shelf) if part.active_shelf else 99,
+                    'loc': int(part.active_location) if part.active_location else 99,
                     'slots': []
                 }
             location_groups[loc_key]['slots'].append(item.slot)
 
     sorted_groups = sorted(
         location_groups.values(),
-        key=lambda x: (x['aisle'], x['bay'], x['shelf'])
+        key=lambda x: (x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
     # crea el PDF en memoria
