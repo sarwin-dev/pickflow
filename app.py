@@ -90,5 +90,8 @@ app.register_blueprint(pick_bp)
 from routes.supervision import supervision_bp
 app.register_blueprint(supervision_bp)
 
+from routes.inventory import inventory_bp
+app.register_blueprint(inventory_bp)
+
 if __name__ == '__main__':
     app.run(debug=True)
