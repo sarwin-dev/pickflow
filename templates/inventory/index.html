@@ -19,7 +19,14 @@
     {% endif %}
 </form>
 
-{% if search %}
+{% if filter_mode == 'low' and not search %}
+<div style="margin-bottom:1.5rem; padding:12px 16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:14px; color:#dc2626; font-weight:600;">⚠ Showing parts at or below minimum stock level</span>
+    <a href="/inventory/" style="font-size:13px; color:#dc2626;">Clear filter</a>
+</div>
+{% endif %}
+
+{% if search or filter_mode == 'low' %}
     {% if part_results %}
         {% for item in part_results %}
         <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:24px; margin-bottom:24px;">
