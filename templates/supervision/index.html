@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Supervision - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Supervision</h1>
+    <p>Monitor all orders and their pick progress</p>
+</div>
+
+<!-- filtros por status -->
+<div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <a href="/supervision/?status=all"
+        class="btn-secondary {% if status_filter == 'all' %}active-filter{% endif %}"
+        style="font-size:13px; padding:5px 14px; {% if status_filter == 'all' %}background:#1e1b4b; color:white;{% endif %}">
+        All
+    </a>
+    <a href="/supervision/?status=pending"
+        class="btn-secondary"
+        style="font-size:13px; padding:5px 14px; {% if status_filter == 'pending' %}background:#1e1b4b; color:white;{% endif %}">
+        Pending
+    </a>
+    <a href="/supervision/?status=in_progress"
+        class="btn-secondary"
+        style="font-size:13px; padding:5px 14px; {% if status_filter == 'in_progress' %}background:#1e1b4b; color:white;{% endif %}">
+        In Progress
+    </a>
+    <a href="/supervision/?status=completed"
+        class="btn-secondary"
+        style="font-size:13px; padding:5px 14px; {% if status_filter == 'completed' %}background:#1e1b4b; color:white;{% endif %}">
+        Completed
+    </a>
+</div>
+
+{% if order_stats %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Job Name</th>
+                <th>Batch</th>
+                <th>W.O</th>
+                <th>Cabinets</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Created By</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in order_stats %}
+            {% set order = stat.order %}
+            <tr>
+                <td><strong>{{ order.job_name or '—' }}</strong></td>
+                <td>{{ order.lot_number or '—' }}</td>
+                <td style="font-size:13px; color:#666;">{{ order.order_number }}</td>
+                <td>{{ order.items|length }}</td>
+                <td>
+                    {% if order.status == 'pending' %}
+                    <span class="role-badge role-inventory">Pending</span>
+                    {% elif order.status == 'in_progress' %}
+                    <span class="role-badge role-order_entry">In Progress</span>
+                    {% elif order.status == 'completed' %}
+                    <span class="role-badge role-picker">Completed</span>
+                    {% endif %}
+                </td>
+                <td style="min-width:160px;">
+                    {% if stat.total > 0 %}
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="flex:1; background:#e5e7eb; border-radius:4px; height:8px; overflow:hidden;">
+                            <div style="width:{{ stat.percent }}%; background:
+                                {% if stat.percent == 100 %}#16a34a
+                                {% elif stat.percent > 0 %}#f59e0b
+                                {% else %}#e5e7eb{% endif %};
+                                height:100%; border-radius:4px; transition:width 0.3s;">
+                            </div>
+                        </div>
+                        <span style="font-size:12px; color:#666; white-space:nowrap;">
+                            {{ stat.picked + stat.missing }}/{{ stat.total }}
+                        </span>
+                    </div>
+                    {% if stat.missing > 0 %}
+                    <div style="font-size:11px; color:#dc2626; margin-top:2px;">
+                        ⚠ {{ stat.missing }} missing
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <span style="font-size:12px; color:#999;">Not started</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:13px;">{{ order.creator.name if order.creator else '—' }}</td>
+                <td style="font-size:13px; color:#666;">{{ order.created_at.strftime('%m/%d/%Y') }}</td>
+                <td style="display:flex; gap:6px; align-items:center;">
+                    <a href="/pick/{{ order.id }}" class="btn-secondary"
+                        style="font-size:12px; padding:4px 10px;">
+                        View Pick
+                    </a>
+                    {% if session['user_role'] in ['admin', 'supervisor'] and order.status != 'pending' %}
+                    <a href="/pick/reset/{{ order.id }}" class="btn-delete"
+                        style="font-size:12px;"
+                        onclick="return confirm('Reset order {{ order.order_number }}? All pick progress will be lost.')">
+                        Reset
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    <p style="font-size:16px;">No orders found</p>
+    {% if status_filter != 'all' %}
+    <p style="font-size:13px; margin-top:8px;">
+        No orders with status "{{ status_filter }}".
+        <a href="/supervision/" style="color:#1e1b4b;">View all orders</a>
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
