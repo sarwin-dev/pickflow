@@ -188,9 +188,14 @@
     const partIdInput = document.getElementById('part-id');
     const suggestions = document.getElementById('suggestions');
 
+    // normaliza el texto igual que el backend: separa letras de numeros
+    function normalizeName(str) {
+        return str.replace(/([a-zA-Z])(\d)/g, '$1 $2').replace(/(\d)([a-zA-Z])/g, '$1 $2').trim();
+    }
+
     // escucha cada letra que el usuario escribe
     searchInput.addEventListener('input', function () {
-        const query = this.value.toLowerCase();
+        const query = normalizeName(this.value).toLowerCase();
         suggestions.innerHTML = '';
         partIdInput.value = '';
 
