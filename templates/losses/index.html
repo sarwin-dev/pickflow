@@ -36,9 +36,15 @@
                     <option value="Damaged during assembly">Damaged during assembly</option>
                     <option value="Defective unit from manufacturer">Defective from manufacturer</option>
                     <option value="Damaged during transport">Damaged during transport</option>
-                    <option value="Incorrect part pulled">Incorrect part pulled</option>
                     <option value="Other">Other</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Comments <span style="font-weight:400; color:#999;">(optional)</span></label>
+                <textarea name="comments" rows="3" placeholder="Add any relevant details about the damage..."
+                    style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                           font-size:14px; resize:vertical; font-family:inherit;"></textarea>
             </div>
 
             <button type="submit" class="btn-primary" style="width:100%;">
@@ -74,6 +80,9 @@
                         </td>
                         <td style="font-size:13px; color:#555;">
                             {{ loss.reason or '—' }}
+                            {% if loss.comments %}
+                            <div style="font-size:12px; color:#999; margin-top:2px;">{{ loss.comments }}</div>
+                            {% endif %}
                         </td>
                         <td style="font-size:13px;">
                             {{ loss.reporter.name if loss.reporter else '—' }}

@@ -1,7 +1,7 @@
 import re
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from extensions import db
-from models import Loss, Part, User
+from models import Loss, Part
 from datetime import datetime
 
 losses_bp = Blueprint('losses', __name__, url_prefix='/losses')
@@ -48,11 +48,13 @@ def report():
 
     quantity = int(request.form.get('quantity', 1))
     reason = request.form.get('reason', '').strip() or None
+    comments = request.form.get('comments', '').strip() or None
 
     new_loss = Loss(
         part_id=part_id,
         quantity=quantity,
         reason=reason,
+        comments=comments,
         reported_by=session['user_id'],
         reported_at=datetime.utcnow()
     )

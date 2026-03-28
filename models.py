@@ -117,6 +117,7 @@ class Loss(db.Model):
     part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.String(200), nullable=True)
+    comments = db.Column(db.Text, nullable=True)
     reported_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     reported_at = db.Column(db.DateTime, default=datetime.utcnow)
     part = db.relationship('Part', backref='losses')
