@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Losses - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Losses</h1>
+    <p>Report damaged or defective parts</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1.6fr; gap:24px;">
+
+    <!-- formulario de reporte -->
+    <div class="form-card">
+        <h3 style="margin-bottom:1rem; font-size:16px;">Report Loss</h3>
+        <form method="POST" action="/losses/report">
+
+            <div class="form-group">
+                <label>Part</label>
+                <input type="text" id="part-search" name="part_name"
+                       placeholder="Type part name..." autocomplete="off"
+                       style="width:100%;" required>
+                <input type="hidden" name="part_id" id="part-id">
+                <div id="suggestions" style="border:1px solid #ddd; border-radius:8px; background:white;
+                    display:none; max-height:180px; overflow-y:auto; margin-top:4px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Quantity lost</label>
+                <input type="number" name="quantity" min="1" value="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Reason</label>
+                <select name="reason">
+                    <option value="">— Select reason —</option>
+                    <option value="Damaged during assembly">Damaged during assembly</option>
+                    <option value="Defective unit from manufacturer">Defective from manufacturer</option>
+                    <option value="Damaged during transport">Damaged during transport</option>
+                    <option value="Incorrect part pulled">Incorrect part pulled</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width:100%;">
+                Submit Report
+            </button>
+        </form>
+    </div>
+
+    <!-- historial de losses -->
+    <div>
+        <h3 style="margin-bottom:1rem; font-size:16px;">Loss History (last 100)</h3>
+        {% if losses %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th style="text-align:center;">Qty</th>
+                        <th>Reason</th>
+                        <th>Reported By</th>
+                        <th>Date</th>
+                        {% if session['user_role'] in ['admin', 'supervisor'] %}
+                        <th></th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loss in losses %}
+                    <tr>
+                        <td><strong>{{ loss.part.name }}</strong></td>
+                        <td style="text-align:center; font-weight:600; color:#dc2626;">
+                            -{{ loss.quantity }}
+                        </td>
+                        <td style="font-size:13px; color:#555;">
+                            {{ loss.reason or '—' }}
+                        </td>
+                        <td style="font-size:13px;">
+                            {{ loss.reporter.name if loss.reporter else '—' }}
+                        </td>
+                        <td style="font-size:13px; color:#999;">
+                            {{ loss.reported_at.strftime('%m/%d/%Y %I:%M %p') }}
+                        </td>
+                        {% if session['user_role'] in ['admin', 'supervisor'] %}
+                        <td>
+                            <a href="/losses/delete/{{ loss.id }}" class="btn-delete"
+                               style="font-size:11px;"
+                               onclick="return confirm('Delete this loss record?')">
+                                Delete
+                            </a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:#999; font-size:14px;">No losses reported yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    const parts = [
+        {% for part in parts %}
+        { id: {{ part.id }}, name: "{{ part.name }}" },
+        {% endfor %}
+    ];
+
+    const searchInput = document.getElementById('part-search');
+    const partIdInput = document.getElementById('part-id');
+    const suggestions = document.getElementById('suggestions');
+
+    function formatInput(str) {
+        let result = str.replace(/([a-zA-Z])(\d)/g, '$1 $2')
+                        .replace(/(\d)([a-zA-Z])/g, '$1 $2')
+                        .trim();
+        return result.charAt(0).toUpperCase() + result.slice(1);
+    }
+
+    searchInput.addEventListener('input', function () {
+        const query = formatInput(this.value).toLowerCase();
+        suggestions.innerHTML = '';
+        partIdInput.value = '';
+        if (query.length < 1) { suggestions.style.display = 'none'; return; }
+        const matches = parts.filter(p => p.name.toLowerCase().includes(query));
+        if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+        matches.forEach(part => {
+            const div = document.createElement('div');
+            div.textContent = part.name;
+            div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
+            div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
+            div.addEventListener('mouseout', () => div.style.background = 'white');
+            div.addEventListener('click', () => {
+                searchInput.value = part.name;
+                partIdInput.value = part.id;
+                suggestions.style.display = 'none';
+            });
+            suggestions.appendChild(div);
+        });
+        suggestions.style.display = 'block';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target)) suggestions.style.display = 'none';
+    });
+</script>
+
+{% endblock %}

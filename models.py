@@ -119,6 +119,8 @@ class Loss(db.Model):
     reason = db.Column(db.String(200), nullable=True)
     reported_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     reported_at = db.Column(db.DateTime, default=datetime.utcnow)
+    part = db.relationship('Part', backref='losses')
+    reporter = db.relationship('User', backref='losses')
 
 class WarehouseConfig(db.Model):
     __tablename__ = 'warehouse_config'
