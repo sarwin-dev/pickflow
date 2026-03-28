@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from extensions import db
-from models import WorkOrder, OrderItem, PickItem, PartTemplate, Part, Inventory
+from models import WorkOrder, OrderItem, PickItem, Part
 from datetime import datetime
 
 pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
@@ -111,22 +111,11 @@ def toggle(pick_item_id):
 
     if pick_item:
         if action == 'pick':
-            # marca como picked
+            # marca como picked - inventario se controla solo en pulldown (two-bin)
             pick_item.is_picked = True
             pick_item.is_missing = False
             pick_item.picked_by = session['user_id']
             pick_item.picked_at = datetime.utcnow()
-            # descuenta del inventario activo
-            template = PartTemplate.query.get(pick_item.part_template_id)
-            inventory = Inventory.query.filter_by(
-                part_id=template.part_id,
-                is_active=True
-            ).first()
-            if inventory:
-                inventory.quantity -= 1
-                inventory.updated_at = datetime.utcnow()
-                if inventory.quantity <= 0:
-                    db.session.delete(inventory)
 
         elif action == 'missing':
             # marca como missing
