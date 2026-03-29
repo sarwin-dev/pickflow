@@ -1,10 +1,17 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import check_password_hash
 from extensions import db
 
 app = Flask(__name__)
-app.secret_key = 'cabinets_secret_key_2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cabinets_user:cabinets123@localhost/cabinets_db'
+app.secret_key = os.environ.get('SECRET_KEY', 'cabinets_secret_key_2024')
+
+database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:cabinets123@localhost/cabinets_db')
+# Railway a veces entrega postgres:// en lugar de postgresql://
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
