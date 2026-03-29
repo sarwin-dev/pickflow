@@ -99,7 +99,8 @@ def cabinets():
     if check:
         return check
     all_cabinets = CabinetType.query.all()
-    return render_template('admin/cabinets.html', cabinets=all_cabinets)
+    color_map = {c.name: c.hex_code for c in Color.query.all()}
+    return render_template('admin/cabinets.html', cabinets=all_cabinets, color_map=color_map)
 
 @admin_bp.route('/cabinets/create', methods=['GET', 'POST'])
 def create_cabinet():

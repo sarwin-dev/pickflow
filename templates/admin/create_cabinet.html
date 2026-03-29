@@ -40,8 +40,8 @@
         <div class="form-group">
             <label>Color</label>
             {% if colors %}
-            <select name="color">
-                <option value="">— No color —</option>
+            <select name="color" required>
+                <option value="">— Select a color —</option>
                 {% for color in colors %}
                 <option value="{{ color.name }}">{{ color.name }}</option>
                 {% endfor %}

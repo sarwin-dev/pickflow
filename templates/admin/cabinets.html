@@ -35,7 +35,17 @@
                 <td>{{ cabinet.name }}</td>
                 <td>{{ cabinet.width }}"</td>
                 <td>{{ cabinet.height or '-' }}</td>
-                <td>{{ cabinet.color or '-' }}</td>
+                <td>
+                    {% if cabinet.color %}
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <div style="width:18px; height:18px; border-radius:4px; border:1px solid #d1d5db; flex-shrink:0;
+                                    background:{{ color_map.get(cabinet.color) or '#e5e7eb' }};"></div>
+                        {{ cabinet.color }}
+                    </div>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
                 <td>
                     {% if cabinet.is_custom %}
                     <span class="role-badge role-receiving">Custom</span>
