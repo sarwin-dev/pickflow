@@ -98,7 +98,7 @@ def cabinets():
     check = admin_required()
     if check:
         return check
-    all_cabinets = CabinetType.query.all()
+    all_cabinets = CabinetType.query.order_by(CabinetType.width, CabinetType.color).all()
     color_map = {c.name: c.hex_code for c in Color.query.all()}
     return render_template('admin/cabinets.html', cabinets=all_cabinets, color_map=color_map)
 
