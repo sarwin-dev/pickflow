@@ -20,9 +20,10 @@ db.init_app(app)
 # y crea el usuario admin inicial si la base de datos esta vacia
 with app.app_context():
     try:
+        import models  # importa todos los modelos antes de crear las tablas
+        from werkzeug.security import generate_password_hash
         db.create_all()
         from models import User, WarehouseConfig
-        from werkzeug.security import generate_password_hash
         if User.query.count() == 0:
             admin = User(
                 name='Admin',
