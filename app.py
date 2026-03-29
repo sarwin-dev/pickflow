@@ -24,7 +24,7 @@ with app.app_context():
         from werkzeug.security import generate_password_hash
         db.create_all()
         from sqlalchemy import text
-        db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(50)'))
+        db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
         db.session.commit()
         from models import User, WarehouseConfig
         if User.query.count() == 0:
