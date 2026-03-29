@@ -11,12 +11,15 @@
     <form method="POST" action="/admin/cabinets/edit/{{ cabinet.id }}">
 
         <div class="form-group">
-            <label style="display:flex; justify-content:space-between;">
-                Code
-                <span id="code-counter" style="color:#9ca3af; font-weight:400;">{{ 15 - cabinet.code|length }}</span>
-            </label>
-            <input type="text" name="code" value="{{ cabinet.code }}" maxlength="15" required
-                   oninput="document.getElementById('code-counter').textContent = 15 - this.value.length">
+            <label>Code</label>
+            <div style="position:relative;">
+                <input type="text" name="code" value="{{ cabinet.code }}"
+                       maxlength="15" required style="padding-right:36px;"
+                       oninput="document.getElementById('code-counter').textContent = 15 - this.value.length">
+                <span id="code-counter"
+                      style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                             font-size:12px; color:#9ca3af; pointer-events:none;">{{ 15 - cabinet.code|length }}</span>
+            </div>
         </div>
 
         <div class="form-group">
