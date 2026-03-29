@@ -17,9 +17,6 @@ body {
     flex-direction: column;
 }
 
-.main-content {
-    flex: 1;
-}
 
 /* ============================================
    LOGIN - pantalla de inicio de sesion
@@ -204,11 +201,11 @@ body {
    MAIN CONTENT - contenido principal
    ============================================ */
 .main-content {
+    flex: 1;
     padding: 2rem;
     max-width: 1200px;
-    /* ancho maximo del contenido */
     margin: 0 auto;
-    /* centra el contenido */
+    width: 100%;
 }
 
 /* ============================================
