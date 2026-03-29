@@ -84,9 +84,9 @@ def logout():
 def setup():
     from models import User, WarehouseConfig
     from werkzeug.security import generate_password_hash
+    db.create_all()
     if User.query.count() > 0:
         return 'Already initialized.', 403
-    db.create_all()
     admin = User(
         name='Admin',
         email='admin@pickflow.com',
