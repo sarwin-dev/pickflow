@@ -16,6 +16,23 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+# crea las tablas automaticamente al arrancar si no existen
+# y crea el usuario admin inicial si la base de datos esta vacia
+with app.app_context():
+    db.create_all()
+    from models import User, WarehouseConfig
+    from werkzeug.security import generate_password_hash
+    if User.query.count() == 0:
+        admin = User(
+            name='Admin',
+            email='admin@pickflow.com',
+            password=generate_password_hash('admin1234'),
+            role='admin'
+        )
+        db.session.add(admin)
+        db.session.add(WarehouseConfig())
+        db.session.commit()
+
 @app.route('/')
 def inicio():
     return redirect(url_for('login'))
@@ -79,25 +96,6 @@ def dashboard():
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
-@app.route('/setup')
-def setup():
-    from models import User, WarehouseConfig
-    from werkzeug.security import generate_password_hash
-    db.create_all()
-    if User.query.count() > 0:
-        return 'Already initialized.', 403
-    admin = User(
-        name='Admin',
-        email='admin@pickflow.com',
-        password=generate_password_hash('admin1234'),
-        role='admin'
-    )
-    config = WarehouseConfig()
-    db.session.add(admin)
-    db.session.add(config)
-    db.session.commit()
-    return 'Done. Login with admin@pickflow.com / admin1234 — then change the password.', 200
 
 # ============================================
 # REGISTRAMOS LOS BLUEPRINTS
