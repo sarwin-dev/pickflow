@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, abort, send_file
 from extensions import db
-from models import WorkOrder, OrderItem, PartTemplate, CabinetType, User, PickItem
+from models import WorkOrder, OrderItem, PartTemplate, CabinetType, PickItem
 from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import letter

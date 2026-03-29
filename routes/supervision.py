@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from extensions import db
-from models import WorkOrder, OrderItem, PickItem, User
+from models import WorkOrder, OrderItem, PickItem
 
 supervision_bp = Blueprint('supervision', __name__, url_prefix='/supervision')
 
