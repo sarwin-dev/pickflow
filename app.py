@@ -26,6 +26,18 @@ with app.app_context():
         from sqlalchemy import text
         db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
         db.session.commit()
+        indexes = [
+            'CREATE INDEX IF NOT EXISTS ix_work_orders_status ON work_orders (status)',
+            'CREATE INDEX IF NOT EXISTS ix_work_orders_created_by ON work_orders (created_by)',
+            'CREATE INDEX IF NOT EXISTS ix_inventory_part_id ON inventory (part_id)',
+            'CREATE INDEX IF NOT EXISTS ix_inventory_is_active ON inventory (is_active)',
+            'CREATE INDEX IF NOT EXISTS ix_pick_items_order_item_id ON pick_items (order_item_id)',
+            'CREATE INDEX IF NOT EXISTS ix_pick_items_part_template_id ON pick_items (part_template_id)',
+            'CREATE INDEX IF NOT EXISTS ix_shopping_list_part_id ON shopping_list (part_id)',
+        ]
+        for idx in indexes:
+            db.session.execute(text(idx))
+        db.session.commit()
         from models import User, WarehouseConfig
         if User.query.count() == 0:
             admin = User(

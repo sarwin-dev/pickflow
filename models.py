@@ -66,8 +66,8 @@ class WorkOrder(db.Model):
     # color del trabajo - define que aisle visita el picker
     color_id = db.Column(db.Integer, db.ForeignKey('colors.id'), nullable=True)
     color = db.relationship('Color', backref='orders')
-    status = db.Column(db.String(20), default='pending')
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending', index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.relationship('OrderItem', backref='order', lazy=True)
@@ -88,8 +88,8 @@ class OrderItem(db.Model):
 class PickItem(db.Model):
     __tablename__ = 'pick_items'
     id = db.Column(db.Integer, primary_key=True)
-    order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id'), nullable=False)
-    part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False)
+    order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id'), nullable=False, index=True)
+    part_template_id = db.Column(db.Integer, db.ForeignKey('part_templates.id'), nullable=False, index=True)
     is_picked = db.Column(db.Boolean, default=False)
     is_missing = db.Column(db.Boolean, default=False)
     picked_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -99,13 +99,13 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
     id = db.Column(db.Integer, primary_key=True)
     # ahora referencia a la parte maestra, no a part_template
-    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False, index=True)
     aisle = db.Column(db.String(5), nullable=True)
     bay = db.Column(db.String(5), nullable=True)
     shelf = db.Column(db.String(5), nullable=True)
     location = db.Column(db.String(5), nullable=True)
     quantity = db.Column(db.Integer, default=0)
-    is_active = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=False, index=True)
     min_quantity = db.Column(db.Integer, default=10)
     received_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -114,7 +114,7 @@ class Inventory(db.Model):
 class ShoppingListItem(db.Model):
     __tablename__ = 'shopping_list'
     id = db.Column(db.Integer, primary_key=True)
-    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False, index=True)
     quantity_needed = db.Column(db.Integer, default=1)
     notes = db.Column(db.String(200), nullable=True)
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
