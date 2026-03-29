@@ -101,6 +101,40 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/reset-demo')
+def reset_demo():
+    if os.environ.get('DEMO_MODE') != 'true':
+        return 'Not available.', 403
+    from models import (User, WorkOrder, OrderItem, PickItem, Inventory,
+                        ShoppingListItem, Loss, CabinetType, PartTemplate,
+                        Part, Color, WarehouseConfig)
+    from werkzeug.security import generate_password_hash
+    # borra todo en orden para respetar las foreign keys
+    PickItem.query.delete()
+    ShoppingListItem.query.delete()
+    Loss.query.delete()
+    OrderItem.query.delete()
+    WorkOrder.query.delete()
+    Inventory.query.delete()
+    PartTemplate.query.delete()
+    Part.query.delete()
+    CabinetType.query.delete()
+    Color.query.delete()
+    User.query.delete()
+    WarehouseConfig.query.delete()
+    db.session.commit()
+    # recrea el admin y la config base
+    db.session.add(User(
+        name='Admin',
+        email='admin@pickflow.com',
+        password=generate_password_hash('admin1234'),
+        role='admin'
+    ))
+    db.session.add(WarehouseConfig())
+    db.session.commit()
+    session.clear()
+    return 'Demo reset complete. <a href="/login">Login</a>', 200
+
 # ============================================
 # REGISTRAMOS LOS BLUEPRINTS
 # cada modulo se conecta a la app aqui
