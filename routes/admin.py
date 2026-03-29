@@ -111,17 +111,25 @@ def create_cabinet():
         raw_code = request.form['code'].strip()
         formatted_code = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_code)
         cabinet_code = ' '.join(formatted_code.split()).title()
-        new_cabinet = CabinetType(
-            code=cabinet_code,
-            name=request.form['name'],
-            width=request.form['width'],
-            height=request.form.get('height') or None,
-            color=request.form.get('color'),
-            is_custom=True if request.form.get('is_custom') else False
-        )
-        db.session.add(new_cabinet)
-        db.session.commit()
-        return redirect(url_for('admin.cabinet_parts', cabinet_id=new_cabinet.id))
+        cabinet_color = request.form.get('color') or None
+        existing = CabinetType.query.filter(
+            CabinetType.code == cabinet_code,
+            CabinetType.color == cabinet_color
+        ).first()
+        if existing:
+            error = f'Cabinet "{cabinet_code}" with color "{cabinet_color or "No color"}" already exists.'
+        else:
+            new_cabinet = CabinetType(
+                code=cabinet_code,
+                name=request.form['name'],
+                width=request.form['width'],
+                height=request.form.get('height') or None,
+                color=cabinet_color,
+                is_custom=True if request.form.get('is_custom') else False
+            )
+            db.session.add(new_cabinet)
+            db.session.commit()
+            return redirect(url_for('admin.cabinet_parts', cabinet_id=new_cabinet.id))
     from models import Color
     colors = Color.query.order_by(Color.name).all()
     return render_template('admin/create_cabinet.html', error=error, colors=colors)
