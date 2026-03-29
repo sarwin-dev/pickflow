@@ -19,19 +19,22 @@ db.init_app(app)
 # crea las tablas automaticamente al arrancar si no existen
 # y crea el usuario admin inicial si la base de datos esta vacia
 with app.app_context():
-    db.create_all()
-    from models import User, WarehouseConfig
-    from werkzeug.security import generate_password_hash
-    if User.query.count() == 0:
-        admin = User(
-            name='Admin',
-            email='admin@pickflow.com',
-            password=generate_password_hash('admin1234'),
-            role='admin'
-        )
-        db.session.add(admin)
-        db.session.add(WarehouseConfig())
-        db.session.commit()
+    try:
+        db.create_all()
+        from models import User, WarehouseConfig
+        from werkzeug.security import generate_password_hash
+        if User.query.count() == 0:
+            admin = User(
+                name='Admin',
+                email='admin@pickflow.com',
+                password=generate_password_hash('admin1234'),
+                role='admin'
+            )
+            db.session.add(admin)
+            db.session.add(WarehouseConfig())
+            db.session.commit()
+    except Exception as e:
+        print(f'DB init error: {e}')
 
 @app.route('/')
 def inicio():
