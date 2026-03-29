@@ -37,19 +37,13 @@
                 </td>
                 <td>{{ user.created_at.strftime('%m/%d/%Y') }}</td>
                 <td style="display:flex; gap:8px;">
-                    {% if user.id != session['user_id'] %}
-                    <!-- edit - admin y supervisor pueden editar -->
                     {% if session['user_role'] in ['admin', 'supervisor'] %}
                     <a href="/admin/users/edit/{{ user.id }}" class="btn-secondary"
                         style="font-size:12px; padding:4px 10px;">Edit</a>
                     {% endif %}
-                    <!-- delete - solo admin -->
-                    {% if session['user_role'] == 'admin' %}
+                    {% if session['user_role'] == 'admin' and user.id != session['user_id'] %}
                     <a href="/admin/users/delete/{{ user.id }}" class="btn-delete"
                         onclick="return confirm('Delete this user?')">Delete</a>
-                    {% endif %}
-                    {% else %}
-                    <span style="color:#999; font-size:13px;">Current user</span>
                     {% endif %}
                 </td>
             </tr>
