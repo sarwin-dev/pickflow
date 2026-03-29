@@ -122,7 +122,9 @@ def create_cabinet():
         db.session.add(new_cabinet)
         db.session.commit()
         return redirect(url_for('admin.cabinet_parts', cabinet_id=new_cabinet.id))
-    return render_template('admin/create_cabinet.html', error=error)
+    from models import Color
+    colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/create_cabinet.html', error=error, colors=colors)
 
 @admin_bp.route('/cabinets/edit/<int:cabinet_id>', methods=['GET', 'POST'])
 def edit_cabinet(cabinet_id):
@@ -141,7 +143,9 @@ def edit_cabinet(cabinet_id):
         cabinet.is_custom = True if request.form.get('is_custom') else False
         db.session.commit()
         return redirect(url_for('admin.cabinets'))
-    return render_template('admin/edit_cabinet.html', cabinet=cabinet)
+    from models import Color
+    colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/edit_cabinet.html', cabinet=cabinet, colors=colors)
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts', methods=['GET', 'POST'])
 def cabinet_parts(cabinet_id):
