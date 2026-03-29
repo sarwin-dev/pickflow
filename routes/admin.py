@@ -292,10 +292,14 @@ def create_color():
     name = ' '.join(request.form['name'].strip().split()).title()
     hex_code = request.form.get('hex_code') or None
     existing = Color.query.filter(Color.name.ilike(name)).first()
-    if not existing:
-        new_color = Color(name=name, hex_code=hex_code)
-        db.session.add(new_color)
-        db.session.commit()
+    if existing:
+        all_colors = Color.query.order_by(Color.name).all()
+        return render_template('admin/colors.html', colors=all_colors,
+                               error=f'"{name}" already exists.',
+                               form_name=name, form_hex=hex_code)
+    new_color = Color(name=name, hex_code=hex_code)
+    db.session.add(new_color)
+    db.session.commit()
     return redirect(url_for('admin.colors'))
 
 @admin_bp.route('/colors/delete/<int:color_id>')

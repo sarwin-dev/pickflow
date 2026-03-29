@@ -18,17 +18,21 @@
     <!-- formulario para agregar color -->
     <div class="form-card">
         <h3 style="margin-bottom:1rem; font-size:16px;">Add New Color</h3>
+        {% if error %}
+        <div class="alert-error" style="margin-bottom:1rem;">{{ error }}</div>
+        {% endif %}
         <form method="POST" action="/admin/colors/create">
             <div class="form-group">
                 <label>Color Name</label>
-                <input type="text" name="name" 
+                <input type="text" name="name"
+                       value="{{ form_name or '' }}"
                        placeholder="Enter color name" required>
             </div>
             <div class="form-group">
                 <label>Hex Code (optional)</label>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <input type="color" name="hex_code" 
-                           value="#ffffff"
+                    <input type="color" name="hex_code"
+                           value="{{ form_hex or '#ffffff' }}"
                            style="width:50px; height:38px; padding:2px; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
                     <span style="font-size:13px; color:#999;">
                         Pick a color to represent it visually
