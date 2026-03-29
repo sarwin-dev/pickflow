@@ -13,7 +13,7 @@ class User(db.Model):
 class CabinetType(db.Model):
     __tablename__ = 'cabinet_types'
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(10), nullable=False)
+    code = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     width = db.Column(db.Integer, nullable=False)
     height = db.Column(db.Integer, nullable=True)
