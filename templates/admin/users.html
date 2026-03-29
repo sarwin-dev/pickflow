@@ -37,13 +37,13 @@
                 </td>
                 <td>{{ user.created_at.strftime('%m/%d/%Y') }}</td>
                 <td style="display:flex; gap:8px;">
-                    {% if session['user_role'] in ['admin', 'supervisor'] %}
+                    {% if session['user_role'] == 'admin' or user.role != 'admin' %}
                     <a href="/admin/users/edit/{{ user.id }}" class="btn-secondary"
                         style="font-size:12px; padding:4px 10px;">Edit</a>
-                    {% endif %}
-                    {% if session['user_role'] == 'admin' and user.id != session['user_id'] %}
+                    {% if user.id != session['user_id'] %}
                     <a href="/admin/users/delete/{{ user.id }}" class="btn-delete"
                         onclick="return confirm('Delete this user?')">Delete</a>
+                    {% endif %}
                     {% endif %}
                 </td>
             </tr>

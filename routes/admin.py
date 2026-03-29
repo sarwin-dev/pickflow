@@ -64,6 +64,8 @@ def edit_user(user_id):
     if check:
         return check
     user = User.query.get(user_id)
+    if session['user_role'] == 'supervisor' and user.role == 'admin':
+        return redirect(url_for('admin.users'))
     error = None
     if request.method == 'POST':
         user.name = ' '.join(request.form['name'].strip().split()).title()
