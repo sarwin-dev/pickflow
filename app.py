@@ -103,7 +103,7 @@ def logout():
 
 @app.route('/reset-demo')
 def reset_demo():
-    if os.environ.get('DEMO_MODE') != 'true':
+    if os.environ.get('DEMO_MODE', '').lower() != 'true':
         return 'Not available.', 403
     from models import (User, WorkOrder, OrderItem, PickItem, Inventory,
                         ShoppingListItem, Loss, CabinetType, PartTemplate,
