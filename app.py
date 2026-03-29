@@ -80,6 +80,25 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/setup')
+def setup():
+    from models import User, WarehouseConfig
+    from werkzeug.security import generate_password_hash
+    if User.query.count() > 0:
+        return 'Already initialized.', 403
+    db.create_all()
+    admin = User(
+        name='Admin',
+        email='admin@pickflow.com',
+        password=generate_password_hash('admin1234'),
+        role='admin'
+    )
+    config = WarehouseConfig()
+    db.session.add(admin)
+    db.session.add(config)
+    db.session.commit()
+    return 'Done. Login with admin@pickflow.com / admin1234 — then change the password.', 200
+
 # ============================================
 # REGISTRAMOS LOS BLUEPRINTS
 # cada modulo se conecta a la app aqui
