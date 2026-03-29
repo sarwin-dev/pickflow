@@ -282,7 +282,10 @@ def colors():
     if check:
         return check
     all_colors = Color.query.order_by(Color.name).all()
-    return render_template('admin/colors.html', colors=all_colors)
+    form_name = session.pop('color_prefill_name', '')
+    form_hex = session.pop('color_prefill_hex', '#ffffff')
+    return render_template('admin/colors.html', colors=all_colors,
+                           form_name=form_name, form_hex=form_hex)
 
 @admin_bp.route('/colors/create', methods=['POST'])
 def create_color():
@@ -293,10 +296,10 @@ def create_color():
     hex_code = request.form.get('hex_code') or None
     existing = Color.query.filter(Color.name.ilike(name)).first()
     if existing:
-        all_colors = Color.query.order_by(Color.name).all()
-        return render_template('admin/colors.html', colors=all_colors,
-                               error=f'"{name}" already exists.',
-                               form_name=name, form_hex=hex_code)
+        flash(f'"{name}" already exists.', 'error')
+        session['color_prefill_name'] = name
+        session['color_prefill_hex'] = hex_code
+        return redirect(url_for('admin.colors'))
     new_color = Color(name=name, hex_code=hex_code)
     db.session.add(new_color)
     db.session.commit()

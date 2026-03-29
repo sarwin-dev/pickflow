@@ -18,9 +18,6 @@
     <!-- formulario para agregar color -->
     <div class="form-card">
         <h3 style="margin-bottom:1rem; font-size:16px;">Add New Color</h3>
-        {% if error %}
-        <div class="alert-error" style="margin-bottom:1rem;">{{ error }}</div>
-        {% endif %}
         <form method="POST" action="/admin/colors/create">
             <div class="form-group">
                 <label>Color Name</label>
