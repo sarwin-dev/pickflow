@@ -95,7 +95,7 @@
                             {% endif %}
                         </td>
                         <td>{{ part.quantity }}</td>
-                        <td>Cart {{ part.cart }}</td>
+                        <td>Cart {{ 'A' if part.cart == 1 else 'B' }}</td>
                         <td style="font-size:12px; color:#666;">
                             {% if part.part.active_aisle %}
                             A{{ '%02d'|format(part.part.active_aisle|int) }}
