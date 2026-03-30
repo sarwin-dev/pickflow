@@ -49,11 +49,11 @@
             Total cabinets: <strong>{{ order.items|length }}</strong>
         </span>
         <span style="font-size:13px; color:#666;">
-            Case Pick List: 
+            Cart A: 
             <strong>{{ order.items|selectattr('cart', 'eq', 1)|list|length }}</strong>
         </span>
         <span style="font-size:13px; color:#666;">
-            DO DF DBX ADJ: 
+            Cart B: 
             <strong>{{ order.items|selectattr('cart', 'eq', 2)|list|length }}</strong>
         </span>
     </div>
@@ -81,9 +81,9 @@
                 </td>
                 <td>
                     {% if item.cart == 1 %}
-                    <span class="role-badge role-order_entry">Case</span>
+                    <span class="role-badge role-order_entry">Cart A</span>
                     {% else %}
-                    <span class="role-badge role-receiving">DO DF DBX ADJ</span>
+                    <span class="role-badge role-receiving">Cart B</span>
                     {% endif %}
                 </td>
                 <td style="font-size:13px;">
