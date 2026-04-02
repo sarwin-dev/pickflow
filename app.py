@@ -116,6 +116,25 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/reset', methods=['GET', 'POST'])
+def reset_admin():
+    if os.environ.get('RESET_MODE', '').lower() != 'true':
+        return 'Not available.', 403
+    from models import User
+    from werkzeug.security import generate_password_hash
+    error = None
+    if request.method == 'POST':
+        email = request.form['email']
+        new_pw = request.form['new_password']
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            error = 'No user found with that email'
+        else:
+            user.password = generate_password_hash(new_pw)
+            db.session.commit()
+            return 'Password updated. <a href="/login">Login</a>', 200
+    return render_template('reset_admin.html', error=error)
+
 @app.route('/reset-demo')
 def reset_demo():
     if os.environ.get('DEMO_MODE', '').lower() != 'true':
