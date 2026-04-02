@@ -224,6 +224,11 @@ def edit_part(cabinet_id, part_id):
         template.quantity = int(request.form['quantity'])
         template.cart = int(request.form['cart'])
         template.is_optional = True if request.form.get('is_optional') else False
+        part = template.part
+        part.active_aisle = request.form.get('active_aisle') or None
+        part.active_bay = request.form.get('active_bay') or None
+        part.active_shelf = request.form.get('active_shelf') or None
+        part.active_location = request.form.get('active_location') or None
         db.session.commit()
     return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
 
