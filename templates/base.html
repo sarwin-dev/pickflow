@@ -17,6 +17,8 @@
         <div class="navbar-menu">
             <!-- mostramos el nombre del usuario conectado -->
             <span class="navbar-user">{{ session.get('user_name', '') }}</span>
+            <!-- cambiar password -->
+            <a href="/change-password" style="font-size:13px; color:#6b7280; text-decoration:none; margin-right:8px;">Change Password</a>
             <!-- boton para cerrar sesion -->
             <a href="/logout" class="btn-logout">Logout</a>
         </div>

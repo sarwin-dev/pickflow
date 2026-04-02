@@ -175,5 +175,57 @@ app.register_blueprint(inventory_bp)
 from routes.losses import losses_bp
 app.register_blueprint(losses_bp)
 
+@app.route('/change-password', methods=['GET', 'POST'])
+def change_password():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    from models import User
+    from werkzeug.security import generate_password_hash
+    from flask import flash
+    error = None
+    if request.method == 'POST':
+        current = request.form['current_password']
+        new_pw = request.form['new_password']
+        confirm = request.form['confirm_password']
+        user = User.query.get(session['user_id'])
+        if not check_password_hash(user.password, current):
+            error = 'Current password is incorrect'
+        elif new_pw != confirm:
+            error = 'New passwords do not match'
+        elif len(new_pw) < 6:
+            error = 'New password must be at least 6 characters'
+        else:
+            user.password = generate_password_hash(new_pw)
+            db.session.commit()
+            flash('Password updated successfully', 'success')
+            return redirect(url_for('dashboard'))
+    return render_template('change_password.html', error=error)
+
+
+# ============================================
+# FLASK CLI COMMANDS
+# ============================================
+
+@app.cli.command('reset-password')
+def reset_password_cmd():
+    """Reset a user password from the command line. Usage: flask reset-password"""
+    import getpass
+    email = input('Email: ').strip()
+    from models import User
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        print(f'No user found with email: {email}')
+        return
+    new_pw = getpass.getpass('New password: ')
+    confirm = getpass.getpass('Confirm password: ')
+    if new_pw != confirm:
+        print('Passwords do not match.')
+        return
+    from werkzeug.security import generate_password_hash
+    user.password = generate_password_hash(new_pw)
+    db.session.commit()
+    print(f'Password updated for {user.name} ({user.email})')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
