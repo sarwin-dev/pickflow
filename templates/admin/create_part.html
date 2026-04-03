@@ -40,14 +40,14 @@
                     <input type="number" name="active_shelf" min="1" max="{{ config.active_shelves }}" placeholder="1">
                 </div>
                 <div class="form-group">
-                    <label>Location (optional)</label>
+                    <label>Location (1 - {{ config.total_locations }}) (optional)</label>
                     <input type="number" name="active_location" min="1" max="{{ config.total_locations }}" placeholder="—">
                 </div>
             </div>
 
             <div style="display:flex; gap:10px; margin-top:0.5rem;">
                 <button type="submit" class="btn-primary" style="flex:1;">Save Part</button>
-                <a href="/admin/parts" class="btn-secondary" style="flex:1; text-align:center; padding:10px;">Cancel</a>
+                <a href="/admin/parts" class="btn-secondary" style="flex:1; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:500;">Cancel</a>
             </div>
         </form>
     </div>

@@ -9,8 +9,8 @@
             <p>Master list of all parts and their warehouse locations</p>
         </div>
         <div style="display:flex; gap:10px;">
-            <a href="/admin/parts/create" class="btn-primary">+ New Part</a>
-            <a href="/admin" class="btn-secondary">← Admin</a>
+            <a href="/admin/parts/create" class="btn-primary" style="width:auto; display:inline-flex; align-items:center;">+ New Part</a>
+            <a href="/admin" class="btn-secondary" style="display:inline-flex; align-items:center;">← Back</a>
         </div>
     </div>
 </div>
@@ -89,8 +89,7 @@
 </div>
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">
-    <p style="font-size:15px;">No parts yet.</p>
-    <a href="/admin/parts/create" class="btn-primary" style="margin-top:1rem; display:inline-block;">Add your first part</a>
+    <p style="font-size:15px;">No parts yet. Use <strong>+ New Part</strong> to add the first one.</p>
 </div>
 {% endif %}
 
