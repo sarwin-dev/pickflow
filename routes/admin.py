@@ -162,45 +162,30 @@ def cabinet_parts(cabinet_id):
     cabinet = CabinetType.query.get(cabinet_id)
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
-        # normaliza el nombre - title case, separa letras de numeros y limpia espacios
-        raw_name = request.form['name'].strip()
-        formatted = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_name)
-        part_name = ' '.join(formatted.split()).title()
-        # busca si la parte ya existe en la tabla maestra
-        existing_part = Part.query.filter(Part.name.ilike(part_name)).first()
-        if existing_part:
-            part = existing_part
-            if request.form.get('active_aisle'):
-                part.active_aisle = request.form.get('active_aisle')
-                part.active_bay = request.form.get('active_bay')
-                part.active_shelf = request.form.get('active_shelf')
-                part.active_location = request.form.get('active_location') or None
-                db.session.commit()
-        else:
-            part = Part(
-                name=part_name,
-                is_shared=True if request.form.get('is_shared') else False,
-                active_aisle=request.form.get('active_aisle') or None,
-                active_bay=request.form.get('active_bay') or None,
-                active_shelf=request.form.get('active_shelf') or None,
-                active_location=request.form.get('active_location') or None,
+        part_id = request.form.get('part_id')
+        if not part_id:
+            return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
+        # verifica que la parte no este ya en este gabinete
+        existing = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id, part_id=part_id).first()
+        if not existing:
+            new_template = PartTemplate(
+                cabinet_type_id=cabinet_id,
+                part_id=int(part_id),
+                quantity=request.form['quantity'],
+                cart=request.form['cart'],
+                is_optional=True if request.form.get('is_optional') else False,
             )
-            db.session.add(part)
-            db.session.flush()
-        new_template = PartTemplate(
-            cabinet_type_id=cabinet_id,
-            part_id=part.id,
-            quantity=request.form['quantity'],
-            cart=request.form['cart'],
-            is_optional=True if request.form.get('is_optional') else False,
-        )
-        db.session.add(new_template)
-        db.session.commit()
+            db.session.add(new_template)
+            db.session.commit()
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
-    parts = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
+    templates = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
+    used_part_ids = {t.part_id for t in templates}
+    available_parts = Part.query.order_by(Part.name).all()
     return render_template('admin/cabinet_parts.html',
                            cabinet=cabinet,
-                           parts=parts,
+                           parts=templates,
+                           available_parts=available_parts,
+                           used_part_ids=used_part_ids,
                            config=config)
 
 @admin_bp.route('/cabinets/delete/<int:cabinet_id>')
@@ -274,6 +259,70 @@ def warehouse_config():
         db.session.commit()
         return redirect(url_for('admin.warehouse_config'))
     return render_template('admin/warehouse_config.html', config=config)
+
+# ============================================
+# PARTS MASTER
+# ============================================
+
+@admin_bp.route('/parts')
+def parts():
+    check = admin_required()
+    if check:
+        return check
+    all_parts = Part.query.order_by(Part.name).all()
+    config = WarehouseConfig.query.first()
+    return render_template('admin/parts.html', parts=all_parts, config=config)
+
+@admin_bp.route('/parts/create', methods=['GET', 'POST'])
+def create_part():
+    check = admin_required()
+    if check:
+        return check
+    error = None
+    if request.method == 'POST':
+        name = ' '.join(request.form['name'].strip().split()).title()
+        existing = Part.query.filter(Part.name.ilike(name)).first()
+        if existing:
+            error = f'A part named "{name}" already exists'
+        else:
+            new_part = Part(
+                name=name,
+                active_aisle=request.form.get('active_aisle') or None,
+                active_bay=request.form.get('active_bay') or None,
+                active_shelf=request.form.get('active_shelf') or None,
+                active_location=request.form.get('active_location') or None,
+            )
+            db.session.add(new_part)
+            db.session.commit()
+            return redirect(url_for('admin.parts'))
+    config = WarehouseConfig.query.first()
+    return render_template('admin/create_part.html', error=error, config=config)
+
+@admin_bp.route('/parts/edit/<int:part_id>', methods=['POST'])
+def edit_part_master(part_id):
+    check = admin_required()
+    if check:
+        return check
+    part = Part.query.get(part_id)
+    if part:
+        part.name = ' '.join(request.form['name'].strip().split()).title()
+        part.active_aisle = request.form.get('active_aisle') or None
+        part.active_bay = request.form.get('active_bay') or None
+        part.active_shelf = request.form.get('active_shelf') or None
+        part.active_location = request.form.get('active_location') or None
+        db.session.commit()
+    return redirect(url_for('admin.parts'))
+
+@admin_bp.route('/parts/delete/<int:part_id>')
+def delete_part_master(part_id):
+    check = admin_required()
+    if check:
+        return check
+    part = Part.query.get(part_id)
+    if part:
+        db.session.delete(part)
+        db.session.commit()
+    return redirect(url_for('admin.parts'))
 
 # ============================================
 # COLORS

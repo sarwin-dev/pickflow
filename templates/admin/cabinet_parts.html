@@ -17,11 +17,25 @@
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
 
     <div class="form-card">
-        <h3 style="margin-bottom:1rem; font-size:16px;">Add New Part</h3>
+        <h3 style="margin-bottom:1rem; font-size:16px;">Add Part</h3>
+
+        {% if available_parts | selectattr('id', 'not in', used_part_ids) | list %}
         <form method="POST">
             <div class="form-group">
-                <label>Part Name</label>
-                <input type="text" name="name" placeholder="Enter part name" required>
+                <label>Select Part</label>
+                <select name="part_id" required style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px;">
+                    <option value="">— choose a part —</option>
+                    {% for part in available_parts %}
+                    {% if part.id not in used_part_ids %}
+                    <option value="{{ part.id }}">
+                        {{ part.name }}
+                        {% if part.active_aisle %}
+                        · A{{ '%02d'|format(part.active_aisle|int) }} B{{ '%02d'|format(part.active_bay|int) }} S{{ '%02d'|format(part.active_shelf|int) }}
+                        {% endif %}
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                 <div class="form-group">
@@ -36,38 +50,21 @@
                     </select>
                 </div>
             </div>
-            <p style="font-size:13px; font-weight:500; margin-bottom:8px; color:#444; margin-top:12px;">
-                Active Location (Shelves 1-{{ config.active_shelves }})
-            </p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div class="form-group">
-                    <label>Aisle (1 - {{ config.total_aisles }})</label>
-                    <input type="number" name="active_aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
-                </div>
-                <div class="form-group">
-                    <label>Bay (1 - {{ config.total_bays }})</label>
-                    <input type="number" name="active_bay" min="1" max="{{ config.total_bays }}" placeholder="1">
-                </div>
-                <div class="form-group">
-                    <label>Shelf (1 - {{ config.active_shelves }})</label>
-                    <input type="number" name="active_shelf" min="1" max="{{ config.active_shelves }}" placeholder="1">
-                </div>
-                <div class="form-group">
-                    <label>Location (1 - {{ config.total_locations }}) (optional)</label>
-                    <input type="number" name="active_location" min="1" max="{{ config.total_locations }}"
-                        placeholder="1">
-                </div>
-            </div>
-            <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top:8px;">
-                <input type="checkbox" name="is_optional" id="is_optional" style="width:18px; height:18px;"
-                    title="Check this if the part is not always included in this cabinet type (e.g. shelves or drawers in sink base cabinets)">
-                <label for="is_optional" style="margin:0;"
-                    title="Check this if the part is not always included in this cabinet type (e.g. shelves or drawers in sink base cabinets)">
-                    Optional part
-                </label>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                <input type="checkbox" name="is_optional" id="is_optional" style="width:18px; height:18px;">
+                <label for="is_optional" style="margin:0;">Optional part</label>
             </div>
             <button type="submit" class="btn-primary" style="width:100%; margin-top:1rem;">Add Part</button>
         </form>
+        {% else %}
+        <p style="color:#999; font-size:14px;">All available parts have been added to this cabinet.</p>
+        {% endif %}
+
+        <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid #e5e7eb;">
+            <p style="font-size:13px; color:#6b7280;">Part not in the list?
+                <a href="/admin/parts/create" style="color:#1e1b4b; font-weight:600;">Create it here first →</a>
+            </p>
+        </div>
     </div>
 
     <div>
@@ -112,14 +109,14 @@
                             <button class="btn-secondary" style="font-size:12px; padding:4px 10px;"
                                 onclick="toggleEdit({{ part.id }})">Edit</button>
                             <a href="/admin/cabinets/{{ cabinet.id }}/parts/delete/{{ part.id }}" class="btn-delete"
-                                onclick="return confirm('Delete this part?')">Delete</a>
+                                onclick="return confirm('Remove this part from the cabinet?')">Delete</a>
                         </td>
                     </tr>
-                    <!-- fila de edicion (oculta por defecto) -->
+                    <!-- fila de edicion (solo cantidad, carrito y opcional) -->
                     <tr id="edit-{{ part.id }}" style="display:none; background:#f9fafb;">
                         <form method="POST" action="/admin/cabinets/{{ cabinet.id }}/parts/edit/{{ part.id }}">
                         <td colspan="5" style="padding:12px 16px;">
-                            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px; align-items:end;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end;">
                                 <div>
                                     <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Quantity</label>
                                     <input type="number" name="quantity" value="{{ part.quantity }}" min="1"
@@ -132,32 +129,15 @@
                                         <option value="2" {% if part.cart == 2 %}selected{% endif %}>Cart B</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Aisle</label>
-                                    <input type="number" name="active_aisle" value="{{ part.part.active_aisle or '' }}" min="1" max="{{ config.total_aisles }}"
-                                           style="width:100%; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Bay</label>
-                                    <input type="number" name="active_bay" value="{{ part.part.active_bay or '' }}" min="1" max="{{ config.total_bays }}"
-                                           style="width:100%; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Shelf</label>
-                                    <input type="number" name="active_shelf" value="{{ part.part.active_shelf or '' }}" min="1" max="{{ config.active_shelves }}"
-                                           style="width:100%; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Location (opt)</label>
-                                    <input type="number" name="active_location" value="{{ part.part.active_location or '' }}" min="1" max="{{ config.total_locations }}"
-                                           style="width:100%; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
-                                </div>
                                 <div style="display:flex; align-items:center; gap:4px; padding-bottom:4px;">
                                     <input type="checkbox" name="is_optional" id="opt-{{ part.id }}" {% if part.is_optional %}checked{% endif %} style="width:15px; height:15px;">
                                     <label for="opt-{{ part.id }}" style="font-size:12px; margin:0;">Optional</label>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
+                            <p style="font-size:11px; color:#9ca3af; margin-top:8px;">
+                                To change this part's location, go to <a href="/admin/parts" style="color:#1e1b4b;">Parts</a>.
+                            </p>
+                            <div style="display:flex; gap:8px; margin-top:8px;">
                                 <button type="submit" class="btn-primary" style="font-size:12px; padding:4px 14px;">Save</button>
                                 <button type="button" class="btn-secondary" style="font-size:12px; padding:4px 14px;"
                                     onclick="toggleEdit({{ part.id }})">Cancel</button>

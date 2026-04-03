@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Parts - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Parts</h1>
+            <p>Master list of all parts and their warehouse locations</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="/admin/parts/create" class="btn-primary">+ New Part</a>
+            <a href="/admin" class="btn-secondary">← Admin</a>
+        </div>
+    </div>
+</div>
+
+{% if parts %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Part Name</th>
+                <th>Aisle</th>
+                <th>Bay</th>
+                <th>Shelf</th>
+                <th>Location</th>
+                <th>Used in</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+            <tr id="view-{{ part.id }}">
+                <td style="font-weight:500;">{{ part.name }}</td>
+                <td>{{ part.active_aisle or '—' }}</td>
+                <td>{{ part.active_bay or '—' }}</td>
+                <td>{{ part.active_shelf or '—' }}</td>
+                <td>{{ part.active_location or '—' }}</td>
+                <td style="font-size:12px; color:#666;">{{ part.templates|length }} cabinet(s)</td>
+                <td style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="font-size:12px; padding:4px 10px;"
+                        onclick="toggleEdit({{ part.id }})">Edit</button>
+                    <a href="/admin/parts/delete/{{ part.id }}" class="btn-delete"
+                        onclick="return confirm('Delete {{ part.name }}? This will also remove it from any cabinet types.')">Delete</a>
+                </td>
+            </tr>
+            <tr id="edit-{{ part.id }}" style="display:none; background:#f9fafb;">
+                <form method="POST" action="/admin/parts/edit/{{ part.id }}">
+                <td colspan="7" style="padding:12px 16px;">
+                    <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px; align-items:end;">
+                        <div>
+                            <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Name</label>
+                            <input type="text" name="name" value="{{ part.name }}" required
+                                style="width:100%; padding:5px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Aisle (1-{{ config.total_aisles }})</label>
+                            <input type="number" name="active_aisle" value="{{ part.active_aisle or '' }}" min="1" max="{{ config.total_aisles }}"
+                                style="width:100%; padding:5px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Bay (1-{{ config.total_bays }})</label>
+                            <input type="number" name="active_bay" value="{{ part.active_bay or '' }}" min="1" max="{{ config.total_bays }}"
+                                style="width:100%; padding:5px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Shelf (1-{{ config.active_shelves }})</label>
+                            <input type="number" name="active_shelf" value="{{ part.active_shelf or '' }}" min="1" max="{{ config.active_shelves }}"
+                                style="width:100%; padding:5px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Location (opt)</label>
+                            <input type="number" name="active_location" value="{{ part.active_location or '' }}" min="1" max="{{ config.total_locations }}"
+                                style="width:100%; padding:5px 8px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;" placeholder="—">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button type="submit" class="btn-primary" style="font-size:12px; padding:4px 14px;">Save</button>
+                        <button type="button" class="btn-secondary" style="font-size:12px; padding:4px 14px;"
+                            onclick="toggleEdit({{ part.id }})">Cancel</button>
+                    </div>
+                </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:#999;">
+    <p style="font-size:15px;">No parts yet.</p>
+    <a href="/admin/parts/create" class="btn-primary" style="margin-top:1rem; display:inline-block;">Add your first part</a>
+</div>
+{% endif %}
+
+<script>
+function toggleEdit(partId) {
+    const viewRow = document.getElementById('view-' + partId);
+    const editRow = document.getElementById('edit-' + partId);
+    const isEditing = editRow.style.display !== 'none';
+    viewRow.style.display = isEditing ? '' : 'none';
+    editRow.style.display = isEditing ? 'none' : '';
+}
+</script>
+
+{% endblock %}

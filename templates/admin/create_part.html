@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}New Part - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>New Part</h1>
+        <a href="/admin/parts" class="btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div style="max-width:500px;">
+    <div class="form-card">
+        {% if error %}
+        <div style="padding:10px 14px; border-radius:8px; margin-bottom:1rem; font-size:14px;
+                    background:#fef2f2; border:1px solid #fecaca; color:#dc2626;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="form-group">
+                <label>Part Name</label>
+                <input type="text" name="name" placeholder="e.g. Side Base, Bottom B12, Front 15" required>
+            </div>
+
+            <p style="font-size:13px; font-weight:600; color:#444; margin-bottom:-4px;">Warehouse Location</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Aisle (1 - {{ config.total_aisles }})</label>
+                    <input type="number" name="active_aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Bay (1 - {{ config.total_bays }})</label>
+                    <input type="number" name="active_bay" min="1" max="{{ config.total_bays }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Shelf (1 - {{ config.active_shelves }})</label>
+                    <input type="number" name="active_shelf" min="1" max="{{ config.active_shelves }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Location (optional)</label>
+                    <input type="number" name="active_location" min="1" max="{{ config.total_locations }}" placeholder="—">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:0.5rem;">
+                <button type="submit" class="btn-primary" style="flex:1;">Save Part</button>
+                <a href="/admin/parts" class="btn-secondary" style="flex:1; text-align:center; padding:10px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
