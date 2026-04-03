@@ -280,7 +280,8 @@ def create_part():
         return check
     error = None
     if request.method == 'POST':
-        name = ' '.join(request.form['name'].strip().split()).title()
+        raw = request.form['name'].strip()
+        name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw).split()).title()
         existing = Part.query.filter(Part.name.ilike(name)).first()
         if existing:
             error = f'A part named "{name}" already exists'
@@ -305,7 +306,7 @@ def edit_part_master(part_id):
         return check
     part = Part.query.get(part_id)
     if part:
-        part.name = ' '.join(request.form['name'].strip().split()).title()
+        part.name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', request.form['name'].strip()).split()).title()
         part.active_aisle = request.form.get('active_aisle') or None
         part.active_bay = request.form.get('active_bay') or None
         part.active_shelf = request.form.get('active_shelf') or None
