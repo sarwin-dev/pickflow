@@ -116,6 +116,22 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/clear-data')
+def clear_data():
+    if os.environ.get('CLEAR_DATA', '').lower() != 'true':
+        return 'Not available.', 403
+    from models import WorkOrder, OrderItem, PickItem, ShoppingListItem, Loss, PartTemplate, Part, CabinetType
+    PickItem.query.delete()
+    Loss.query.delete()
+    ShoppingListItem.query.delete()
+    OrderItem.query.delete()
+    WorkOrder.query.delete()
+    PartTemplate.query.delete()
+    Part.query.delete()
+    CabinetType.query.delete()
+    db.session.commit()
+    return 'Done. Work orders, cabinet types, and parts deleted. <a href="/login">Login</a>', 200
+
 @app.route('/reset', methods=['GET', 'POST'])
 def reset_admin():
     if os.environ.get('RESET_MODE', '').lower() != 'true':
