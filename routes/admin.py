@@ -180,12 +180,11 @@ def cabinet_parts(cabinet_id):
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
     templates = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
     used_part_ids = {t.part_id for t in templates}
-    available_parts = Part.query.order_by(Part.name).all()
+    available_parts = Part.query.filter(Part.id.notin_(used_part_ids)).order_by(Part.name).all()
     return render_template('admin/cabinet_parts.html',
                            cabinet=cabinet,
                            parts=templates,
                            available_parts=available_parts,
-                           used_part_ids=used_part_ids,
                            config=config)
 
 @admin_bp.route('/cabinets/delete/<int:cabinet_id>')

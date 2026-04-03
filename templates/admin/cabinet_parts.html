@@ -19,21 +19,19 @@
     <div class="form-card">
         <h3 style="margin-bottom:1rem; font-size:16px;">Add Part</h3>
 
-        {% if available_parts | selectattr('id', 'not in', used_part_ids) | list %}
+        {% if available_parts %}
         <form method="POST">
             <div class="form-group">
                 <label>Select Part</label>
                 <select name="part_id" required style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px;">
                     <option value="">— choose a part —</option>
                     {% for part in available_parts %}
-                    {% if part.id not in used_part_ids %}
                     <option value="{{ part.id }}">
                         {{ part.name }}
                         {% if part.active_aisle %}
                         · A{{ '%02d'|format(part.active_aisle|int) }} B{{ '%02d'|format(part.active_bay|int) }} S{{ '%02d'|format(part.active_shelf|int) }}
                         {% endif %}
                     </option>
-                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
