@@ -6,6 +6,7 @@
     padding: 0;
     box-sizing: border-box;
     /* hace que el tamaño incluya padding y border */
+    font-family: inherit;
 }
 
 body {
