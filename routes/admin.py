@@ -281,7 +281,9 @@ def create_part():
     error = None
     if request.method == 'POST':
         raw = request.form['name'].strip()
-        name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw).split()).title()
+        base_name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw).split()).title()
+        color = request.form.get('color', '').strip()
+        name = f'{base_name} {color}'.strip() if color else base_name
         existing = Part.query.filter(Part.name.ilike(name)).first()
         if existing:
             error = f'A part named "{name}" already exists'
@@ -297,7 +299,8 @@ def create_part():
             db.session.commit()
             return redirect(url_for('admin.parts'))
     config = WarehouseConfig.query.first()
-    return render_template('admin/create_part.html', error=error, config=config)
+    colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/create_part.html', error=error, config=config, colors=colors)
 
 @admin_bp.route('/parts/edit/<int:part_id>', methods=['POST'])
 def edit_part_master(part_id):
