@@ -121,6 +121,7 @@ body {
     border-radius: 8px;
     font-size: 15px;
     font-weight: 500;
+    font-family: inherit;
     cursor: pointer;
     transition: background 0.2s;
     /* animacion suave al pasar el mouse */
