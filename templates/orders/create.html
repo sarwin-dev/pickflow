@@ -73,7 +73,6 @@
                     <tr>
                         <th style="width:60px;">Slot</th>
                         <th>Cabinet Type</th>
-                        <th style="width:200px;">Pick List</th>
                     </tr>
                 </thead>
                 <tbody id="slots-body">
@@ -158,13 +157,7 @@ function addSlot() {
                     border:1px solid #ddd; border-radius:6px; font-size:13px;">
                 ${cabinetOptions(null)}
             </select>
-        </td>
-        <td>
-            <select name="cart" style="width:100%; padding:6px 10px;
-                    border:1px solid #ddd; border-radius:6px; font-size:13px;">
-                <option value="1">Cart A</option>
-                <option value="2">Cart B</option>
-            </select>
+            <input type="hidden" name="cart" value="1">
         </td>
     `;
     tbody.appendChild(row);
