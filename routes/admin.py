@@ -175,7 +175,14 @@ def cabinet_parts(cabinet_id):
                 ))
         db.session.commit()
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
-    templates = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
+    templates = PartTemplate.query.join(Part).filter(
+        PartTemplate.cabinet_type_id == cabinet_id
+    ).order_by(
+        Part.active_aisle.nullslast(),
+        Part.active_bay.nullslast(),
+        Part.active_shelf.nullslast(),
+        Part.active_location.nullslast()
+    ).all()
     used_part_ids = {t.part_id for t in templates}
     all_parts = Part.query.filter(Part.id.notin_(used_part_ids)).order_by(Part.name).all()
     if cabinet.color:
