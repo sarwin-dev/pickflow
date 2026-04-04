@@ -283,16 +283,26 @@ def create_part():
         base_name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw).split()).title()
         color = request.form.get('color', '').strip()
         name = f'{base_name} {color}'.strip() if color else base_name
-        existing = Part.query.filter(Part.name.ilike(name)).first()
-        if existing:
+        aisle = request.form.get('active_aisle') or None
+        bay = request.form.get('active_bay') or None
+        shelf = request.form.get('active_shelf') or None
+        location = request.form.get('active_location') or None
+        existing_name = Part.query.filter(Part.name.ilike(name)).first()
+        existing_loc = Part.query.filter_by(
+            active_aisle=aisle, active_bay=bay,
+            active_shelf=shelf, active_location=location
+        ).first() if aisle and bay and shelf else None
+        if existing_name:
             error = f'A part named "{name}" already exists'
+        elif existing_loc:
+            error = f'Location already used by "{existing_loc.name}"'
         else:
             new_part = Part(
                 name=name,
-                active_aisle=request.form.get('active_aisle') or None,
-                active_bay=request.form.get('active_bay') or None,
-                active_shelf=request.form.get('active_shelf') or None,
-                active_location=request.form.get('active_location') or None,
+                active_aisle=aisle,
+                active_bay=bay,
+                active_shelf=shelf,
+                active_location=location,
             )
             db.session.add(new_part)
             db.session.commit()
@@ -308,11 +318,26 @@ def edit_part_master(part_id):
         return check
     part = Part.query.get(part_id)
     if part:
+        aisle = request.form.get('active_aisle') or None
+        bay = request.form.get('active_bay') or None
+        shelf = request.form.get('active_shelf') or None
+        location = request.form.get('active_location') or None
+        conflict = Part.query.filter(
+            Part.id != part_id,
+            Part.active_aisle == aisle,
+            Part.active_bay == bay,
+            Part.active_shelf == shelf,
+            Part.active_location == location
+        ).first() if aisle and bay and shelf else None
+        if conflict:
+            from flask import flash
+            flash(f'Location already used by "{conflict.name}"', 'error')
+            return redirect(url_for('admin.parts'))
         part.name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', request.form['name'].strip()).split()).title()
-        part.active_aisle = request.form.get('active_aisle') or None
-        part.active_bay = request.form.get('active_bay') or None
-        part.active_shelf = request.form.get('active_shelf') or None
-        part.active_location = request.form.get('active_location') or None
+        part.active_aisle = aisle
+        part.active_bay = bay
+        part.active_shelf = shelf
+        part.active_location = location
         db.session.commit()
     return redirect(url_for('admin.parts'))
 
