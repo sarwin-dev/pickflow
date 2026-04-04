@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Edit Order {{ order.order_number }} - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Edit Order {{ order.order_number }}</h1>
+            <p>Only pending orders can be edited</p>
+        </div>
+        <a href="/orders/{{ order.id }}" class="btn-secondary">← Back</a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert-error" style="max-width:700px; margin-bottom:1rem;">{{ error }}</div>
+{% endif %}
+
+<input type="hidden" id="max-slots" value="{{ config.max_cart_slots if config else 24 }}">
+
+<form method="POST" action="/orders/{{ order.id }}/edit">
+
+    <div class="form-card" style="max-width:700px; margin-bottom:1.5rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group">
+                <label>Job Name</label>
+                <input type="text" name="job_name" value="{{ order.job_name or '' }}"
+                       placeholder="e.g. Project Alpha">
+            </div>
+            <div class="form-group">
+                <label>Batch</label>
+                <input type="text" name="lot_number" value="{{ order.lot_number or '' }}"
+                       placeholder="e.g. Batch001">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Work Order (W.O)</label>
+            <input type="text" name="order_number" value="{{ order.order_number }}" required>
+        </div>
+    </div>
+
+    <!-- filtro de color -->
+    <div style="max-width:700px; margin-bottom:1rem;">
+        <div class="form-card" style="padding:12px 16px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Filter by color:</label>
+                <select id="color-filter" onchange="applyColorFilter()"
+                    style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:180px;">
+                    <option value="">— Show all —</option>
+                    {% for color in colors %}
+                    <option value="{{ color.name }}" data-hex="{{ color.hex_code or '' }}">{{ color.name }}</option>
+                    {% endfor %}
+                </select>
+                <div id="color-swatch" style="width:20px; height:20px; border-radius:4px; border:1px solid #e5e7eb; display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width:700px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3 style="font-size:16px; font-weight:500;">Cart Slots</h3>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-secondary" onclick="addSlot()">+ Add Slot</button>
+                <button type="button" class="btn-secondary" onclick="removeSlot()">- Remove</button>
+            </div>
+        </div>
+
+        <div id="slots-container" class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">Slot</th>
+                        <th>Cabinet Type</th>
+                    </tr>
+                </thead>
+                <tbody id="slots-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; margin-top:1.5rem; max-width:700px;">
+        <button type="submit" class="btn-primary" style="width:auto; padding:10px 24px;">Save Changes</button>
+        <a href="/orders/{{ order.id }}" class="btn-secondary">Cancel</a>
+    </div>
+
+</form>
+
+<script>
+const cabinets = [
+    {% for cabinet in cabinets %}
+    { id: {{ cabinet.id }}, code: "{{ cabinet.code }}", name: "{{ cabinet.name }}", color: "{{ cabinet.color or '' }}" },
+    {% endfor %}
+];
+
+const existingSlots = [
+    {% for item in order.items|sort(attribute='slot') %}
+    {{ item.cabinet_type_id }},
+    {% endfor %}
+];
+
+const maxSlots = parseInt(document.getElementById('max-slots').value);
+let slotCount = 0;
+
+function activeColor() {
+    return document.getElementById('color-filter').value;
+}
+
+function applyColorFilter() {
+    const select = document.getElementById('color-filter');
+    const hex = select.options[select.selectedIndex].dataset.hex;
+    const swatch = document.getElementById('color-swatch');
+    if (hex) { swatch.style.background = hex; swatch.style.display = 'block'; }
+    else { swatch.style.display = 'none'; }
+    document.querySelectorAll('select[name="cabinet_id"]').forEach(sel => {
+        const current = sel.value;
+        sel.innerHTML = cabinetOptions(current);
+    });
+}
+
+function cabinetOptions(selectedId) {
+    const color = activeColor();
+    let opts = '<option value="">— Select cabinet —</option>';
+    cabinets.forEach(c => {
+        if (color && c.color && c.color !== color) return;
+        const label = c.code + (c.color ? ' · ' + c.color : '') + ' — ' + c.name;
+        const selected = selectedId == c.id ? 'selected' : '';
+        opts += `<option value="${c.id}" ${selected}>${label}</option>`;
+    });
+    return opts;
+}
+
+function addSlot(selectedId) {
+    if (slotCount >= maxSlots) { alert('Maximum ' + maxSlots + ' slots per cart'); return; }
+    slotCount++;
+    const tbody = document.getElementById('slots-body');
+    const row = document.createElement('tr');
+    row.id = 'slot-' + slotCount;
+    row.innerHTML = `
+        <td style="font-weight:500; color:#6b7280;">${slotCount}</td>
+        <td>
+            <select name="cabinet_id" style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                ${cabinetOptions(selectedId || null)}
+            </select>
+            <input type="hidden" name="cart" value="1">
+        </td>
+    `;
+    tbody.appendChild(row);
+}
+
+function removeSlot() {
+    if (slotCount === 0) return;
+    const row = document.getElementById('slot-' + slotCount);
+    if (row) row.remove();
+    slotCount--;
+}
+
+// carga los slots existentes de la orden
+existingSlots.forEach(id => addSlot(id));
+</script>
+
+{% endblock %}

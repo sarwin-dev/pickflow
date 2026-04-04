@@ -58,10 +58,10 @@
 </div>
 
 {% if orders %}
-<div class="table-container">
-    <table class="data-table">
+<div style="overflow-y:auto; max-height:620px; border:1px solid #e5e7eb; border-radius:10px;">
+    <table class="data-table" style="margin:0; border-radius:0;">
         <thead>
-            <tr>
+            <tr style="position:sticky; top:0; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
                 <th>Order #</th>
                 <th>Job Name</th>
                 <th>Status</th>
@@ -96,6 +96,8 @@
                     <a href="/orders/{{ order.id }}" class="btn-create"
                        style="font-size:12px; padding:4px 10px;">View</a>
                     {% if order.status == 'pending' %}
+                    <a href="/orders/{{ order.id }}/edit" class="btn-secondary"
+                       style="font-size:12px; padding:4px 10px;">Edit</a>
                     <a href="/orders/{{ order.id }}/cancel" class="btn-delete"
                        onclick="return confirm('Cancel this order?')">Cancel</a>
                     {% endif %}
@@ -111,6 +113,7 @@
     </table>
 </div>
 {% else %}
+
 <div style="text-align:center; padding:3rem; color:#999;">
     {% if search or status_filter %}
     <p style="font-size:16px;">No orders match your search</p>

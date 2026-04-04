@@ -85,6 +85,49 @@ def view(order_id):
     order = WorkOrder.query.get(order_id)
     return render_template('orders/view.html', order=order)
 
+@orders_bp.route('/<int:order_id>/edit', methods=['GET', 'POST'])
+def edit(order_id):
+    check = order_entry_required()
+    if check:
+        return check
+    order = WorkOrder.query.get(order_id)
+    if not order or order.status not in ['pending']:
+        from flask import flash
+        flash('Only pending orders can be edited.', 'error')
+        return redirect(url_for('orders.index'))
+    from models import WarehouseConfig, Color
+    cabinets = CabinetType.query.order_by(CabinetType.code).all()
+    config = WarehouseConfig.query.first()
+    colors = Color.query.order_by(Color.name).all()
+    error = None
+    if request.method == 'POST':
+        order.job_name = request.form.get('job_name') or None
+        order.lot_number = request.form.get('lot_number') or None
+        new_number = request.form['order_number']
+        if new_number != order.order_number:
+            existing = WorkOrder.query.filter_by(order_number=new_number).first()
+            if existing:
+                error = f'Order number {new_number} already exists'
+        if not error:
+            order.order_number = new_number
+            # reemplaza los items
+            for item in order.items:
+                PickItem.query.filter_by(order_item_id=item.id).delete()
+            OrderItem.query.filter_by(work_order_id=order_id).delete()
+            slots = request.form.getlist('cabinet_id')
+            for i, cabinet_id in enumerate(slots):
+                if cabinet_id:
+                    db.session.add(OrderItem(
+                        work_order_id=order.id,
+                        cabinet_type_id=int(cabinet_id),
+                        slot=i + 1,
+                        cart=1
+                    ))
+            db.session.commit()
+            return redirect(url_for('orders.view', order_id=order.id))
+    return render_template('orders/edit.html', order=order, cabinets=cabinets,
+                           config=config, colors=colors, error=error)
+
 @orders_bp.route('/<int:order_id>/cancel')
 def cancel(order_id):
     check = order_entry_required()

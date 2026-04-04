@@ -31,36 +31,35 @@
             </span>
             {% endif %}
             {% if order.status == 'pending' %}
+            <a href="/orders/{{ order.id }}/edit" class="btn-secondary">Edit</a>
             <a href="/pick/{{ order.id }}" class="btn-create">Start Pick</a>
             <a href="/orders/{{ order.id }}/cancel" class="btn-delete"
-               onclick="return confirm('Cancel this order?')"
-               style="margin-left:8px;">Cancel Order</a>
+               onclick="return confirm('Cancel this order?')">Cancel Order</a>
             {% endif %}
+            <a href="/orders" class="btn-secondary">← Back</a>
         </div>
     </div>
 </div>
 
 <!-- resumen de la orden -->
-<div class="table-container" style="margin-bottom:1.5rem;">
-    <div style="padding:12px 16px; background:#f9fafb; 
+<div style="overflow-y:auto; max-height:650px; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:1.5rem;">
+    <div style="padding:12px 16px; background:#f9fafb;
                 border-bottom:1px solid #e5e7eb;
-                display:flex; gap:2rem;">
+                display:flex; gap:2rem; position:sticky; top:0; z-index:2;">
         <span style="font-size:13px; color:#666;">
             Total cabinets: <strong>{{ order.items|length }}</strong>
         </span>
         <span style="font-size:13px; color:#666;">
-            Cart A: 
-            <strong>{{ order.items|selectattr('cart', 'eq', 1)|list|length }}</strong>
+            Cart A: <strong>{{ order.items|selectattr('cart', 'eq', 1)|list|length }}</strong>
         </span>
         <span style="font-size:13px; color:#666;">
-            Cart B: 
-            <strong>{{ order.items|selectattr('cart', 'eq', 2)|list|length }}</strong>
+            Cart B: <strong>{{ order.items|selectattr('cart', 'eq', 2)|list|length }}</strong>
         </span>
     </div>
 
-    <table class="data-table">
+    <table class="data-table" style="margin:0; border-radius:0;">
         <thead>
-            <tr>
+            <tr style="position:sticky; top:45px; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
                 <th>Slot</th>
                 <th>Cabinet</th>
                 <th>Pick List</th>
