@@ -42,11 +42,14 @@
 </div>
 
 <!-- selector de carrito -->
-<div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
-    <span style="font-size:13px; font-weight:600; color:#374151;">Cart:</span>
-    <button class="btn-secondary cart-filter active-filter" onclick="filterCart('all')">All</button>
-    <button class="btn-secondary cart-filter" onclick="filterCart(1)">Cart A</button>
-    <button class="btn-secondary cart-filter" onclick="filterCart(2)">Cart B</button>
+<div style="display:flex; gap:10px; margin-bottom:1rem; align-items:center;">
+    <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Cart:</label>
+    <select onchange="filterCart(this.value)"
+        style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:140px;">
+        <option value="all">All</option>
+        <option value="1">Cart A</option>
+        <option value="2">Cart B</option>
+    </select>
     <a href="/pick" class="btn-secondary" style="margin-left:auto;">← Back</a>
 </div>
 
@@ -288,9 +291,7 @@
     }
 
     function filterCart(cart) {
-        activeCart = cart;
-        document.querySelectorAll('.cart-filter').forEach(b => b.classList.remove('active-filter'));
-        event.target.classList.add('active-filter');
+        activeCart = cart === 'all' ? 'all' : parseInt(cart);
         applyFilters();
     }
 
