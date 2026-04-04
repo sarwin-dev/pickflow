@@ -200,7 +200,7 @@ def generate_pdf(order_id):
 
     order = WorkOrder.query.get(order_id)
 
-    # genera los grupos igual que en pick_order
+    # agrupa por (ubicacion, carrito) igual que en pick_order
     location_groups = {}
     for item in order.items:
         for template in item.cabinet.parts:
@@ -212,76 +212,92 @@ def generate_pdf(order_id):
             else:
                 loc_key = "NO_LOCATION"
 
-            if loc_key not in location_groups:
-                location_groups[loc_key] = {
+            group_key = (loc_key, template.cart)
+            if group_key not in location_groups:
+                location_groups[group_key] = {
                     'location': loc_key,
                     'part_name': part.name,
+                    'cart': template.cart,
                     'aisle': int(part.active_aisle) if part.active_aisle else 99,
                     'bay': int(part.active_bay) if part.active_bay else 99,
                     'shelf': int(part.active_shelf) if part.active_shelf else 99,
                     'loc': int(part.active_location) if part.active_location else 99,
                     'slots': []
                 }
-            location_groups[loc_key]['slots'].append(item.slot)
+            location_groups[group_key]['slots'].append(item.slot)
 
     sorted_groups = sorted(
         location_groups.values(),
-        key=lambda x: (x['aisle'], x['bay'], x['shelf'], x['loc'])
+        key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
-    # crea el PDF en memoria
+    cart_a = [g for g in sorted_groups if g['cart'] == 1]
+    cart_b = [g for g in sorted_groups if g['cart'] == 2]
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                            rightMargin=0.5*inch, leftMargin=0.5*inch,
                            topMargin=0.5*inch, bottomMargin=0.5*inch)
 
-    styles = getSampleStyleSheet()
-    elements = []
-
-    # header del documento
+    from reportlab.platypus import PageBreak
     title_style = ParagraphStyle('title',
         fontSize=16, fontName='Helvetica-Bold', spaceAfter=4)
     subtitle_style = ParagraphStyle('subtitle',
         fontSize=11, fontName='Helvetica', spaceAfter=2)
     small_style = ParagraphStyle('small',
         fontSize=9, fontName='Helvetica', textColor=colors.grey)
+    cart_title_style = ParagraphStyle('cart_title',
+        fontSize=13, fontName='Helvetica-Bold', spaceAfter=8,
+        textColor=colors.HexColor('#1e1b4b'))
 
-    elements.append(Paragraph('CASE PICK LIST', title_style))
-    elements.append(Paragraph(
-        f"{order.job_name or ''} — {order.lot_number or ''}", subtitle_style))
-    elements.append(Paragraph(f"W.O: {order.order_number}", subtitle_style))
-    elements.append(Paragraph(
-        f"Picker: {session['user_name']} · {__import__('datetime').datetime.now().strftime('%m/%d/%Y %I:%M %p')}",
-        small_style))
-    elements.append(Spacer(1, 0.2*inch))
+    now = __import__('datetime').datetime.now().strftime('%m/%d/%Y %I:%M %p')
 
-    # tabla de partes
-    for group in sorted_groups:
-        slots_text = '  '.join([f"#{s}" for s in group['slots']])
-        data = [
-            [group['location'], f"QTY: {len(group['slots'])}", group['part_name']],
-            [slots_text, '', ''],
+    def build_header(cart_label):
+        return [
+            Paragraph('CASE PICK LIST', title_style),
+            Paragraph(f"{order.job_name or ''} — {order.lot_number or ''}", subtitle_style),
+            Paragraph(f"W.O: {order.order_number}", subtitle_style),
+            Paragraph(f"Picker: {session['user_name']} · {now}", small_style),
+            Spacer(1, 0.15*inch),
+            Paragraph(cart_label, cart_title_style),
         ]
-        t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
-        t.setStyle(TableStyle([
-            # header row
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e1b4b')),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,0), 9),
-            ('PADDING', (0,0), (-1,0), 5),
-            # slots row
-            ('BACKGROUND', (0,1), (-1,1), colors.HexColor('#f9fafb')),
-            ('FONTNAME', (0,1), (-1,1), 'Helvetica'),
-            ('FONTSIZE', (0,1), (-1,1), 9),
-            ('PADDING', (0,1), (-1,1), 4),
-            ('SPAN', (0,1), (-1,1)),
-            # bordes
-            ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#e5e7eb')),
-            ('LINEBELOW', (0,0), (-1,0), 0.5, colors.HexColor('#e5e7eb')),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 0.05*inch))
+
+    def build_groups(groups):
+        elems = []
+        for group in groups:
+            slots_text = '  '.join([f"#{s}" for s in group['slots']])
+            data = [
+                [group['location'], f"QTY: {len(group['slots'])}", group['part_name']],
+                [slots_text, '', ''],
+            ]
+            t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e1b4b')),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0,0), (-1,0), 9),
+                ('PADDING', (0,0), (-1,0), 5),
+                ('BACKGROUND', (0,1), (-1,1), colors.HexColor('#f9fafb')),
+                ('FONTNAME', (0,1), (-1,1), 'Helvetica'),
+                ('FONTSIZE', (0,1), (-1,1), 9),
+                ('PADDING', (0,1), (-1,1), 4),
+                ('SPAN', (0,1), (-1,1)),
+                ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#e5e7eb')),
+                ('LINEBELOW', (0,0), (-1,0), 0.5, colors.HexColor('#e5e7eb')),
+            ]))
+            elems.append(t)
+            elems.append(Spacer(1, 0.05*inch))
+        return elems
+
+    elements = []
+    if cart_a:
+        elements += build_header('CART A')
+        elements += build_groups(cart_a)
+    if cart_b:
+        if cart_a:
+            elements.append(PageBreak())
+        elements += build_header('CART B')
+        elements += build_groups(cart_b)
 
     doc.build(elements)
     buffer.seek(0)
