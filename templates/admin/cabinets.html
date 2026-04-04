@@ -57,7 +57,7 @@
                     <a href="/admin/cabinets/{{ cabinet.id }}/parts" 
                        class="btn-create" 
                        style="font-size:12px; padding:4px 10px;">
-                        View Parts ({{ cabinet.parts|length }})
+                        View Parts ({{ cabinet.parts | sum(attribute='quantity') }} pcs)
                     </a>
                 </td>
                 <td style="display:flex; gap:6px; align-items:center;">
