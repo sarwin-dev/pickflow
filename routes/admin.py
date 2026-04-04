@@ -165,7 +165,7 @@ def cabinet_parts(cabinet_id):
             if not existing:
                 quantity = request.form.get(f'quantity_{part_id}', 1)
                 cart = request.form.get(f'cart_{part_id}', 1)
-                is_optional = request.form.get(f'optional_{part_id}') == 'on'
+                is_optional = False
                 db.session.add(PartTemplate(
                     cabinet_type_id=cabinet_id,
                     part_id=int(part_id),
