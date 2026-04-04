@@ -98,7 +98,13 @@ def cabinets():
     check = admin_required()
     if check:
         return check
-    all_cabinets = CabinetType.query.order_by(CabinetType.color, CabinetType.width).all()
+    from sqlalchemy import case
+    all_cabinets = CabinetType.query.order_by(
+        CabinetType.color,
+        case((CabinetType.height == None, 0), else_=1),
+        CabinetType.height,
+        CabinetType.width
+    ).all()
     color_map = {c.name: c.hex_code for c in Color.query.all()}
     return render_template('admin/cabinets.html', cabinets=all_cabinets, color_map=color_map)
 
