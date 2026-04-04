@@ -45,63 +45,58 @@
 <div style="overflow-y:auto; max-height:650px; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:1.5rem;">
     <div style="padding:12px 16px; background:#f9fafb;
                 border-bottom:1px solid #e5e7eb;
-                display:flex; gap:2rem; position:sticky; top:0; z-index:2;">
+                position:sticky; top:0; z-index:2;">
         <span style="font-size:13px; color:#666;">
             Total cabinets: <strong>{{ order.items|length }}</strong>
-        </span>
-        <span style="font-size:13px; color:#666;">
-            Cart A: <strong>{{ order.items|selectattr('cart', 'eq', 1)|list|length }}</strong>
-        </span>
-        <span style="font-size:13px; color:#666;">
-            Cart B: <strong>{{ order.items|selectattr('cart', 'eq', 2)|list|length }}</strong>
         </span>
     </div>
 
     <table class="data-table" style="margin:0; border-radius:0;">
         <thead>
             <tr style="position:sticky; top:45px; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
-                <th>Slot</th>
+                <th style="width:50px;">Slot</th>
                 <th>Cabinet</th>
-                <th>Pick List</th>
-                <th>Parts</th>
-                <th>Status</th>
+                <th>Cart A</th>
+                <th>Cart B</th>
+                <th style="width:100px;">Status</th>
             </tr>
         </thead>
         <tbody>
             {% for item in order.items|sort(attribute='slot') %}
             <tr>
-                <td style="font-weight:500; color:#6b7280;">{{ item.slot }}</td>
+                <td style="font-weight:500; color:#6b7280; text-align:center;">{{ item.slot }}</td>
                 <td>
-                    <strong>{{ item.cabinet.code }}</strong>
+                    <strong style="font-size:14px;">{{ item.cabinet.name }}</strong>
                     {% if item.cabinet.color %}
-                    <span style="color:#666;">{{ item.cabinet.color }}</span>
+                    <span style="font-size:13px; color:#555;"> · {{ item.cabinet.color }}</span>
                     {% endif %}
-                    <div style="font-size:12px; color:#999;">{{ item.cabinet.name }}</div>
+                    <div style="font-size:11px; color:#9ca3af;">{{ item.cabinet.code }}</div>
                 </td>
-                <td>
-                    {% if item.cart == 1 %}
-                    <span class="role-badge role-order_entry">Cart A</span>
-                    {% else %}
-                    <span class="role-badge role-receiving">Cart B</span>
-                    {% endif %}
-                </td>
-                <td style="font-size:13px;">
-                    <!-- lista de partes del gabinete -->
-                    {% for template in item.cabinet.parts %}
-                    <div style="padding:2px 0; color:#374151;">
+                <td style="font-size:12px; color:#374151; vertical-align:top; padding-top:10px;">
+                    {% for template in item.cabinet.parts if template.cart == 1 %}
+                    <div style="padding:1px 0;">
                         {{ template.part.name }}
                         {% if template.quantity > 1 %}
                         <span style="color:#9ca3af;">x{{ template.quantity }}</span>
                         {% endif %}
-                        {% if template.is_optional %}
-                        <span class="role-badge role-inventory" 
-                              style="font-size:10px;">opt</span>
+                    </div>
+                    {% else %}
+                    <span style="color:#d1d5db;">—</span>
+                    {% endfor %}
+                </td>
+                <td style="font-size:12px; color:#374151; vertical-align:top; padding-top:10px;">
+                    {% for template in item.cabinet.parts if template.cart == 2 %}
+                    <div style="padding:1px 0;">
+                        {{ template.part.name }}
+                        {% if template.quantity > 1 %}
+                        <span style="color:#9ca3af;">x{{ template.quantity }}</span>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <span style="color:#d1d5db;">—</span>
                     {% endfor %}
                 </td>
                 <td>
-                    <!-- estado del pick de este slot -->
                     {% set picked = item.picks|selectattr('is_picked', 'eq', true)|list|length %}
                     {% set total = item.picks|list|length %}
                     {% if total == 0 %}
