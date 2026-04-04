@@ -43,8 +43,9 @@ def create():
     if check:
         return check
     cabinets = CabinetType.query.order_by(CabinetType.code).all()
-    from models import WarehouseConfig
+    from models import WarehouseConfig, Color
     config = WarehouseConfig.query.first()
+    colors = Color.query.order_by(Color.name).all()
     error = None
     if request.method == 'POST':
         order_number = request.form['order_number']
@@ -74,7 +75,7 @@ def create():
                     db.session.add(item)
             db.session.commit()
             return redirect(url_for('orders.view', order_id=new_order.id))
-    return render_template('orders/create.html', cabinets=cabinets, error=error, config=config)
+    return render_template('orders/create.html', cabinets=cabinets, error=error, config=config, colors=colors)
 
 @orders_bp.route('/<int:order_id>')
 def view(order_id):

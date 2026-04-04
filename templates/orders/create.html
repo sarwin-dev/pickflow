@@ -38,6 +38,25 @@
         </div>
     </div>
 
+    <!-- filtro de color -->
+    <div style="max-width:700px; margin-bottom:1rem;">
+        <div class="form-card" style="padding:12px 16px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Filter by color:</label>
+                <select id="color-filter" onchange="applyColorFilter()"
+                    style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:180px;">
+                    <option value="">— Show all —</option>
+                    {% for color in colors %}
+                    <option value="{{ color.name }}" data-hex="{{ color.hex_code or '' }}">
+                        {{ color.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div id="color-swatch" style="width:20px; height:20px; border-radius:4px; border:1px solid #e5e7eb; display:none;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- slots del carrito -->
     <div style="max-width:700px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
@@ -86,11 +105,36 @@ const maxSlots = parseInt(document.getElementById('max-slots').value);
 
 let slotCount = 0;
 
-// crea las opciones del select de gabinetes
+// devuelve el color seleccionado en el filtro
+function activeColor() {
+    return document.getElementById('color-filter').value;
+}
+
+// muestra el swatch del color seleccionado
+function applyColorFilter() {
+    const select = document.getElementById('color-filter');
+    const hex = select.options[select.selectedIndex].dataset.hex;
+    const swatch = document.getElementById('color-swatch');
+    if (hex) {
+        swatch.style.background = hex;
+        swatch.style.display = 'block';
+    } else {
+        swatch.style.display = 'none';
+    }
+    // actualiza todos los selects de gabinetes ya existentes
+    document.querySelectorAll('select[name="cabinet_id"]').forEach(sel => {
+        const current = sel.value;
+        sel.innerHTML = cabinetOptions(current);
+    });
+}
+
+// crea las opciones del select de gabinetes filtrando por color
 function cabinetOptions(selectedId) {
+    const color = activeColor();
     let opts = '<option value="">— Select cabinet —</option>';
     cabinets.forEach(c => {
-        const label = c.code + (c.color ? ' ' + c.color : '') + ' — ' + c.name;
+        if (color && c.color && c.color !== color) return;
+        const label = c.code + (c.color ? ' · ' + c.color : '') + ' — ' + c.name;
         const selected = selectedId == c.id ? 'selected' : '';
         opts += `<option value="${c.id}" ${selected}>${label}</option>`;
     });
