@@ -159,21 +159,21 @@ def cabinet_parts(cabinet_id):
     cabinet = CabinetType.query.get(cabinet_id)
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
-        part_id = request.form.get('part_id')
-        if not part_id:
-            return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
-        # verifica que la parte no este ya en este gabinete
-        existing = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id, part_id=part_id).first()
-        if not existing:
-            new_template = PartTemplate(
-                cabinet_type_id=cabinet_id,
-                part_id=int(part_id),
-                quantity=request.form['quantity'],
-                cart=request.form['cart'],
-                is_optional=True if request.form.get('is_optional') else False,
-            )
-            db.session.add(new_template)
-            db.session.commit()
+        selected_ids = request.form.getlist('part_ids')
+        for part_id in selected_ids:
+            existing = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id, part_id=part_id).first()
+            if not existing:
+                quantity = request.form.get(f'quantity_{part_id}', 1)
+                cart = request.form.get(f'cart_{part_id}', 1)
+                is_optional = request.form.get(f'optional_{part_id}') == 'on'
+                db.session.add(PartTemplate(
+                    cabinet_type_id=cabinet_id,
+                    part_id=int(part_id),
+                    quantity=int(quantity),
+                    cart=int(cart),
+                    is_optional=is_optional,
+                ))
+        db.session.commit()
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
     templates = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
     used_part_ids = {t.part_id for t in templates}

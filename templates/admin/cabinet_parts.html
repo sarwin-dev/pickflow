@@ -17,42 +17,60 @@
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
 
     <div class="form-card">
-        <h3 style="margin-bottom:1rem; font-size:16px;">Add Part</h3>
+        <h3 style="margin-bottom:1rem; font-size:16px;">Add Parts</h3>
 
         {% if available_parts %}
         <form method="POST">
-            <div class="form-group">
-                <label>Select Part</label>
-                <select name="part_id" required style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px;">
-                    <option value="">— choose a part —</option>
-                    {% for part in available_parts %}
-                    <option value="{{ part.id }}">
-                        {{ part.name }}
-                        {% if part.active_aisle %}
-                        · A{{ '%02d'|format(part.active_aisle|int) }} B{{ '%02d'|format(part.active_bay|int) }} S{{ '%02d'|format(part.active_shelf|int) }}
-                        {% endif %}
-                    </option>
-                    {% endfor %}
-                </select>
+            <div style="overflow-y:auto; max-height:420px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:1rem;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <thead>
+                        <tr style="background:#f9fafb; position:sticky; top:0;">
+                            <th style="padding:8px 10px; text-align:left; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb; width:24px;"></th>
+                            <th style="padding:8px 10px; text-align:left; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb;">Part</th>
+                            <th style="padding:8px 10px; text-align:center; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb; width:60px;">Qty</th>
+                            <th style="padding:8px 10px; text-align:center; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb; width:80px;">Cart</th>
+                            <th style="padding:8px 10px; text-align:center; font-weight:600; color:#374151; border-bottom:1px solid #e5e7eb; width:50px;">Opt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in available_parts %}
+                        <tr class="part-row" style="border-bottom:1px solid #f3f4f6; opacity:0.45;" data-id="{{ part.id }}">
+                            <td style="padding:7px 10px;">
+                                <input type="checkbox" name="part_ids" value="{{ part.id }}"
+                                    style="width:15px; height:15px; cursor:pointer;"
+                                    onchange="toggleRow(this)">
+                            </td>
+                            <td style="padding:7px 10px;">
+                                <div style="font-weight:500; color:#111;">{{ part.name }}</div>
+                                {% if part.active_aisle %}
+                                <div style="font-size:11px; color:#9ca3af;">
+                                    A{{ '%02d'|format(part.active_aisle|int) }}
+                                    B{{ '%02d'|format(part.active_bay|int) }}
+                                    S{{ '%02d'|format(part.active_shelf|int) }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td style="padding:7px 6px; text-align:center;">
+                                <input type="number" name="quantity_{{ part.id }}" value="1" min="1"
+                                    style="width:50px; padding:3px 5px; border:1px solid #e5e7eb; border-radius:4px; text-align:center; font-size:13px;">
+                            </td>
+                            <td style="padding:7px 6px; text-align:center;">
+                                <select name="cart_{{ part.id }}"
+                                    style="padding:3px 5px; border:1px solid #e5e7eb; border-radius:4px; font-size:13px;">
+                                    <option value="1">A</option>
+                                    <option value="2">B</option>
+                                </select>
+                            </td>
+                            <td style="padding:7px 6px; text-align:center;">
+                                <input type="checkbox" name="optional_{{ part.id }}" value="on"
+                                    style="width:14px; height:14px;">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div class="form-group">
-                    <label>Quantity</label>
-                    <input type="number" name="quantity" value="1" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Cart</label>
-                    <select name="cart">
-                        <option value="1">Cart A</option>
-                        <option value="2">Cart B</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                <input type="checkbox" name="is_optional" id="is_optional" style="width:18px; height:18px;">
-                <label for="is_optional" style="margin:0;">Optional part</label>
-            </div>
-            <button type="submit" class="btn-primary" style="width:100%; margin-top:1rem;">Add Part</button>
+            <button type="submit" class="btn-primary" style="width:100%;">Add Selected</button>
         </form>
         {% else %}
         <p style="color:#999; font-size:14px;">All available parts have been added to this cabinet.</p>
@@ -161,6 +179,11 @@ function toggleEdit(partId) {
     const isEditing = editRow.style.display !== 'none';
     viewRow.style.display = isEditing ? '' : 'none';
     editRow.style.display = isEditing ? 'none' : '';
+}
+function toggleRow(checkbox) {
+    const row = checkbox.closest('tr');
+    row.style.opacity = checkbox.checked ? '1' : '0.45';
+    row.style.background = checkbox.checked ? '#eef2ff' : '';
 }
 </script>
 
