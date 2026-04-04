@@ -32,7 +32,6 @@
             {% endif %}
             {% if order.status == 'pending' %}
             <a href="/orders/{{ order.id }}/edit" class="btn-secondary">Edit</a>
-            <a href="/pick/{{ order.id }}" class="btn-create">Start Pick</a>
             <a href="/orders/{{ order.id }}/cancel" class="btn-delete"
                onclick="return confirm('Cancel this order?')">Cancel Order</a>
             {% endif %}

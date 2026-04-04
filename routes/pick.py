@@ -34,11 +34,6 @@ def pick_order(order_id):
     if not order:
         return redirect(url_for('pick.index'))
 
-    # cambia el status a in_progress si estaba pending
-    if order.status == 'pending':
-        order.status = 'in_progress'
-        db.session.commit()
-
     # genera los pick items si no existen todavia
     for item in order.items:
         existing = PickItem.query.filter_by(order_item_id=item.id).first()
@@ -53,13 +48,12 @@ def pick_order(order_id):
                     db.session.add(pick_item)
     db.session.commit()
 
-    # agrupa las partes por ubicacion para el orden de picking
-    # cada grupo = una ubicacion ABSL con todos los slots que la necesitan
+    # agrupa las partes por (ubicacion, carrito)
+    # cada grupo = una ubicacion + carrito con todos los slots que la necesitan
     location_groups = {}
     for item in order.items:
         for template in item.cabinet.parts:
             part = template.part
-            # crea la clave de ubicacion
             if part.active_aisle:
                 loc_key = f"A{int(part.active_aisle):02d}.B{int(part.active_bay):02d}.S{int(part.active_shelf):02d}"
                 if part.active_location:
@@ -67,10 +61,13 @@ def pick_order(order_id):
             else:
                 loc_key = "NO_LOCATION"
 
-            if loc_key not in location_groups:
-                location_groups[loc_key] = {
+            group_key = (loc_key, template.cart)
+
+            if group_key not in location_groups:
+                location_groups[group_key] = {
                     'location': loc_key,
                     'part_name': part.name,
+                    'cart': template.cart,
                     'aisle': int(part.active_aisle) if part.active_aisle else 99,
                     'bay': int(part.active_bay) if part.active_bay else 99,
                     'shelf': int(part.active_shelf) if part.active_shelf else 99,
@@ -78,23 +75,21 @@ def pick_order(order_id):
                     'slots': []
                 }
 
-            # busca el pick item correspondiente
             pick_item = PickItem.query.join(OrderItem).filter(
                 OrderItem.id == item.id,
                 PickItem.part_template_id == template.id
             ).first()
 
-            location_groups[loc_key]['slots'].append({
+            location_groups[group_key]['slots'].append({
                 'slot': item.slot,
                 'pick_item_id': pick_item.id if pick_item else None,
                 'is_picked': pick_item.is_picked if pick_item else False,
                 'picked_by': pick_item.picked_by if pick_item else None,
             })
 
-    # ordena por aisle, bay, shelf
     sorted_groups = sorted(
         location_groups.values(),
-        key=lambda x: (x['aisle'], x['bay'], x['shelf'], x['loc'])
+        key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
     return render_template('pick/pick_order.html',
@@ -111,6 +106,11 @@ def toggle(pick_item_id):
     action = request.json.get('action', 'pick')
 
     if pick_item:
+        # cambia a in_progress en el primer pick
+        order = pick_item.order_item.order
+        if order.status == 'pending' and action == 'pick':
+            order.status = 'in_progress'
+
         if action == 'pick':
             # marca como picked - inventario se controla solo en pulldown (two-bin)
             pick_item.is_picked = True

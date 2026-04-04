@@ -41,6 +41,15 @@
     </div>
 </div>
 
+<!-- selector de carrito -->
+<div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
+    <span style="font-size:13px; font-weight:600; color:#374151;">Cart:</span>
+    <button class="btn-secondary cart-filter active-filter" onclick="filterCart('all')">All</button>
+    <button class="btn-secondary cart-filter" onclick="filterCart(1)">Cart A</button>
+    <button class="btn-secondary cart-filter" onclick="filterCart(2)">Cart B</button>
+    <a href="/pick" class="btn-secondary" style="margin-left:auto;">← Back</a>
+</div>
+
 <!-- filtro por aisle -->
 <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
     <button class="btn-secondary aisle-filter active-filter" onclick="filterAisle('all')">
@@ -60,7 +69,7 @@
 <!-- pick list -->
 <div id="pick-list">
     {% for group in groups %}
-    <div class="pick-group" data-aisle="{{ group.aisle }}" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
+    <div class="pick-group" data-aisle="{{ group.aisle }}" data-cart="{{ group.cart }}" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
                 margin-bottom:10px; overflow:hidden;">
 
         <div style="background:#f9fafb; padding:10px 16px;
@@ -75,9 +84,12 @@
                     {{ group.part_name }}
                 </span>
             </div>
-            <span style="font-size:13px; color:#6b7280;">
-                QTY: {{ group.slots|length }}
-            </span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
+                    Cart {{ 'A' if group.cart == 1 else 'B' }}
+                </span>
+                <span style="font-size:13px; color:#6b7280;">QTY: {{ group.slots|length }}</span>
+            </div>
         </div>
 
         <div style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px;">
@@ -264,16 +276,29 @@
         el.style.background = el.dataset.hex;
     });
 
+    let activeCart = 'all';
+    let activeAisle = 'all';
+
+    function applyFilters() {
+        document.querySelectorAll('.pick-group').forEach(group => {
+            const cartMatch = activeCart === 'all' || group.dataset.cart == activeCart;
+            const aisleMatch = activeAisle === 'all' || group.dataset.aisle == activeAisle;
+            group.classList.toggle('hidden', !(cartMatch && aisleMatch));
+        });
+    }
+
+    function filterCart(cart) {
+        activeCart = cart;
+        document.querySelectorAll('.cart-filter').forEach(b => b.classList.remove('active-filter'));
+        event.target.classList.add('active-filter');
+        applyFilters();
+    }
+
     function filterAisle(aisle) {
+        activeAisle = aisle;
         document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
         event.target.classList.add('active-filter');
-        document.querySelectorAll('.pick-group').forEach(group => {
-            if (aisle === 'all' || group.dataset.aisle == aisle) {
-                group.classList.remove('hidden');
-            } else {
-                group.classList.add('hidden');
-            }
-        });
+        applyFilters();
     }
 </script>
 
