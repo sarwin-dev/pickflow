@@ -87,20 +87,27 @@
                     <tr>
                         <th>Part</th>
                         <th>Qty</th>
-                        <th>Cart</th>
                         <th>Location</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for part in parts %}
+                    {% for cart_label, cart_num in [('Cart A', 1), ('Cart B', 2)] %}
+                    {% set cart_parts = parts | selectattr('cart', 'equalto', cart_num) | list %}
+                    {% if cart_parts %}
+                    <tr>
+                        <td colspan="4" style="background:#f3f4f6; font-size:12px; font-weight:700;
+                                               color:#6b7280; padding:6px 12px; letter-spacing:0.05em;">
+                            {{ cart_label }}
+                        </td>
+                    </tr>
+                    {% for part in cart_parts %}
                     <!-- fila de visualizacion -->
                     <tr id="view-{{ part.id }}">
                         <td>
                             {{ part.part.name }}
                         </td>
                         <td>{{ part.quantity }}</td>
-                        <td>Cart {{ 'A' if part.cart == 1 else 'B' }}</td>
                         <td style="font-size:12px; color:#666;">
                             {% if part.part.active_aisle %}
                             A{{ '%02d'|format(part.part.active_aisle|int) }}
@@ -123,7 +130,7 @@
                     <!-- fila de edicion (solo cantidad, carrito y opcional) -->
                     <tr id="edit-{{ part.id }}" style="display:none; background:#f9fafb;">
                         <form method="POST" action="/admin/cabinets/{{ cabinet.id }}/parts/edit/{{ part.id }}">
-                        <td colspan="5" style="padding:12px 16px;">
+                        <td colspan="4" style="padding:12px 16px;">
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:end;">
                                 <div>
                                     <label style="font-size:11px; color:#666; display:block; margin-bottom:3px;">Quantity</label>
@@ -149,6 +156,8 @@
                         </td>
                         </form>
                     </tr>
+                    {% endfor %}
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
