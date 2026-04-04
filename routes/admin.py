@@ -177,7 +177,11 @@ def cabinet_parts(cabinet_id):
         return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
     templates = PartTemplate.query.filter_by(cabinet_type_id=cabinet_id).all()
     used_part_ids = {t.part_id for t in templates}
-    available_parts = Part.query.filter(Part.id.notin_(used_part_ids)).order_by(Part.name).all()
+    all_parts = Part.query.filter(Part.id.notin_(used_part_ids)).order_by(Part.name).all()
+    if cabinet.color:
+        available_parts = [p for p in all_parts if not any(p.name.endswith(c.name) for c in Color.query.all()) or p.name.endswith(cabinet.color)]
+    else:
+        available_parts = all_parts
     return render_template('admin/cabinet_parts.html',
                            cabinet=cabinet,
                            parts=templates,
