@@ -109,9 +109,8 @@ def create_cabinet():
         return check
     error = None
     if request.method == 'POST':
-        raw_code = request.form['code'].strip()
-        formatted_code = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_code)
-        cabinet_code = ' '.join(formatted_code.split()).title()
+        cabinet_code = request.form['code'].strip()
+        cabinet_name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', request.form['name'].strip()).split()).title()
         cabinet_color = request.form.get('color') or None
         existing = CabinetType.query.filter(
             CabinetType.code == cabinet_code,
@@ -122,7 +121,7 @@ def create_cabinet():
         else:
             new_cabinet = CabinetType(
                 code=cabinet_code,
-                name=request.form['name'],
+                name=cabinet_name,
                 width=request.form['width'],
                 height=request.form.get('height') or None,
                 color=cabinet_color,
@@ -141,10 +140,8 @@ def edit_cabinet(cabinet_id):
         return check
     cabinet = CabinetType.query.get(cabinet_id)
     if request.method == 'POST':
-        raw_code = request.form['code'].strip()
-        formatted_code = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', raw_code)
-        cabinet.code = ' '.join(formatted_code.split()).title()
-        cabinet.name = ' '.join(request.form['name'].strip().split()).title()
+        cabinet.code = request.form['code'].strip()
+        cabinet.name = ' '.join(re.sub(r'([a-zA-Z])(\d)', r'\1 \2', request.form['name'].strip()).split()).title()
         cabinet.width = request.form['width']
         cabinet.height = request.form.get('height') or None
         cabinet.color = request.form.get('color') or None
