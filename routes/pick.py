@@ -21,7 +21,7 @@ def index():
     # solo ordenes pendientes o en progreso
     orders = WorkOrder.query.filter(
         WorkOrder.status.in_(['pending', 'in_progress'])
-    ).order_by(WorkOrder.created_at.desc()).all()
+    ).order_by(WorkOrder.created_at.asc()).all()
     return render_template('pick/index.html', orders=orders)
 
 # genera y muestra la pick list de una orden
