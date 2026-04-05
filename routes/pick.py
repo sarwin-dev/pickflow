@@ -192,12 +192,17 @@ def generate_pdf(order_id):
         return check
 
     import io
-    from weasyprint import HTML, CSS
-    from flask import render_template, send_file
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
+    from flask import send_file
+    from datetime import datetime as dt
 
     order = WorkOrder.query.get(order_id)
 
-    # reutiliza la misma logica de agrupacion que pick_order
+    # misma logica de agrupacion que pick_order
     location_groups = {}
     for item in order.items:
         for template in item.cabinet.parts:
@@ -222,21 +227,64 @@ def generate_pdf(order_id):
                 }
             location_groups[group_key]['slots'].append(item.slot)
 
-    sorted_groups = sorted(
-        location_groups.values(),
-        key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc'])
-    )
+    sorted_groups = sorted(location_groups.values(),
+        key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc']))
 
-    # renderiza el template HTML igual que la pantalla
-    html_string = render_template(
-        'pick/pick_order_pdf.html',
-        order=order,
-        groups=sorted_groups,
-        user_name=session['user_name']
-    )
+    cart_a = [g for g in sorted_groups if g['cart'] == 1]
+    cart_b = [g for g in sorted_groups if g['cart'] == 2]
 
-    pdf_bytes = HTML(string=html_string, base_url=request.host_url).write_pdf()
-    buffer = io.BytesIO(pdf_bytes)
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=0.5*inch, leftMargin=0.5*inch,
+                            topMargin=0.5*inch, bottomMargin=0.5*inch)
+
+    navy = colors.HexColor('#1e1b4b')
+    light = colors.HexColor('#f9fafb')
+    border = colors.HexColor('#e5e7eb')
+    indigo = colors.HexColor('#eef2ff')
+    now_str = dt.now().strftime('%m/%d/%Y %I:%M %p')
+
+    title_s  = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=navy, spaceAfter=2)
+    meta_s   = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=colors.HexColor('#6b7280'), spaceAfter=8)
+    cart_s   = ParagraphStyle('c', fontSize=12, fontName='Helvetica-Bold', textColor=navy, spaceAfter=6)
+
+    def build_section(cart_label, groups):
+        elems = [
+            Paragraph('CASE PICK LIST', title_s),
+            Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Picker: {session['user_name']}  ·  {now_str}", meta_s),
+            Paragraph(f"▌ {cart_label}", cart_s),
+        ]
+        for g in groups:
+            slots_str = '   '.join([f"#{s}" for s in g['slots']])
+            data = [[g['location'], f"QTY: {len(g['slots'])}", g['part_name']], [slots_str, '', '']]
+            t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), navy),
+                ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+                ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+                ('FONTSIZE',   (0,0), (-1,0), 9),
+                ('PADDING',    (0,0), (-1,0), 5),
+                ('BACKGROUND', (0,1), (-1,1), light),
+                ('FONTNAME',   (0,1), (-1,1), 'Helvetica'),
+                ('FONTSIZE',   (0,1), (-1,1), 9),
+                ('PADDING',    (0,1), (-1,1), 4),
+                ('SPAN',       (0,1), (-1,1)),
+                ('BOX',        (0,0), (-1,-1), 0.5, border),
+                ('LINEBELOW',  (0,0), (-1,0), 0.5, border),
+            ]))
+            elems += [t, Spacer(1, 0.05*inch)]
+        return elems
+
+    elements = []
+    if cart_a:
+        elements += build_section('CART A', cart_a)
+    if cart_b:
+        if cart_a:
+            elements.append(PageBreak())
+        elements += build_section('CART B', cart_b)
+
+    doc.build(elements)
+    buffer.seek(0)
 
     return send_file(
         buffer,

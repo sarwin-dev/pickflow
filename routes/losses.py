@@ -70,15 +70,65 @@ def pdf():
     if session['user_role'] not in ['admin', 'supervisor']:
         return redirect(url_for('dashboard'))
 
-    import io
-    from weasyprint import HTML
+    from io import BytesIO
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
 
     losses = Loss.query.order_by(Loss.reported_at.desc()).all()
-    html_string = render_template('losses/pdf.html', losses=losses, now=datetime.now())
-    pdf_bytes = HTML(string=html_string).write_pdf()
+    navy  = colors.HexColor('#1e1b4b')
+    light = colors.HexColor('#f9fafb')
+    border= colors.HexColor('#e5e7eb')
+    red   = colors.HexColor('#dc2626')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=0.5*inch, leftMargin=0.5*inch,
+                            topMargin=0.5*inch, bottomMargin=0.5*inch)
+
+    title_s = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=navy, spaceAfter=2)
+    meta_s  = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=colors.HexColor('#6b7280'), spaceAfter=10)
+
+    elements = [
+        Paragraph('LOSS & DAMAGE REPORT', title_s),
+        Paragraph(f"Generated: {datetime.now().strftime('%m/%d/%Y %I:%M %p')}  ·  Total records: {len(losses)}", meta_s),
+    ]
+
+    table_data = [['Part', 'Qty', 'Reason / Comments', 'Reported By', 'Date']]
+    for loss in losses:
+        reason = loss.reason or '—'
+        if loss.comments:
+            reason += f"\n{loss.comments}"
+        table_data.append([
+            loss.part.name if loss.part else '—',
+            f"-{loss.quantity}",
+            reason,
+            loss.reporter.name if loss.reporter else '—',
+            loss.reported_at.strftime('%m/%d/%Y') if loss.reported_at else '—',
+        ])
+
+    t = Table(table_data, colWidths=[1.8*inch, 0.5*inch, 2.8*inch, 1.3*inch, 1.1*inch], repeatRows=1)
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), navy),
+        ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+        ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',   (0,0), (-1,-1), 8),
+        ('PADDING',    (0,0), (-1,-1), 5),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, light]),
+        ('GRID',       (0,0), (-1,-1), 0.4, border),
+        ('VALIGN',     (0,0), (-1,-1), 'TOP'),
+        ('TEXTCOLOR',  (1,1), (1,-1), red),
+        ('FONTNAME',   (1,1), (1,-1), 'Helvetica-Bold'),
+        ('ALIGN',      (1,0), (1,-1), 'CENTER'),
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    buffer.seek(0)
 
     filename = f"LossReport_{datetime.now().strftime('%Y%m%d')}.pdf"
-    return send_file(io.BytesIO(pdf_bytes), mimetype='application/pdf',
+    return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=filename)
 
 @losses_bp.route('/delete/<int:loss_id>')

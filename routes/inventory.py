@@ -169,12 +169,58 @@ def shopping_pdf():
         return check
 
     import io
-    from weasyprint import HTML
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
 
     items = ShoppingListItem.query.order_by(ShoppingListItem.added_at).all()
-    html_string = render_template('inventory/shopping_pdf.html', items=items, now=datetime.now())
-    pdf_bytes = HTML(string=html_string).write_pdf()
+    navy   = colors.HexColor('#1e1b4b')
+    light  = colors.HexColor('#f9fafb')
+    border = colors.HexColor('#e5e7eb')
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=0.5*inch, leftMargin=0.5*inch,
+                            topMargin=0.5*inch, bottomMargin=0.5*inch)
+
+    title_s = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=navy, spaceAfter=2)
+    meta_s  = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=colors.HexColor('#6b7280'), spaceAfter=10)
+
+    elements = [
+        Paragraph('REORDER LIST', title_s),
+        Paragraph(f"Generated: {datetime.now().strftime('%m/%d/%Y %I:%M %p')}  ·  {len(items)} item(s)", meta_s),
+    ]
+
+    table_data = [['#', 'Part', 'Qty Needed', 'Requested By', 'Date']]
+    for i, item in enumerate(items, 1):
+        table_data.append([
+            str(i),
+            item.part.name if item.part else '—',
+            str(item.quantity_needed),
+            item.requester.name if item.requester else '—',
+            item.added_at.strftime('%m/%d/%Y') if item.added_at else '—',
+        ])
+
+    t = Table(table_data, colWidths=[0.4*inch, 2.8*inch, 1.0*inch, 1.8*inch, 1.0*inch], repeatRows=1)
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), navy),
+        ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+        ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',   (0,0), (-1,-1), 8),
+        ('PADDING',    (0,0), (-1,-1), 5),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, light]),
+        ('GRID',       (0,0), (-1,-1), 0.4, border),
+        ('VALIGN',     (0,0), (-1,-1), 'MIDDLE'),
+        ('ALIGN',      (0,0), (0,-1), 'CENTER'),
+        ('ALIGN',      (2,0), (2,-1), 'CENTER'),
+        ('FONTNAME',   (2,1), (2,-1), 'Helvetica-Bold'),
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    buffer.seek(0)
 
     filename = f"ReorderList_{datetime.now().strftime('%Y%m%d')}.pdf"
-    return send_file(io.BytesIO(pdf_bytes), mimetype='application/pdf',
+    return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=filename)
