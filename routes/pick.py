@@ -191,16 +191,13 @@ def generate_pdf(order_id):
     if check:
         return check
 
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
     import io
+    from weasyprint import HTML, CSS
+    from flask import render_template, send_file
 
     order = WorkOrder.query.get(order_id)
 
-    # agrupa por (ubicacion, carrito) igual que en pick_order
+    # reutiliza la misma logica de agrupacion que pick_order
     location_groups = {}
     for item in order.items:
         for template in item.cabinet.parts:
@@ -211,7 +208,6 @@ def generate_pdf(order_id):
                     loc_key += f".L{int(part.active_location):02d}"
             else:
                 loc_key = "NO_LOCATION"
-
             group_key = (loc_key, template.cart)
             if group_key not in location_groups:
                 location_groups[group_key] = {
@@ -231,78 +227,17 @@ def generate_pdf(order_id):
         key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
-    cart_a = [g for g in sorted_groups if g['cart'] == 1]
-    cart_b = [g for g in sorted_groups if g['cart'] == 2]
+    # renderiza el template HTML igual que la pantalla
+    html_string = render_template(
+        'pick/pick_order_pdf.html',
+        order=order,
+        groups=sorted_groups,
+        user_name=session['user_name']
+    )
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                           rightMargin=0.5*inch, leftMargin=0.5*inch,
-                           topMargin=0.5*inch, bottomMargin=0.5*inch)
+    pdf_bytes = HTML(string=html_string, base_url=request.host_url).write_pdf()
+    buffer = io.BytesIO(pdf_bytes)
 
-    from reportlab.platypus import PageBreak
-    title_style = ParagraphStyle('title',
-        fontSize=16, fontName='Helvetica-Bold', spaceAfter=4)
-    subtitle_style = ParagraphStyle('subtitle',
-        fontSize=11, fontName='Helvetica', spaceAfter=2)
-    small_style = ParagraphStyle('small',
-        fontSize=9, fontName='Helvetica', textColor=colors.grey)
-    cart_title_style = ParagraphStyle('cart_title',
-        fontSize=13, fontName='Helvetica-Bold', spaceAfter=8,
-        textColor=colors.HexColor('#1e1b4b'))
-
-    now = __import__('datetime').datetime.now().strftime('%m/%d/%Y %I:%M %p')
-
-    def build_header(cart_label):
-        return [
-            Paragraph('CASE PICK LIST', title_style),
-            Paragraph(f"{order.job_name or ''} — {order.lot_number or ''}", subtitle_style),
-            Paragraph(f"W.O: {order.order_number}", subtitle_style),
-            Paragraph(f"Picker: {session['user_name']} · {now}", small_style),
-            Spacer(1, 0.15*inch),
-            Paragraph(cart_label, cart_title_style),
-        ]
-
-    def build_groups(groups):
-        elems = []
-        for group in groups:
-            slots_text = '  '.join([f"#{s}" for s in group['slots']])
-            data = [
-                [group['location'], f"QTY: {len(group['slots'])}", group['part_name']],
-                [slots_text, '', ''],
-            ]
-            t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
-            t.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e1b4b')),
-                ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0,0), (-1,0), 9),
-                ('PADDING', (0,0), (-1,0), 5),
-                ('BACKGROUND', (0,1), (-1,1), colors.HexColor('#f9fafb')),
-                ('FONTNAME', (0,1), (-1,1), 'Helvetica'),
-                ('FONTSIZE', (0,1), (-1,1), 9),
-                ('PADDING', (0,1), (-1,1), 4),
-                ('SPAN', (0,1), (-1,1)),
-                ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#e5e7eb')),
-                ('LINEBELOW', (0,0), (-1,0), 0.5, colors.HexColor('#e5e7eb')),
-            ]))
-            elems.append(t)
-            elems.append(Spacer(1, 0.05*inch))
-        return elems
-
-    elements = []
-    if cart_a:
-        elements += build_header('CART A')
-        elements += build_groups(cart_a)
-    if cart_b:
-        if cart_a:
-            elements.append(PageBreak())
-        elements += build_header('CART B')
-        elements += build_groups(cart_b)
-
-    doc.build(elements)
-    buffer.seek(0)
-
-    from flask import send_file
     return send_file(
         buffer,
         mimetype='application/pdf',
