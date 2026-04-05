@@ -30,36 +30,21 @@
     <!-- filtros de status -->
     <div style="display:flex; gap:6px; flex-wrap:wrap;">
         <a href="/orders/?search={{ search }}"
-           class="btn-secondary" style="font-size:13px; padding:6px 12px;
-           {% if not status_filter %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
-            All
-        </a>
+           class="btn-filter{% if not status_filter %} active{% endif %}">All</a>
         <a href="/orders/?search={{ search }}&status=pending"
-           class="btn-secondary" style="font-size:13px; padding:6px 12px;
-           {% if status_filter == 'pending' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
-            Pending
-        </a>
+           class="btn-filter{% if status_filter == 'pending' %} active{% endif %}">Pending</a>
         <a href="/orders/?search={{ search }}&status=in_progress"
-           class="btn-secondary" style="font-size:13px; padding:6px 12px;
-           {% if status_filter == 'in_progress' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
-            In Progress
-        </a>
+           class="btn-filter{% if status_filter == 'in_progress' %} active{% endif %}">In Progress</a>
         <a href="/orders/?search={{ search }}&status=completed"
-           class="btn-secondary" style="font-size:13px; padding:6px 12px;
-           {% if status_filter == 'completed' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
-            Completed
-        </a>
+           class="btn-filter{% if status_filter == 'completed' %} active{% endif %}">Completed</a>
         <a href="/orders/?search={{ search }}&status=cancelled"
-           class="btn-secondary" style="font-size:13px; padding:6px 12px;
-           {% if status_filter == 'cancelled' %}background:#1e1b4b; color:white; border-color:#1e1b4b;{% endif %}">
-            Cancelled
-        </a>
+           class="btn-filter{% if status_filter == 'cancelled' %} active{% endif %}">Cancelled</a>
     </div>
 </div>
 
 {% if orders %}
-<div style="overflow-y:auto; max-height:620px; border:1px solid #e5e7eb; border-radius:10px;">
-    <table class="data-table" style="margin:0; border-radius:0;">
+<div class="scroll-table" style="max-height:620px;">
+    <table class="data-table">
         <thead>
             <tr style="position:sticky; top:0; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
                 <th>Order #</th>
@@ -78,13 +63,13 @@
                 <td style="font-size:13px; color:#555;">{{ order.job_name or '—' }}</td>
                 <td>
                     {% if order.status == 'pending' %}
-                    <span class="role-badge role-inventory">Pending</span>
+                    <span class="badge badge-pending">Pending</span>
                     {% elif order.status == 'in_progress' %}
-                    <span class="role-badge role-order_entry">In Progress</span>
+                    <span class="badge badge-progress">In Progress</span>
                     {% elif order.status == 'completed' %}
-                    <span class="role-badge role-picker">Completed</span>
+                    <span class="badge badge-done">Completed</span>
                     {% else %}
-                    <span class="role-badge" style="background:#f3f4f6; color:#6b7280;">Cancelled</span>
+                    <span class="badge badge-cancelled">Cancelled</span>
                     {% endif %}
                 </td>
                 <td>{{ order.items|length }}</td>
@@ -118,17 +103,13 @@
 </div>
 {% else %}
 
-<div style="text-align:center; padding:3rem; color:#999;">
+<div class="empty-state">
     {% if search or status_filter %}
-    <p style="font-size:16px;">No orders match your search</p>
-    <p style="font-size:13px; margin-top:8px;">
-        <a href="/orders/" style="color:#4f46e5;">Clear filters</a>
-    </p>
+    <p class="empty-title">No orders match your search</p>
+    <p class="empty-sub"><a href="/orders/">Clear filters</a></p>
     {% else %}
-    <p style="font-size:16px;">No orders yet</p>
-    <p style="font-size:13px; margin-top:8px;">
-        <a href="/orders/create" style="color:#4f46e5;">Create your first order</a>
-    </p>
+    <p class="empty-title">No orders yet</p>
+    <p class="empty-sub"><a href="/orders/create">Create your first order</a></p>
     {% endif %}
 </div>
 {% endif %}

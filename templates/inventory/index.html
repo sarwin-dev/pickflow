@@ -8,35 +8,25 @@
 </div>
 
 {% if pending_loc_edit %}
-<div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:16px 20px; margin-bottom:1.5rem;">
-    <div style="display:flex; align-items:flex-start; gap:12px;">
-        <div style="font-size:22px; line-height:1;">⚠️</div>
-        <div style="flex:1;">
-            <div style="font-weight:700; color:#92400e; font-size:15px; margin-bottom:4px;">
-                {{ pending_loc_edit.loc }} is already being used by {{ pending_loc_edit.other }}
-            </div>
-            <div style="font-size:13px; color:#78350f; margin-bottom:12px;">
-                Are you sure you want to use this location anyway?
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <form method="POST" action="/inventory/update-location/{{ pending_loc_edit.record_id }}">
-                    <input type="hidden" name="aisle"        value="{{ pending_loc_edit.aisle }}">
-                    <input type="hidden" name="bay"          value="{{ pending_loc_edit.bay }}">
-                    <input type="hidden" name="shelf"        value="{{ pending_loc_edit.shelf }}">
-                    <input type="hidden" name="location"     value="{{ pending_loc_edit.location or '' }}">
-                    <input type="hidden" name="quantity"     value="{{ pending_loc_edit.quantity }}">
-                    <input type="hidden" name="back"         value="{{ pending_loc_edit.back }}">
-                    <input type="hidden" name="loc_confirmed" value="1">
-                    <button type="submit" class="btn-primary" style="background:#d97706; border-color:#d97706;">
-                        Yes, use this location
-                    </button>
-                </form>
-                <a href="{{ pending_loc_edit.back }}"
-                   onclick="fetch('/inventory/clear-pending-edit'); return true;"
-                   class="btn-secondary" style="padding:9px 16px;">
-                    Find another location
-                </a>
-            </div>
+<div class="warn-banner">
+    <div class="warn-banner-icon">⚠️</div>
+    <div class="warn-banner-body">
+        <div class="warn-banner-title">{{ pending_loc_edit.loc }} is already being used by {{ pending_loc_edit.other }}</div>
+        <div class="warn-banner-text">Are you sure you want to use this location anyway?</div>
+        <div class="warn-banner-actions">
+            <form method="POST" action="/inventory/update-location/{{ pending_loc_edit.record_id }}">
+                <input type="hidden" name="aisle"         value="{{ pending_loc_edit.aisle }}">
+                <input type="hidden" name="bay"           value="{{ pending_loc_edit.bay }}">
+                <input type="hidden" name="shelf"         value="{{ pending_loc_edit.shelf }}">
+                <input type="hidden" name="location"      value="{{ pending_loc_edit.location or '' }}">
+                <input type="hidden" name="quantity"      value="{{ pending_loc_edit.quantity }}">
+                <input type="hidden" name="back"          value="{{ pending_loc_edit.back }}">
+                <input type="hidden" name="loc_confirmed" value="1">
+                <button type="submit" class="btn-warn">Yes, use this location</button>
+            </form>
+            <a href="{{ pending_loc_edit.back }}"
+               onclick="fetch('/inventory/clear-pending-edit'); return true;"
+               class="btn-secondary">Find another location</a>
         </div>
     </div>
 </div>
@@ -74,6 +64,7 @@
 
 {% if True %}
     {% if part_results %}
+    <div style="overflow-y:auto; max-height:calc(100vh - 260px); padding-right:4px;">
         {% for item in part_results %}
         <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:24px; margin-bottom:24px;">
 
@@ -85,17 +76,11 @@
                     <!-- badge de status -->
                     <div style="margin-top:8px;">
                         {% if item.status == 'out' %}
-                        <span style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
-                            ● Out of Stock
-                        </span>
+                        <span class="badge badge-out">● Out of Stock</span>
                         {% elif item.status == 'low' %}
-                        <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
-                            ● Low Stock
-                        </span>
+                        <span class="badge badge-low">● Low Stock</span>
                         {% else %}
-                        <span style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600;">
-                            ● OK
-                        </span>
+                        <span class="badge badge-ok">● OK</span>
                         {% endif %}
                     </div>
                 </div>
@@ -162,9 +147,9 @@
                         <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
                         <td style="text-align:center;">
                             {% if record.is_active %}
-                            <span class="role-badge role-picker">Active</span>
+                            <span class="badge badge-active">Active</span>
                             {% else %}
-                            <span class="role-badge role-inventory">Overflow</span>
+                            <span class="badge badge-overflow">Overflow</span>
                             {% endif %}
                         </td>
                         <td style="font-size:12px; color:#999;">
@@ -295,6 +280,7 @@
 
         </div>
         {% endfor %}
+    </div><!-- fin scroll -->
 
     {% else %}
     <div style="text-align:center; padding:3rem; color:#999;">

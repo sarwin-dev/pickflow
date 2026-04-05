@@ -474,11 +474,125 @@ body {
     vertical-align: middle;
     padding: 4px 0;
 }
-}
 
 .btn-delete:hover {
     text-decoration: underline;
 
+}
+
+/* ============================================
+   BADGES DE ESTADO
+   ============================================ */
+.badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+.badge-ok       { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+.badge-low      { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+.badge-out      { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+.badge-active   { background:#dcfce7; color:#166534; }
+.badge-overflow { background:#fef3c7; color:#92400e; }
+.badge-pending  { background:#fef3c7; color:#92400e; }
+.badge-progress { background:#dbeafe; color:#1e40af; }
+.badge-done     { background:#dcfce7; color:#166534; }
+.badge-cancelled{ background:#f3f4f6; color:#6b7280; }
+
+/* ============================================
+   FILTROS - tabs activos/inactivos
+   ============================================ */
+.btn-filter {
+    padding: 6px 14px;
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-block;
+    font-family: inherit;
+}
+.btn-filter:hover { background: #f9fafb; }
+.btn-filter.active {
+    background: #1e1b4b;
+    color: white;
+    border-color: #1e1b4b;
+}
+
+/* ============================================
+   TABLA SCROLLABLE
+   ============================================ */
+.scroll-table {
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+.scroll-table .data-table {
+    margin: 0;
+    border-radius: 0;
+}
+
+/* ============================================
+   ESTADO VACIO
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+.empty-state .empty-title { font-size: 16px; color: #6b7280; margin-bottom: 8px; }
+.empty-state .empty-sub   { font-size: 13px; color: #9ca3af; }
+.empty-state a             { color: #4f46e5; }
+
+/* ============================================
+   BANNER DE ALERTA/CONFIRMACION
+   ============================================ */
+.warn-banner {
+    background: #fffbeb;
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.warn-banner-icon  { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.warn-banner-body  { flex: 1; }
+.warn-banner-title { font-weight: 700; color: #92400e; font-size: 15px; margin-bottom: 4px; }
+.warn-banner-text  { font-size: 13px; color: #78350f; margin-bottom: 12px; }
+.warn-banner-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn-warn {
+    padding: 10px 20px;
+    background: #d97706;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    font-family: inherit;
+}
+.btn-warn:hover { background: #b45309; }
+
+/* ============================================
+   NOTA INFORMATIVA
+   ============================================ */
+.hint-note {
+    font-size: 12px;
+    color: #6b7280;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
 }
 
 /* resalta la sugerencia seleccionada con teclado */

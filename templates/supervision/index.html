@@ -10,25 +10,13 @@
 <!-- filtros por status -->
 <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
     <a href="/supervision/?status=all"
-        class="btn-secondary"
-        style="font-size:13px; padding:5px 14px; {% if status_filter == 'all' %}background:#1e1b4b; color:white;{% endif %}">
-        All
-    </a>
+       class="btn-filter{% if status_filter == 'all' %} active{% endif %}">All</a>
     <a href="/supervision/?status=pending"
-        class="btn-secondary"
-        style="font-size:13px; padding:5px 14px; {% if status_filter == 'pending' %}background:#1e1b4b; color:white;{% endif %}">
-        Pending
-    </a>
+       class="btn-filter{% if status_filter == 'pending' %} active{% endif %}">Pending</a>
     <a href="/supervision/?status=in_progress"
-        class="btn-secondary"
-        style="font-size:13px; padding:5px 14px; {% if status_filter == 'in_progress' %}background:#1e1b4b; color:white;{% endif %}">
-        In Progress
-    </a>
+       class="btn-filter{% if status_filter == 'in_progress' %} active{% endif %}">In Progress</a>
     <a href="/supervision/?status=completed"
-        class="btn-secondary"
-        style="font-size:13px; padding:5px 14px; {% if status_filter == 'completed' %}background:#1e1b4b; color:white;{% endif %}">
-        Completed
-    </a>
+       class="btn-filter{% if status_filter == 'completed' %} active{% endif %}">Completed</a>
 </div>
 
 {% if date_groups %}
@@ -82,13 +70,13 @@
                 <td>{{ order.items|length }}</td>
                 <td>
                     {% if order.status == 'pending' %}
-                    <span class="role-badge role-inventory">Pending</span>
+                    <span class="badge badge-pending">Pending</span>
                     {% elif order.status == 'in_progress' %}
-                    <span class="role-badge role-order_entry">In Progress</span>
+                    <span class="badge badge-progress">In Progress</span>
                     {% elif order.status == 'completed' %}
-                    <span class="role-badge role-picker">Completed</span>
+                    <span class="badge badge-done">Completed</span>
                     {% else %}
-                    <span class="role-badge" style="background:#f3f4f6; color:#6b7280;">Cancelled</span>
+                    <span class="badge badge-cancelled">Cancelled</span>
                     {% endif %}
                 </td>
                 <td style="min-width:160px;">
@@ -138,13 +126,10 @@
 {% endfor %}
 
 {% else %}
-<div style="text-align:center; padding:3rem; color:#999;">
-    <p style="font-size:16px;">No orders found</p>
+<div class="empty-state">
+    <p class="empty-title">No orders found</p>
     {% if status_filter != 'all' %}
-    <p style="font-size:13px; margin-top:8px;">
-        No orders with status "{{ status_filter }}".
-        <a href="/supervision/" style="color:#1e1b4b;">View all orders</a>
-    </p>
+    <p class="empty-sub">No orders with status "{{ status_filter }}". <a href="/supervision/">View all</a></p>
     {% endif %}
 </div>
 {% endif %}
