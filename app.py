@@ -36,6 +36,10 @@ with app.app_context():
                   SELECT active_shelves FROM warehouse_config LIMIT 1
               )
         '''))
+        # purga entradas del log de receiving con mas de 7 dias
+        db.session.execute(text(
+            "DELETE FROM receiving_log WHERE received_at < NOW() - INTERVAL '7 days'"
+        ))
         db.session.commit()
         indexes = [
             'CREATE INDEX IF NOT EXISTS ix_work_orders_status ON work_orders (status)',

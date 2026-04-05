@@ -158,3 +158,19 @@ class WarehouseConfig(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     # numero maximo de slots por carrito
     max_cart_slots = db.Column(db.Integer, nullable=False, default=24)
+
+class ReceivingLog(db.Model):
+    """Registro histórico inmutable de cajas recibidas. Se purga automáticamente a los 7 días."""
+    __tablename__ = 'receiving_log'
+    id = db.Column(db.Integer, primary_key=True)
+    part_id = db.Column(db.Integer, db.ForeignKey('parts.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    aisle = db.Column(db.String(5), nullable=True)
+    bay = db.Column(db.String(5), nullable=True)
+    shelf = db.Column(db.String(5), nullable=True)
+    location = db.Column(db.String(5), nullable=True)
+    is_active = db.Column(db.Boolean, default=False)
+    received_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    received_at = db.Column(db.DateTime, default=datetime.utcnow)
+    part = db.relationship('Part', backref='receiving_logs')
+    receiver = db.relationship('User', backref='receiving_logs')

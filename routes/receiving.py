@@ -1,7 +1,7 @@
 import re
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from extensions import db
-from models import Inventory, WarehouseConfig, Part
+from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
@@ -21,7 +21,7 @@ def index():
     config = WarehouseConfig.query.first()
     parts = Part.query.order_by(Part.name).all()
     pending = session.get('pending_receive')
-    records = Inventory.query.order_by(Inventory.received_at.asc()).limit(50).all()
+    records = ReceivingLog.query.order_by(ReceivingLog.received_at.asc()).limit(50).all()
     return render_template('receiving/index.html',
                            config=config,
                            parts=parts,
@@ -167,9 +167,24 @@ def receive():
             received_at=datetime.utcnow()
         )
         db.session.add(new_record)
-        session.pop('pending_receive', None)
 
+    # escribe en el log historico (se purga a los 7 dias)
+    log_aisle = aisle if receiving_type != 'direct' else part.active_aisle
+    log_bay   = bay   if receiving_type != 'direct' else part.active_bay
+    log_shelf = str(shelf) if receiving_type != 'direct' else part.active_shelf
+    log_loc   = location  if receiving_type != 'direct' else part.active_location
+    db.session.add(ReceivingLog(
+        part_id=int(part_id),
+        quantity=quantity,
+        aisle=log_aisle,
+        bay=log_bay,
+        shelf=log_shelf,
+        location=log_loc,
+        is_active=(receiving_type == 'direct'),
+        received_by=session.get('user_id'),
+    ))
     db.session.commit()
+    session.pop('pending_receive', None)
     return redirect(url_for('receiving.index'))
 
 @receiving_bp.route('/pulldown/<int:record_id>', methods=['POST'])
