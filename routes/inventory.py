@@ -1,8 +1,8 @@
 import re
 from io import BytesIO
-from flask import Blueprint, render_template, session, redirect, url_for, request, send_file
+from flask import Blueprint, render_template, session, redirect, url_for, request, send_file, flash
 from extensions import db
-from models import Part, Inventory, ShoppingListItem
+from models import Part, Inventory, ShoppingListItem, WarehouseConfig
 from datetime import datetime
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
@@ -82,6 +82,72 @@ def index():
                            search=search,
                            filter_mode=filter_mode,
                            shopping_count=shopping_count)
+
+@inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
+def update_location(record_id):
+    check = inventory_required()
+    if check:
+        return check
+
+    record = Inventory.query.get_or_404(record_id)
+    config = WarehouseConfig.query.first()
+
+    new_aisle    = request.form.get('aisle', '').strip()
+    new_bay      = request.form.get('bay', '').strip()
+    new_shelf    = int(request.form.get('shelf', 0))
+    new_location = request.form.get('location', '').strip() or None
+    back         = request.form.get('back', url_for('inventory.index'))
+
+    # valida rango de shelf segun si es active u overflow
+    if record.is_active:
+        if new_shelf < 1 or new_shelf > config.active_shelves:
+            flash(f'Active boxes must be on shelves 1–{config.active_shelves}.', 'error')
+            return redirect(back)
+    else:
+        if new_shelf <= config.active_shelves or new_shelf > config.total_shelves:
+            flash(
+                f'Overflow boxes must be on shelves {config.active_shelves + 1}–{config.total_shelves}.',
+                'error'
+            )
+            return redirect(back)
+
+    # verifica que no haya otra parte diferente en la nueva ubicacion
+    conflict = Inventory.query.filter(
+        Inventory.aisle    == new_aisle,
+        Inventory.bay      == new_bay,
+        Inventory.shelf    == str(new_shelf),
+        Inventory.location == new_location,
+        Inventory.id       != record_id,
+        Inventory.part_id  != record.part_id
+    ).first()
+    if conflict:
+        flash(
+            f'A{int(new_aisle):02d}.B{int(new_bay):02d}.S{new_shelf:02d} '
+            f'is already occupied by "{conflict.part.name}".',
+            'error'
+        )
+        return redirect(back)
+
+    # actualiza la ubicacion del registro de inventario
+    record.aisle    = new_aisle
+    record.bay      = new_bay
+    record.shelf    = str(new_shelf)
+    record.location = new_location
+
+    # si es la caja activa, sincroniza tambien la ubicacion maestra de la parte
+    # esto actualiza automaticamente el pick list para todos los pickers
+    if record.is_active:
+        part = Part.query.get(record.part_id)
+        if part:
+            part.active_aisle    = new_aisle
+            part.active_bay      = new_bay
+            part.active_shelf    = str(new_shelf)
+            part.active_location = new_location
+
+    db.session.commit()
+    flash('Location updated.', 'success')
+    return redirect(back)
+
 
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
 def set_min(part_id):

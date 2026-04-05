@@ -108,24 +108,21 @@
                 </thead>
                 <tbody>
                     {% for record in item.records %}
-                    <tr>
+                    <!-- fila de visualizacion -->
+                    <tr id="row-{{ record.id }}">
                         <td>
                             {% if record.aisle %}
                             <span style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
                                 A{{ '%02d'|format(record.aisle|int) }}
                                 B{{ '%02d'|format(record.bay|int) }}
                                 S{{ '%02d'|format(record.shelf|int) }}
-                                {% if record.location %}
-                                L{{ '%02d'|format(record.location|int) }}
-                                {% endif %}
+                                {% if record.location %}L{{ '%02d'|format(record.location|int) }}{% endif %}
                             </span>
                             {% else %}
                             <span style="color:#ccc;">No location</span>
                             {% endif %}
                         </td>
-                        <td style="text-align:center; font-size:16px; font-weight:700;">
-                            {{ record.quantity }}
-                        </td>
+                        <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
                         <td style="text-align:center;">
                             {% if record.is_active %}
                             <span class="role-badge role-picker">Active</span>
@@ -137,18 +134,69 @@
                             {{ record.received_at.strftime('%m/%d/%Y') if record.received_at else '—' }}
                         </td>
                         {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
-                        <td>
-                            <form method="POST" action="/receiving/pulldown/{{ record.id }}">
+                        <td style="white-space:nowrap;">
+                            <button type="button" class="btn-secondary"
+                                    style="font-size:11px; padding:4px 10px;"
+                                    onclick="toggleEdit({{ record.id }})">
+                                Edit
+                            </button>
+                            <form method="POST" action="/receiving/pulldown/{{ record.id }}" style="display:inline;">
                                 <input type="hidden" name="next" value="{{ request.url }}">
                                 <button type="submit" class="btn-secondary"
                                         style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
-                                        onclick="return confirm('Pull down this box ({{ record.quantity }} units)? This will remove it from inventory.')">
+                                        onclick="return confirm('Pull down this box ({{ record.quantity }} units)?')">
                                     Pulldown
                                 </button>
                             </form>
                         </td>
                         {% endif %}
                     </tr>
+                    <!-- fila de edicion inline (oculta por defecto) -->
+                    {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
+                    <tr id="edit-{{ record.id }}" style="display:none; background:#f0f9ff;">
+                        <td colspan="5" style="padding:12px 16px;">
+                            <form method="POST" action="/inventory/update-location/{{ record.id }}"
+                                  style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                                <input type="hidden" name="back" value="{{ request.url }}">
+                                <div>
+                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
+                                    <input type="number" name="aisle" value="{{ record.aisle or '' }}"
+                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
+                                    <input type="number" name="bay" value="{{ record.bay or '' }}"
+                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
+                                    <input type="number" name="shelf" value="{{ record.shelf or '' }}"
+                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location</label>
+                                    <input type="number" name="location" value="{{ record.location or '' }}"
+                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"
+                                           placeholder="opt">
+                                </div>
+                                <div style="display:flex; gap:6px; padding-bottom:1px;">
+                                    <button type="submit" class="btn-primary" style="padding:5px 14px; font-size:12px;">
+                                        Save
+                                    </button>
+                                    <button type="button" class="btn-secondary" style="padding:5px 12px; font-size:12px;"
+                                            onclick="toggleEdit({{ record.id }})">
+                                        Cancel
+                                    </button>
+                                </div>
+                                {% if record.is_active %}
+                                <span style="font-size:11px; color:#2563eb; align-self:center;">
+                                    ⓘ Active box — changes will update the pick list automatically
+                                </span>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -210,5 +258,12 @@
     <p style="font-size:16px; color:#16a34a; font-weight:600;">All parts are above minimum stock levels</p>
 </div>
 {% endif %}
+
+<script>
+function toggleEdit(id) {
+    const editRow = document.getElementById('edit-' + id);
+    editRow.style.display = editRow.style.display === 'none' ? 'table-row' : 'none';
+}
+</script>
 
 {% endblock %}
