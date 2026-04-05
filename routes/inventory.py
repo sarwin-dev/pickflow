@@ -104,21 +104,30 @@ def update_location(record_id):
         flash(f'Shelf must be between 1 and {config.total_shelves}.', 'error')
         return redirect(back)
 
-    # verifica que no haya otra parte diferente en la nueva ubicacion
+    # verifica conflicto con cualquier otro registro en esa ubicacion (diferente parte O misma parte)
     conflict = Inventory.query.filter(
         Inventory.aisle    == new_aisle,
         Inventory.bay      == new_bay,
         Inventory.shelf    == str(new_shelf),
         Inventory.location == new_location,
-        Inventory.id       != record_id,
-        Inventory.part_id  != record.part_id
+        Inventory.id       != record_id
     ).first()
     if conflict:
-        flash(
-            f'A{int(new_aisle):02d}.B{int(new_bay):02d}.S{new_shelf:02d} '
-            f'is already occupied by "{conflict.part.name}".',
-            'error'
-        )
+        loc = f'A{int(new_aisle):02d}.B{int(new_bay):02d}.S{new_shelf:02d}'
+        if conflict.location:
+            loc += f'.L{int(conflict.location):02d}'
+        if conflict.part_id == record.part_id:
+            flash(
+                f'There is already another box of "{record.part.name}" at {loc}. '
+                f'Choose a different location or pull down the existing box first.',
+                'error'
+            )
+        else:
+            flash(
+                f'{loc} is already occupied by "{conflict.part.name}". '
+                f'Choose a different location or pull down the existing box first.',
+                'error'
+            )
         return redirect(back)
 
     was_active  = record.is_active
