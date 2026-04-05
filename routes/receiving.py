@@ -1,5 +1,5 @@
 import re
-from flask import Blueprint, render_template, session, redirect, url_for, request
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from extensions import db
 from models import Inventory, WarehouseConfig, Part
 from datetime import datetime
@@ -21,10 +21,12 @@ def index():
     records = Inventory.query.order_by(Inventory.received_at.desc()).limit(50).all()
     config = WarehouseConfig.query.first()
     parts = Part.query.order_by(Part.name).all()
+    pending = session.get('pending_receive')
     return render_template('receiving/index.html',
                            records=records,
                            config=config,
-                           parts=parts)
+                           parts=parts,
+                           pending=pending)
 
 @receiving_bp.route('/receive', methods=['POST'])
 def receive():
@@ -88,6 +90,7 @@ def receive():
         bay = request.form.get('bay')
         shelf = int(request.form.get('shelf', 0))
         is_active = shelf <= config.active_shelves
+        stack_confirmed = request.form.get('stack_confirmed') == '1'
 
         # verifica que la ubicacion no este ocupada por una parte diferente
         conflict = Inventory.query.filter(
@@ -98,7 +101,6 @@ def receive():
             Inventory.part_id != int(part_id)
         ).first()
         if conflict:
-            from flask import flash
             flash(
                 f'Location A{int(aisle):02d}.B{int(bay):02d}.S{int(shelf):02d} '
                 f'is already occupied by "{conflict.part.name}". '
@@ -107,29 +109,46 @@ def receive():
             )
             return redirect(url_for('receiving.index'))
 
-        # si la misma parte ya tiene un registro en esa ubicacion, suma cantidad
-        existing = Inventory.query.filter(
+        # verifica si ya hay una caja de la misma parte en esa ubicacion
+        same_part_same_loc = Inventory.query.filter(
             Inventory.aisle == aisle,
             Inventory.bay == bay,
             Inventory.shelf == str(shelf),
             Inventory.location == location,
             Inventory.part_id == int(part_id)
         ).first()
-        if existing:
-            existing.quantity += quantity
-            existing.updated_at = datetime.utcnow()
-        else:
-            new_record = Inventory(
-                part_id=part_id,
-                aisle=aisle,
-                bay=bay,
-                shelf=str(shelf),
-                location=location,
-                quantity=quantity,
-                is_active=is_active,
-                received_at=datetime.utcnow()
-            )
-            db.session.add(new_record)
+
+        if same_part_same_loc and not stack_confirmed:
+            loc_str = f"A{int(aisle):02d}.B{int(bay):02d}.S{int(shelf):02d}"
+            if location:
+                loc_str += f".L{int(location):02d}"
+            # guarda los datos pendientes en sesion para el formulario de confirmacion
+            session['pending_receive'] = {
+                'part_id': str(part_id),
+                'part_name': Part.query.get(int(part_id)).name,
+                'quantity': quantity,
+                'aisle': aisle,
+                'bay': bay,
+                'shelf': str(shelf),
+                'location': location,
+                'loc_str': loc_str,
+                'existing_qty': same_part_same_loc.quantity,
+            }
+            return redirect(url_for('receiving.index'))
+
+        # crea siempre un nuevo registro separado (cada caja tiene su propio pulldown)
+        new_record = Inventory(
+            part_id=part_id,
+            aisle=aisle,
+            bay=bay,
+            shelf=str(shelf),
+            location=location,
+            quantity=quantity,
+            is_active=is_active,
+            received_at=datetime.utcnow()
+        )
+        db.session.add(new_record)
+        session.pop('pending_receive', None)
 
     db.session.commit()
     return redirect(url_for('receiving.index'))
