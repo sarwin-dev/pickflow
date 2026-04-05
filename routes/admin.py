@@ -403,3 +403,10 @@ def delete_color(color_id):
         db.session.delete(color)
         db.session.commit()
     return redirect(url_for('admin.colors'))
+
+@admin_bp.route('/demo')
+def demo():
+    check = admin_required()
+    if check:
+        return check
+    return render_template('admin/demo.html')

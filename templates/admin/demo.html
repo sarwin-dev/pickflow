@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Demo Tools - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Demo Tools</h1>
+    <p>Utilities for loading demo data — remove before production</p>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; max-width:900px;">
+
+    <!-- Fill Overflow -->
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Fill Overflow Warehouse</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Fills all free overflow locations with random parts (90, 100 or 120 units each).
+            Skips locations already occupied.
+        </div>
+        <button id="btn-fill-overflow" onclick="fillOverflow()"
+                class="btn-primary" style="width:100%;">
+            Run Fill
+        </button>
+        <div id="msg-fill-overflow" style="font-size:13px; margin-top:10px; display:none;"></div>
+    </div>
+
+</div>
+
+<script>
+function fillOverflow() {
+    const btn = document.getElementById('btn-fill-overflow');
+    const msg = document.getElementById('msg-fill-overflow');
+    btn.disabled = true;
+    btn.textContent = 'Filling...';
+    fetch('/receiving/demo-fill', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            msg.style.display = 'block';
+            if (data.full) {
+                btn.textContent = 'Done';
+                msg.style.color = '#16a34a';
+                msg.textContent = `Warehouse is full! ${data.filled} boxes added.`;
+            } else {
+                btn.textContent = 'Done';
+                msg.style.color = '#374151';
+                msg.textContent = `${data.filled} boxes added. Some slots were already occupied.`;
+            }
+        })
+        .catch(() => {
+            btn.textContent = 'Run Fill';
+            btn.disabled = false;
+            msg.style.display = 'block';
+            msg.style.color = '#dc2626';
+            msg.textContent = 'Error — try again.';
+        });
+}
+</script>
+
+{% endblock %}
