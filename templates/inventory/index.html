@@ -42,17 +42,19 @@
 </div>
 {% endif %}
 
-<!-- barra de busqueda -->
-<form method="GET" action="/inventory/" style="display:flex; gap:8px; margin-bottom:2rem; max-width:500px;">
-    <input type="text" name="search" value="{{ search }}"
-           placeholder="Search part name (e.g. toe33, Left Panel...)"
-           style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
-           autofocus>
-    <button type="submit" class="btn-primary" style="padding:10px 20px;">Search</button>
-    {% if search %}
-    <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
-    {% endif %}
-</form>
+<!-- barra de busqueda sticky -->
+<div style="position:sticky; top:0; z-index:20; background:white; padding:10px 0 12px; margin-bottom:1rem; border-bottom:1px solid #e5e7eb;">
+    <form method="GET" action="/inventory/" style="display:flex; gap:8px; max-width:500px;">
+        <input type="text" name="search" value="{{ search }}"
+               placeholder="Search part name (e.g. toe33, Left Panel...)"
+               style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
+               autofocus>
+        <button type="submit" class="btn-primary" style="padding:10px 20px;">Search</button>
+        {% if search %}
+        <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
+        {% endif %}
+    </form>
+</div>
 
 {% if session['user_role'] in ['admin', 'supervisor'] and shopping_count > 0 %}
 <div style="margin-bottom:1rem; padding:10px 16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
@@ -131,7 +133,7 @@
             {% if item.records %}
             <table class="data-table" style="margin-bottom:16px;">
                 <thead>
-                    <tr>
+                    <tr style="position:sticky; top:62px; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
                         <th>Location</th>
                         <th style="text-align:center;">Qty</th>
                         <th style="text-align:center;">Type</th>
