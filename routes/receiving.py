@@ -1,5 +1,6 @@
 import re
-from flask import Blueprint, render_template, session, redirect, url_for, request, flash
+import random
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash, jsonify
 from extensions import db
 from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
@@ -198,3 +199,68 @@ def pulldown(record_id):
         db.session.commit()
     next_url = request.form.get('next') or url_for('receiving.index')
     return redirect(next_url)
+
+
+@receiving_bp.route('/demo-fill', methods=['POST'])
+def demo_fill():
+    check = warehouse_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    config = WarehouseConfig.query.first()
+    if not config:
+        return jsonify({'error': 'No warehouse config'}), 400
+
+    parts = Part.query.all()
+    if not parts:
+        return jsonify({'error': 'No parts in system'}), 400
+
+    # Ubicaciones ocupadas en overflow
+    occupied = set()
+    for r in Inventory.query.filter_by(is_active=False).all():
+        if r.aisle and r.bay and r.shelf:
+            occupied.add((r.aisle, r.bay, r.shelf, r.location or ''))
+
+    filled = 0
+    full = False
+
+    for aisle in range(1, config.total_aisles + 1):
+        for bay in range(1, config.total_bays + 1):
+            for shelf in range(config.active_shelves + 1, config.total_shelves + 1):
+                if config.total_locations > 0:
+                    for loc in range(1, config.total_locations + 1):
+                        key = (str(aisle), str(bay), str(shelf), str(loc))
+                        if key not in occupied:
+                            part = random.choice(parts)
+                            qty = random.choice([90, 100, 120])
+                            db.session.add(Inventory(
+                                part_id=part.id,
+                                aisle=str(aisle), bay=str(bay),
+                                shelf=str(shelf), location=str(loc),
+                                quantity=qty, is_active=False,
+                            ))
+                            filled += 1
+                else:
+                    key = (str(aisle), str(bay), str(shelf), '')
+                    if key not in occupied:
+                        part = random.choice(parts)
+                        qty = random.choice([90, 100, 120])
+                        db.session.add(Inventory(
+                            part_id=part.id,
+                            aisle=str(aisle), bay=str(bay),
+                            shelf=str(shelf), location=None,
+                            quantity=qty, is_active=False,
+                        ))
+                        filled += 1
+
+    db.session.commit()
+
+    total_slots = config.total_aisles * config.total_bays * (config.total_shelves - config.active_shelves)
+    if config.total_locations > 0:
+        total_slots *= config.total_locations
+    remaining = total_slots - len(occupied) - filled
+
+    if remaining <= 0:
+        full = True
+
+    return jsonify({'filled': filled, 'full': full})

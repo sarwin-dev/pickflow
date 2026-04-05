@@ -3,8 +3,19 @@
 {% block content %}
 
 <div class="dashboard-header">
-    <h1>Receiving</h1>
-    <p>Register incoming boxes and update inventory</p>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1>Receiving</h1>
+            <p>Register incoming boxes and update inventory</p>
+        </div>
+        {% if session['user_role'] in ['admin', 'supervisor'] %}
+        <button id="demo-fill-btn" onclick="demoFill()"
+                class="btn-secondary"
+                style="font-size:12px; padding:6px 14px; color:#d97706; border-color:#fde68a;">
+            Fill Warehouse (Demo)
+        </button>
+        {% endif %}
+    </div>
 </div>
 
 {% if pending %}
@@ -226,6 +237,27 @@ document.addEventListener('click', function (e) {
 function toggleLocation() {
     const type = document.getElementById('receiving_type').value;
     document.getElementById('location-fields').style.display = type === 'direct' ? 'none' : 'block';
+}
+
+function demoFill() {
+    const btn = document.getElementById('demo-fill-btn');
+    btn.disabled = true;
+    btn.textContent = 'Filling...';
+    fetch('/receiving/demo-fill', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.full) {
+                btn.textContent = 'Warehouse is full!';
+                btn.style.color = '#16a34a';
+                btn.style.borderColor = '#bbf7d0';
+            } else {
+                btn.textContent = `Done — ${data.filled} boxes added`;
+            }
+        })
+        .catch(() => {
+            btn.textContent = 'Error';
+            btn.disabled = false;
+        });
 }
 </script>
 
