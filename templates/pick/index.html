@@ -24,7 +24,9 @@
         <div style="font-size:14px; font-weight:600;">Unscheduled</div>
     </div>
     {% endif %}
-    <div style="font-size:13px; color:#9ca3af;">{{ orders|length }} order{{ 's' if orders|length != 1 else '' }}</div>
+    {% set cab_total = namespace(count=0) %}
+    {% for o in orders %}{% set cab_total.count = cab_total.count + o.items|length %}{% endfor %}
+    <div style="font-size:13px; color:#9ca3af;">{{ orders|length }} order{{ 's' if orders|length != 1 else '' }} ({{ cab_total.count }} cabinet{{ 's' if cab_total.count != 1 else '' }})</div>
 </div>
 
 <!-- vista desktop: tabla -->

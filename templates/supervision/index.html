@@ -50,7 +50,9 @@
         <div style="font-size:14px; font-weight:600;">Unscheduled</div>
     </div>
     {% endif %}
-    <div style="font-size:13px; color:#9ca3af;">{{ stats|length }} order{{ 's' if stats|length != 1 else '' }}</div>
+    {% set cab_total = namespace(count=0) %}
+    {% for s in stats %}{% set cab_total.count = cab_total.count + s.order.items|length %}{% endfor %}
+    <div style="font-size:13px; color:#9ca3af;">{{ stats|length }} order{{ 's' if stats|length != 1 else '' }} ({{ cab_total.count }} cabinet{{ 's' if cab_total.count != 1 else '' }})</div>
     {% if all_done and sched_date %}
     <span style="font-size:12px; background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:12px; font-weight:600;">All done</span>
     {% endif %}
