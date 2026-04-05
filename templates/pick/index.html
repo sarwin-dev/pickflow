@@ -7,9 +7,28 @@
     <p>Select an order to start picking</p>
 </div>
 
-{% if orders %}
+{% if date_groups %}
+
+{% for sched_date, orders in date_groups %}
+
+<!-- encabezado del día -->
+<div style="display:flex; align-items:center; gap:12px; margin:1.5rem 0 0.75rem;">
+    {% if sched_date %}
+    <div style="background:#1e1b4b; color:white; border-radius:8px; padding:6px 14px;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.7;">Scheduled</div>
+        <div style="font-size:16px; font-weight:700;">{{ sched_date.strftime('%A, %B %-d') }}</div>
+    </div>
+    {% else %}
+    <div style="background:#f3f4f6; color:#6b7280; border-radius:8px; padding:6px 14px; border:1px solid #e5e7eb;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">No date set</div>
+        <div style="font-size:14px; font-weight:600;">Unscheduled</div>
+    </div>
+    {% endif %}
+    <div style="font-size:13px; color:#9ca3af;">{{ orders|length }} order{{ 's' if orders|length != 1 else '' }}</div>
+</div>
+
 <!-- vista desktop: tabla -->
-<div class="table-container pick-desktop">
+<div class="table-container pick-desktop" style="margin-bottom:0.5rem;">
     <table class="data-table">
         <thead>
             <tr>
@@ -17,7 +36,6 @@
                 <th>W.O</th>
                 <th>Cabinets</th>
                 <th>Status</th>
-                <th>Created</th>
                 <th></th>
             </tr>
         </thead>
@@ -39,7 +57,6 @@
                     <span class="role-badge role-order_entry">Picking</span>
                     {% endif %}
                 </td>
-                <td style="font-size:13px; color:#666;">{{ order.created_at.strftime('%m/%d/%Y') }}</td>
                 <td style="display:flex; gap:8px; align-items:center;">
                     <a href="/pick/{{ order.id }}" class="btn-create" style="font-size:12px; padding:4px 12px;">
                         {% if order.status == 'pending' %}Start Pick{% else %}Continue{% endif %}
@@ -62,8 +79,8 @@
 <!-- vista móvil/tablet: cards -->
 <div class="pick-mobile">
     {% for order in orders %}
-    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
             <div>
                 <div style="font-size:17px; font-weight:700; color:#1e1b4b;">
                     {{ order.job_name or order.order_number }}
@@ -79,7 +96,7 @@
             {% endif %}
         </div>
         <div style="font-size:13px; color:#6b7280; margin-bottom:14px;">
-            {{ order.items|length }} cabinet(s) · {{ order.created_at.strftime('%m/%d/%Y') }}
+            {{ order.items|length }} cabinet(s)
         </div>
         <div style="display:flex; gap:10px;">
             <a href="/pick/{{ order.id }}" class="btn-create"
@@ -99,6 +116,8 @@
     </div>
     {% endfor %}
 </div>
+
+{% endfor %}
 
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">

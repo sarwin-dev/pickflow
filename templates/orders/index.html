@@ -66,8 +66,8 @@
                 <th>Job Name</th>
                 <th>Status</th>
                 <th>Cabinets</th>
+                <th>Scheduled</th>
                 <th>Created by</th>
-                <th>Date</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -88,10 +88,14 @@
                     {% endif %}
                 </td>
                 <td>{{ order.items|length }}</td>
-                <td style="font-size:13px;">{{ order.creator.name if order.creator else '—' }}</td>
-                <td style="font-size:13px; color:#666;">
-                    {{ order.created_at.strftime('%m/%d/%Y') }}
+                <td style="font-size:13px; color:#374151; font-weight:500;">
+                    {% if order.scheduled_date %}
+                    {{ order.scheduled_date.strftime('%m/%d/%Y') }}
+                    {% else %}
+                    <span style="color:#d1d5db;">—</span>
+                    {% endif %}
                 </td>
+                <td style="font-size:13px;">{{ order.creator.name if order.creator else '—' }}</td>
                 <td style="display:flex; gap:8px;">
                     <a href="/orders/{{ order.id }}" class="btn-create"
                        style="font-size:12px; padding:4px 10px;">View</a>

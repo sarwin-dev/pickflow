@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, abort, send_file
 from extensions import db
 from models import WorkOrder, OrderItem, PartTemplate, CabinetType, PickItem
-from datetime import datetime
+from datetime import datetime, date
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -33,7 +33,8 @@ def index():
         )
     if status_filter:
         query = query.filter_by(status=status_filter)
-    orders = query.order_by(WorkOrder.created_at.asc()).all()
+    from sqlalchemy import nullslast
+    orders = query.order_by(nullslast(WorkOrder.scheduled_date.asc()), WorkOrder.created_at.asc()).all()
     return render_template('orders/index.html', orders=orders,
                            search=search, status_filter=status_filter)
 
@@ -53,10 +54,13 @@ def create():
         if existing:
             error = f'Order number {order_number} already exists'
         else:
+            sched_raw = request.form.get('scheduled_date', '').strip()
+            sched = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
             new_order = WorkOrder(
                 order_number=order_number,
                 job_name=request.form.get('job_name') or None,
                 lot_number=request.form.get('lot_number') or None,
+                scheduled_date=sched,
                 created_by=session['user_id'],
                 status='pending'
             )
@@ -103,6 +107,8 @@ def edit(order_id):
     if request.method == 'POST':
         order.job_name = request.form.get('job_name') or None
         order.lot_number = request.form.get('lot_number') or None
+        sched_raw = request.form.get('scheduled_date', '').strip()
+        order.scheduled_date = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
         new_number = request.form['order_number']
         if new_number != order.order_number:
             existing = WorkOrder.query.filter_by(order_number=new_number).first()

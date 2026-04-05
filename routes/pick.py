@@ -19,10 +19,20 @@ def index():
     if check:
         return check
     # solo ordenes pendientes o en progreso
+    from sqlalchemy import nullslast
+    from datetime import date as date_type
     orders = WorkOrder.query.filter(
         WorkOrder.status.in_(['pending', 'in_progress'])
-    ).order_by(WorkOrder.created_at.asc()).all()
-    return render_template('pick/index.html', orders=orders)
+    ).order_by(nullslast(WorkOrder.scheduled_date.asc()), WorkOrder.created_at.asc()).all()
+
+    # agrupa por fecha programada
+    grouped = {}
+    for o in orders:
+        key = o.scheduled_date
+        grouped.setdefault(key, []).append(o)
+    date_groups = sorted(grouped.items(), key=lambda x: (x[0] is None, x[0] or date_type.max))
+
+    return render_template('pick/index.html', date_groups=date_groups)
 
 # genera y muestra la pick list de una orden
 @pick_bp.route('/<int:order_id>')

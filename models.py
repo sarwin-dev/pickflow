@@ -63,6 +63,7 @@ class WorkOrder(db.Model):
     order_number = db.Column(db.String(50), unique=True, nullable=False)
     job_name = db.Column(db.String(100), nullable=True)
     lot_number = db.Column(db.String(50), nullable=True)
+    scheduled_date = db.Column(db.Date, nullable=True)
     # color del trabajo - define que aisle visita el picker
     color_id = db.Column(db.Integer, db.ForeignKey('colors.id'), nullable=True)
     color = db.relationship('Color', backref='orders')

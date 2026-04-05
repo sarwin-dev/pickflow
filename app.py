@@ -25,6 +25,7 @@ with app.app_context():
         db.create_all()
         from sqlalchemy import text
         db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
+        db.session.execute(text('ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS scheduled_date DATE'))
         db.session.commit()
         indexes = [
             'CREATE INDEX IF NOT EXISTS ix_work_orders_status ON work_orders (status)',
