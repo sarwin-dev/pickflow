@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { font-size: 10px; color: #1a1a2e; background: white; }
+        .header { margin-bottom: 14px; }
+        .header h1 { font-size: 16px; font-weight: 700; color: #1e1b4b; }
+        .header .meta { font-size: 10px; color: #6b7280; margin-top: 3px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        thead tr { background: #1e1b4b; color: white; }
+        th { padding: 7px 10px; text-align: left; font-weight: 600; }
+        td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+        tr:nth-child(even) td { background: #f9fafb; }
+        .qty { font-size: 13px; font-weight: 700; text-align: center; }
+        .num { color: #9ca3af; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>REORDER LIST</h1>
+        <div class="meta">Generated: {{ now.strftime('%m/%d/%Y %I:%M %p') }} · {{ items|length }} item(s)</div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:30px;">#</th>
+                <th>Part</th>
+                <th style="text-align:center;">Qty Needed</th>
+                <th>Requested By</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td class="num">{{ loop.index }}</td>
+                <td><strong>{{ item.part.name if item.part else '—' }}</strong></td>
+                <td class="qty">{{ item.quantity_needed }}</td>
+                <td>{{ item.requester.name if item.requester else '—' }}</td>
+                <td>{{ item.added_at.strftime('%m/%d/%Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

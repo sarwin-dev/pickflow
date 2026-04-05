@@ -168,55 +168,13 @@ def shopping_pdf():
     if check:
         return check
 
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
+    import io
+    from weasyprint import HTML
 
     items = ShoppingListItem.query.order_by(ShoppingListItem.added_at).all()
-
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=0.5*inch, leftMargin=0.5*inch,
-                            topMargin=0.5*inch, bottomMargin=0.5*inch)
-
-    style_title = ParagraphStyle('title', fontSize=16, fontName='Helvetica-Bold', spaceAfter=4)
-    style_sub   = ParagraphStyle('sub',   fontSize=10, fontName='Helvetica', spaceAfter=2,
-                                 textColor=colors.grey)
-
-    elements = []
-    elements.append(Paragraph('REORDER LIST', style_title))
-    elements.append(Paragraph(
-        f"Generated: {datetime.now().strftime('%m/%d/%Y %I:%M %p')} · {len(items)} item(s)",
-        style_sub))
-    elements.append(Spacer(1, 0.2*inch))
-
-    table_data = [['#', 'Part', 'Qty Needed', 'Requested By']]
-    for i, item in enumerate(items, 1):
-        table_data.append([
-            str(i),
-            item.part.name if item.part else '—',
-            str(item.quantity_needed),
-            item.requester.name if item.requester else '—',
-        ])
-
-    col_widths = [0.3*inch, 3.2*inch, 1.1*inch, 2.9*inch]
-    t = Table(table_data, colWidths=col_widths, repeatRows=1)
-    t.setStyle(TableStyle([
-        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#1e1b4b')),
-        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
-        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE',       (0,0), (-1,-1), 9),
-        ('PADDING',        (0,0), (-1,-1), 6),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f9fafb')]),
-        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e5e7eb')),
-        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
-    ]))
-    elements.append(t)
-    doc.build(elements)
-    buffer.seek(0)
+    html_string = render_template('inventory/shopping_pdf.html', items=items, now=datetime.now())
+    pdf_bytes = HTML(string=html_string).write_pdf()
 
     filename = f"ReorderList_{datetime.now().strftime('%Y%m%d')}.pdf"
-    return send_file(buffer, mimetype='application/pdf',
+    return send_file(io.BytesIO(pdf_bytes), mimetype='application/pdf',
                      as_attachment=True, download_name=filename)

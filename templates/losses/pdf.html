@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { font-size: 10px; color: #1a1a2e; background: white; }
+        .header { margin-bottom: 14px; }
+        .header h1 { font-size: 16px; font-weight: 700; color: #1e1b4b; }
+        .header .meta { font-size: 10px; color: #6b7280; margin-top: 3px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        thead tr { background: #1e1b4b; color: white; }
+        th { padding: 7px 10px; text-align: left; font-weight: 600; }
+        td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        tr:nth-child(even) td { background: #f9fafb; }
+        .qty { font-weight: 700; color: #dc2626; text-align: center; }
+        .comments { font-size: 9px; color: #9ca3af; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LOSS & DAMAGE REPORT</h1>
+        <div class="meta">Generated: {{ now.strftime('%m/%d/%Y %I:%M %p') }} · Total records: {{ losses|length }}</div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Part</th>
+                <th style="text-align:center;">Qty</th>
+                <th>Reason</th>
+                <th>Reported By</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loss in losses %}
+            <tr>
+                <td><strong>{{ loss.part.name if loss.part else '—' }}</strong></td>
+                <td class="qty">-{{ loss.quantity }}</td>
+                <td>
+                    {{ loss.reason or '—' }}
+                    {% if loss.comments %}
+                    <div class="comments">{{ loss.comments }}</div>
+                    {% endif %}
+                </td>
+                <td>{{ loss.reporter.name if loss.reporter else '—' }}</td>
+                <td>{{ loss.reported_at.strftime('%m/%d/%Y %I:%M %p') if loss.reported_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
