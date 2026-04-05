@@ -40,9 +40,12 @@ def index():
             parts = Part.query.order_by(Part.name).all()
 
         for part in parts:
+            from sqlalchemy import cast, Integer, nullslast
             records = Inventory.query.filter_by(part_id=part.id).order_by(
-                Inventory.is_active.desc(),
-                Inventory.aisle, Inventory.bay, Inventory.shelf
+                cast(Inventory.aisle,    Integer),
+                cast(Inventory.bay,      Integer),
+                cast(Inventory.shelf,    Integer),
+                nullslast(cast(Inventory.location, Integer))
             ).all()
 
             overflow_total = sum(r.quantity for r in records if not r.is_active)
