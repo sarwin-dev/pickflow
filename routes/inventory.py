@@ -77,11 +77,13 @@ def index():
 
     shopping_count = ShoppingListItem.query.count()
 
+    pending_loc_edit = session.get('pending_loc_edit')
     return render_template('inventory/index.html',
                            part_results=part_results,
                            search=search,
                            filter_mode=filter_mode,
-                           shopping_count=shopping_count)
+                           shopping_count=shopping_count,
+                           pending_loc_edit=pending_loc_edit)
 
 @inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
 def update_location(record_id):
@@ -92,43 +94,43 @@ def update_location(record_id):
     record = Inventory.query.get_or_404(record_id)
     config = WarehouseConfig.query.first()
 
-    new_aisle    = request.form.get('aisle', '').strip()
-    new_bay      = request.form.get('bay', '').strip()
-    new_shelf    = int(request.form.get('shelf', 0))
-    new_location = request.form.get('location', '').strip() or None
-    new_quantity = int(request.form.get('quantity', record.quantity))
-    back         = request.form.get('back', url_for('inventory.index'))
+    new_aisle        = request.form.get('aisle', '').strip()
+    new_bay          = request.form.get('bay', '').strip()
+    new_shelf        = int(request.form.get('shelf', 0))
+    new_location     = request.form.get('location', '').strip() or None
+    new_quantity     = int(request.form.get('quantity', record.quantity))
+    back             = request.form.get('back', url_for('inventory.index'))
+    loc_confirmed    = request.form.get('loc_confirmed') == '1'
 
     # valida rango total de shelves
     if new_shelf < 1 or new_shelf > config.total_shelves:
         flash(f'Shelf must be between 1 and {config.total_shelves}.', 'error')
         return redirect(back)
 
-    # verifica conflicto con cualquier otro registro en esa ubicacion (diferente parte O misma parte)
-    conflict = Inventory.query.filter(
-        Inventory.aisle    == new_aisle,
-        Inventory.bay      == new_bay,
-        Inventory.shelf    == str(new_shelf),
-        Inventory.location == new_location,
-        Inventory.id       != record_id
-    ).first()
-    if conflict:
-        loc = f'A{int(new_aisle):02d}.B{int(new_bay):02d}.S{new_shelf:02d}'
-        if conflict.location:
-            loc += f'.L{int(conflict.location):02d}'
-        if conflict.part_id == record.part_id:
-            flash(
-                f'There is already another box of "{record.part.name}" at {loc}. '
-                f'Choose a different location or pull down the existing box first.',
-                'error'
-            )
-        else:
-            flash(
-                f'{loc} is already occupied by "{conflict.part.name}". '
-                f'Choose a different location or pull down the existing box first.',
-                'error'
-            )
-        return redirect(back)
+    # verifica conflicto con cualquier otro registro en esa ubicacion
+    if not loc_confirmed:
+        conflict = Inventory.query.filter(
+            Inventory.aisle    == new_aisle,
+            Inventory.bay      == new_bay,
+            Inventory.shelf    == str(new_shelf),
+            Inventory.location == new_location,
+            Inventory.id       != record_id
+        ).first()
+        if conflict:
+            loc = f'A{int(new_aisle):02d}.B{int(new_bay):02d}.S{new_shelf:02d}'
+            if new_location:
+                loc += f'.L{int(new_location):02d}'
+            other = conflict.part.name if conflict.part_id != record.part_id else f'another box of "{record.part.name}"'
+            session['pending_loc_edit'] = {
+                'record_id': record_id,
+                'aisle': new_aisle, 'bay': new_bay,
+                'shelf': str(new_shelf), 'location': new_location,
+                'quantity': new_quantity,
+                'loc': loc,
+                'other': other,
+                'back': back,
+            }
+            return redirect(back)
 
     was_active  = record.is_active
     now_active  = new_shelf <= config.active_shelves
@@ -156,8 +158,15 @@ def update_location(record_id):
             part.active_location = None
 
     db.session.commit()
+    session.pop('pending_loc_edit', None)
     flash('Updated.', 'success')
     return redirect(back)
+
+
+@inventory_bp.route('/clear-pending-edit')
+def clear_pending_edit():
+    session.pop('pending_loc_edit', None)
+    return '', 204
 
 
 @inventory_bp.route('/delete-record/<int:record_id>', methods=['POST'])
