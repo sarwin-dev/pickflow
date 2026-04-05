@@ -81,26 +81,29 @@
             </p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                 <div class="form-group">
-                    <label>Aisle (1 - {{ config.total_aisles }})</label>
+                    <label>Aisle (1 – {{ config.total_aisles }})</label>
                     <input type="number" name="aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
                 </div>
                 <div class="form-group">
-                    <label>Bay (1 - {{ config.total_bays }})</label>
+                    <label>Bay (1 – {{ config.total_bays }})</label>
                     <input type="number" name="bay" min="1" max="{{ config.total_bays }}" placeholder="1">
                 </div>
                 <div class="form-group">
-                    <label>Shelf (1 - {{ config.total_shelves }})</label>
-                    <input type="number" name="shelf" min="1" max="{{ config.total_shelves }}" placeholder="1">
+                    <label id="shelf-label">Overflow Shelf ({{ config.active_shelves + 1 }} – {{ config.total_shelves }})</label>
+                    <input type="number" name="shelf" id="shelf-input"
+                           min="{{ config.active_shelves + 1 }}" max="{{ config.total_shelves }}"
+                           placeholder="{{ config.active_shelves + 1 }}">
                 </div>
                 <div class="form-group">
-                    <label>Location (optional)</label>
+                    <label>Location (optional, 1 – {{ config.total_locations }})</label>
                     <input type="number" name="location" min="1" max="{{ config.total_locations }}" placeholder="1">
                 </div>
             </div>
-            <p style="font-size:12px; color:#999; margin-bottom:1rem;">
-                Shelves 1-{{ config.active_shelves }} = Active.
-                Shelves {{ config.active_shelves + 1 }}-{{ config.total_shelves }} = Overflow.
-            </p>
+            <div id="shelf-note" style="font-size:12px; color:#6b7280; margin-bottom:1rem; padding:8px 12px; background:#f9fafb; border-radius:6px; border:1px solid #e5e7eb;">
+                Overflow shelves: <strong>{{ config.active_shelves + 1 }}–{{ config.total_shelves }}</strong>
+                &nbsp;·&nbsp;
+                Active (pick) shelves: <strong>1–{{ config.active_shelves }}</strong> — use "Direct to Active" for those
+            </div>
         </div>
 
         <button type="submit" class="btn-primary" style="width:100%;">

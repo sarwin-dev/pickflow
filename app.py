@@ -26,6 +26,16 @@ with app.app_context():
         from sqlalchemy import text
         db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
         db.session.execute(text('ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS scheduled_date DATE'))
+        # corrige registros de inventario mal marcados: si shelf > active_shelves deben ser overflow
+        db.session.execute(text('''
+            UPDATE inventory
+            SET is_active = FALSE
+            WHERE aisle IS NOT NULL
+              AND shelf IS NOT NULL
+              AND CAST(shelf AS INTEGER) > (
+                  SELECT active_shelves FROM warehouse_config LIMIT 1
+              )
+        '''))
         db.session.commit()
         indexes = [
             'CREATE INDEX IF NOT EXISTS ix_work_orders_status ON work_orders (status)',

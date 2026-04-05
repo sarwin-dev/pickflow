@@ -87,8 +87,27 @@ def receive():
         aisle = request.form.get('aisle')
         bay = request.form.get('bay')
         shelf = int(request.form.get('shelf', 0))
-        is_active = shelf <= config.active_shelves
         stack_confirmed = request.form.get('stack_confirmed') == '1'
+
+        # overflow siempre es overflow, independientemente del numero de shelf
+        is_active = False
+
+        # valida que el shelf este en el rango de overflow
+        if shelf < 1 or shelf <= config.active_shelves:
+            flash(
+                f'Shelf {shelf} is an active (pick) shelf. '
+                f'Overflow boxes must go to shelves {config.active_shelves + 1}–{config.total_shelves}. '
+                f'Use "Direct to Active" if this box goes straight to the pick shelf.',
+                'error'
+            )
+            return redirect(url_for('receiving.index'))
+        if shelf > config.total_shelves:
+            flash(
+                f'Shelf {shelf} does not exist. This warehouse has {config.total_shelves} shelves total '
+                f'({config.active_shelves} active, {config.total_shelves - config.active_shelves} overflow).',
+                'error'
+            )
+            return redirect(url_for('receiving.index'))
 
         # verifica que la ubicacion no este ocupada por una parte diferente
         conflict = Inventory.query.filter(
