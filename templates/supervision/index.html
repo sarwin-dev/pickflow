@@ -10,7 +10,7 @@
 <!-- filtros por status -->
 <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
     <a href="/supervision/?status=all"
-        class="btn-secondary {% if status_filter == 'all' %}active-filter{% endif %}"
+        class="btn-secondary"
         style="font-size:13px; padding:5px 14px; {% if status_filter == 'all' %}background:#1e1b4b; color:white;{% endif %}">
         All
     </a>
@@ -31,11 +31,35 @@
     </a>
 </div>
 
-{% if order_stats %}
-<div class="table-container">
+{% if date_groups %}
+
+{% for sched_date, stats in date_groups %}
+
+{% set all_done = stats | selectattr('order.status', 'equalto', 'completed') | list | length == stats | length %}
+
+<!-- encabezado del día -->
+<div style="display:flex; align-items:center; gap:12px; margin:1.5rem 0 0.75rem;">
+    {% if sched_date %}
+    <div style="background:{% if all_done %}#16a34a{% else %}#1e1b4b{% endif %}; color:white; border-radius:8px; padding:6px 14px;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.7;">Scheduled</div>
+        <div style="font-size:16px; font-weight:700;">{{ sched_date.strftime('%A, %B %-d') }}</div>
+    </div>
+    {% else %}
+    <div style="background:#f3f4f6; color:#6b7280; border-radius:8px; padding:6px 14px; border:1px solid #e5e7eb;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">No date set</div>
+        <div style="font-size:14px; font-weight:600;">Unscheduled</div>
+    </div>
+    {% endif %}
+    <div style="font-size:13px; color:#9ca3af;">{{ stats|length }} order{{ 's' if stats|length != 1 else '' }}</div>
+    {% if all_done and sched_date %}
+    <span style="font-size:12px; background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:12px; font-weight:600;">All done</span>
+    {% endif %}
+</div>
+
+<div class="table-container" style="margin-bottom:0.5rem;">
     <table class="data-table">
         <thead>
-            <tr>
+            <tr style="position:sticky; top:0; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
                 <th>Job Name</th>
                 <th>Batch</th>
                 <th>W.O</th>
@@ -43,16 +67,15 @@
                 <th>Status</th>
                 <th>Progress</th>
                 <th>Created By</th>
-                <th>Date</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            {% for stat in order_stats %}
+            {% for stat in stats %}
             {% set order = stat.order %}
             <tr>
                 <td><strong>{{ order.job_name or '—' }}</strong></td>
-                <td>{{ order.lot_number or '—' }}</td>
+                <td style="font-size:13px; color:#666;">{{ order.lot_number or '—' }}</td>
                 <td style="font-size:13px; color:#666;">{{ order.order_number }}</td>
                 <td>{{ order.items|length }}</td>
                 <td>
@@ -62,6 +85,8 @@
                     <span class="role-badge role-order_entry">In Progress</span>
                     {% elif order.status == 'completed' %}
                     <span class="role-badge role-picker">Completed</span>
+                    {% else %}
+                    <span class="role-badge" style="background:#f3f4f6; color:#6b7280;">Cancelled</span>
                     {% endif %}
                 </td>
                 <td style="min-width:160px;">
@@ -72,7 +97,7 @@
                                 {% if stat.percent == 100 %}#16a34a
                                 {% elif stat.percent > 0 %}#f59e0b
                                 {% else %}#e5e7eb{% endif %};
-                                height:100%; border-radius:4px; transition:width 0.3s;">
+                                height:100%; border-radius:4px;">
                             </div>
                         </div>
                         <span style="font-size:12px; color:#666; white-space:nowrap;">
@@ -89,7 +114,6 @@
                     {% endif %}
                 </td>
                 <td style="font-size:13px;">{{ order.creator.name if order.creator else '—' }}</td>
-                <td style="font-size:13px; color:#666;">{{ order.created_at.strftime('%m/%d/%Y') }}</td>
                 <td style="display:flex; gap:6px; align-items:center;">
                     <a href="/pick/{{ order.id }}" class="btn-secondary"
                         style="font-size:12px; padding:4px 10px;">
@@ -108,6 +132,9 @@
         </tbody>
     </table>
 </div>
+
+{% endfor %}
+
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">
     <p style="font-size:16px;">No orders found</p>
