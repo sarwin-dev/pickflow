@@ -31,7 +31,7 @@ def index():
     filter_mode = request.args.get('filter', '')
     part_results = []
 
-    if search or filter_mode == 'low':
+    if True:
         if search:
             normalized = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', search)
             normalized = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', normalized).strip()
