@@ -33,7 +33,7 @@ def index():
         )
     if status_filter:
         query = query.filter_by(status=status_filter)
-    orders = query.order_by(WorkOrder.created_at.desc()).all()
+    orders = query.order_by(WorkOrder.created_at.asc()).all()
     return render_template('orders/index.html', orders=orders,
                            search=search, status_filter=status_filter)
 
