@@ -96,20 +96,13 @@ def update_location(record_id):
     new_bay      = request.form.get('bay', '').strip()
     new_shelf    = int(request.form.get('shelf', 0))
     new_location = request.form.get('location', '').strip() or None
+    new_quantity = int(request.form.get('quantity', record.quantity))
     back         = request.form.get('back', url_for('inventory.index'))
 
-    # valida rango de shelf segun si es active u overflow
-    if record.is_active:
-        if new_shelf < 1 or new_shelf > config.active_shelves:
-            flash(f'Active boxes must be on shelves 1–{config.active_shelves}.', 'error')
-            return redirect(back)
-    else:
-        if new_shelf <= config.active_shelves or new_shelf > config.total_shelves:
-            flash(
-                f'Overflow boxes must be on shelves {config.active_shelves + 1}–{config.total_shelves}.',
-                'error'
-            )
-            return redirect(back)
+    # valida rango total de shelves
+    if new_shelf < 1 or new_shelf > config.total_shelves:
+        flash(f'Shelf must be between 1 and {config.total_shelves}.', 'error')
+        return redirect(back)
 
     # verifica que no haya otra parte diferente en la nueva ubicacion
     conflict = Inventory.query.filter(
@@ -128,24 +121,51 @@ def update_location(record_id):
         )
         return redirect(back)
 
-    # actualiza la ubicacion del registro de inventario
-    record.aisle    = new_aisle
-    record.bay      = new_bay
-    record.shelf    = str(new_shelf)
-    record.location = new_location
+    was_active  = record.is_active
+    now_active  = new_shelf <= config.active_shelves
 
-    # si es la caja activa, sincroniza tambien la ubicacion maestra de la parte
-    # esto actualiza automaticamente el pick list para todos los pickers
-    if record.is_active:
-        part = Part.query.get(record.part_id)
-        if part:
+    record.aisle     = new_aisle
+    record.bay       = new_bay
+    record.shelf     = str(new_shelf)
+    record.location  = new_location
+    record.quantity  = new_quantity
+    record.is_active = now_active
+
+    part = Part.query.get(record.part_id)
+    if part:
+        if now_active:
+            # la caja esta ahora en zona activa — actualiza la ubicacion maestra
             part.active_aisle    = new_aisle
             part.active_bay      = new_bay
             part.active_shelf    = str(new_shelf)
             part.active_location = new_location
+        elif was_active and not now_active:
+            # la caja se movio de activa a overflow — limpia la ubicacion maestra
+            part.active_aisle    = None
+            part.active_bay      = None
+            part.active_shelf    = None
+            part.active_location = None
 
     db.session.commit()
-    flash('Location updated.', 'success')
+    flash('Updated.', 'success')
+    return redirect(back)
+
+
+@inventory_bp.route('/delete-record/<int:record_id>', methods=['POST'])
+def delete_record(record_id):
+    check = inventory_required()
+    if check:
+        return check
+    record = Inventory.query.get_or_404(record_id)
+    back = request.form.get('back', url_for('inventory.index'))
+    # si era la caja activa, limpia la ubicacion maestra
+    if record.is_active:
+        part = Part.query.get(record.part_id)
+        if part:
+            part.active_aisle = part.active_bay = part.active_shelf = part.active_location = None
+    db.session.delete(record)
+    db.session.commit()
+    flash('Record deleted.', 'success')
     return redirect(back)
 
 

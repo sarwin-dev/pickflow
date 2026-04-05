@@ -155,45 +155,58 @@
                     {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
                     <tr id="edit-{{ record.id }}" style="display:none; background:#f0f9ff;">
                         <td colspan="5" style="padding:12px 16px;">
-                            <form method="POST" action="/inventory/update-location/{{ record.id }}"
-                                  style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
-                                <input type="hidden" name="back" value="{{ request.url }}">
-                                <div>
-                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
-                                    <input type="number" name="aisle" value="{{ record.aisle or '' }}"
-                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
-                                    <input type="number" name="bay" value="{{ record.bay or '' }}"
-                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
-                                    <input type="number" name="shelf" value="{{ record.shelf or '' }}"
-                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                                </div>
-                                <div>
-                                    <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location</label>
-                                    <input type="number" name="location" value="{{ record.location or '' }}"
-                                           min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"
-                                           placeholder="opt">
-                                </div>
-                                <div style="display:flex; gap:6px; padding-bottom:1px;">
-                                    <button type="submit" class="btn-primary" style="padding:5px 14px; font-size:12px;">
-                                        Save
+                            <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                                <form method="POST" action="/inventory/update-location/{{ record.id }}"
+                                      style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                                    <input type="hidden" name="back" value="{{ request.url }}">
+                                    <div>
+                                        <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
+                                        <input type="number" name="aisle" value="{{ record.aisle or '' }}"
+                                               min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
+                                        <input type="number" name="bay" value="{{ record.bay or '' }}"
+                                               min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
+                                        <input type="number" name="shelf" value="{{ record.shelf or '' }}"
+                                               min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location</label>
+                                        <input type="number" name="location" value="{{ record.location or '' }}"
+                                               min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"
+                                               placeholder="opt">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Qty</label>
+                                        <input type="number" name="quantity" value="{{ record.quantity }}"
+                                               min="1" style="width:70px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+                                    </div>
+                                    <div style="display:flex; gap:6px; padding-bottom:1px;">
+                                        <button type="submit" class="btn-primary" style="padding:5px 14px; font-size:12px;">Save</button>
+                                        <button type="button" class="btn-secondary" style="padding:5px 12px; font-size:12px;"
+                                                onclick="toggleEdit({{ record.id }})">Cancel</button>
+                                    </div>
+                                </form>
+                                <!-- boton de borrar separado -->
+                                <form method="POST" action="/inventory/delete-record/{{ record.id }}"
+                                      style="padding-top:18px;">
+                                    <input type="hidden" name="back" value="{{ request.url }}">
+                                    <button type="submit" class="btn-secondary"
+                                            style="padding:5px 12px; font-size:12px; color:#dc2626; border-color:#fca5a5;"
+                                            onclick="return confirm('Delete this box record permanently?')">
+                                        Delete
                                     </button>
-                                    <button type="button" class="btn-secondary" style="padding:5px 12px; font-size:12px;"
-                                            onclick="toggleEdit({{ record.id }})">
-                                        Cancel
-                                    </button>
-                                </div>
-                                {% if record.is_active %}
-                                <span style="font-size:11px; color:#2563eb; align-self:center;">
-                                    ⓘ Active box — changes will update the pick list automatically
-                                </span>
-                                {% endif %}
-                            </form>
+                                </form>
+                            </div>
+                            {% if record.is_active %}
+                            <div style="font-size:11px; color:#2563eb; margin-top:8px;">
+                                ⓘ Active box — moving to overflow shelf will clear the pick location. Moving between active shelves updates pick list automatically.
+                            </div>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endif %}
