@@ -41,7 +41,9 @@
 </div>
 {% endif %}
 
-<div class="form-card" style="max-width:600px;">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;">
+
+<div class="form-card">
     <h3 style="margin-bottom:1rem; font-size:16px;">Register New Box</h3>
 
     <form method="POST" action="/receiving/receive">
@@ -112,6 +114,54 @@
 
     </form>
 </div>
+
+<!-- columna derecha: historial informativo -->
+<div>
+    <h3 style="font-size:15px; font-weight:600; margin-bottom:1rem; color:#374151;">Recent Entries</h3>
+    {% if records %}
+    <div style="overflow-y:auto; max-height:560px; border:1px solid #e5e7eb; border-radius:10px;">
+        <table class="data-table" style="margin:0; border-radius:0;">
+            <thead>
+                <tr style="position:sticky; top:0; background:white; z-index:1; box-shadow:0 1px 0 #e5e7eb;">
+                    <th>Part</th>
+                    <th>Location</th>
+                    <th style="text-align:center;">Qty</th>
+                    <th style="text-align:center;">Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td style="font-size:13px;">{{ record.part.name }}</td>
+                    <td style="font-family:monospace; font-size:12px;">
+                        {% if record.aisle %}
+                        A{{ '%02d'|format(record.aisle|int) }}
+                        B{{ '%02d'|format(record.bay|int) }}
+                        S{{ '%02d'|format(record.shelf|int) }}
+                        {% if record.location %}L{{ '%02d'|format(record.location|int) }}{% endif %}
+                        {% else %}
+                        <span style="color:#aaa;">Direct</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:center; font-weight:700;">{{ record.quantity }}</td>
+                    <td style="text-align:center;">
+                        {% if record.is_active %}
+                        <span class="role-badge role-picker">Active</span>
+                        {% else %}
+                        <span class="role-badge role-inventory">Overflow</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:#999; font-size:14px;">No entries yet.</p>
+    {% endif %}
+</div>
+
+</div><!-- fin grid -->
 
 <script>
 const parts = [

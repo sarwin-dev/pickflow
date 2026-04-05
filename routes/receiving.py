@@ -21,10 +21,12 @@ def index():
     config = WarehouseConfig.query.first()
     parts = Part.query.order_by(Part.name).all()
     pending = session.get('pending_receive')
+    records = Inventory.query.order_by(Inventory.received_at.asc()).limit(50).all()
     return render_template('receiving/index.html',
                            config=config,
                            parts=parts,
-                           pending=pending)
+                           pending=pending,
+                           records=records)
 
 @receiving_bp.route('/receive', methods=['POST'])
 def receive():
