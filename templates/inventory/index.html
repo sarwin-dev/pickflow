@@ -35,7 +35,7 @@
 </div>
 {% endif %}
 
-{% if search or filter_mode == 'low' %}
+{% if True %}
     {% if part_results %}
         {% for item in part_results %}
         <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:24px; margin-bottom:24px;">
@@ -193,15 +193,6 @@
 {% elif filter_mode == 'low' and not part_results %}
 <div style="text-align:center; padding:3rem; color:#999;">
     <p style="font-size:16px; color:#16a34a; font-weight:600;">All parts are above minimum stock levels</p>
-</div>
-{% else %}
-<!-- estado inicial - sin busqueda -->
-<div style="text-align:center; padding:4rem 2rem; color:#999;">
-    <div style="font-size:3rem; margin-bottom:1rem;">⬆</div>
-    <p style="font-size:16px; color:#374151;">Type a part name to look up its locations</p>
-    <p style="font-size:13px; margin-top:8px;">
-        e.g. "toe33", "Left Panel", "Hinge"
-    </p>
 </div>
 {% endif %}
 
