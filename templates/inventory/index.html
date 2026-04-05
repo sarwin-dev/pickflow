@@ -101,6 +101,9 @@
                         <th style="text-align:center;">Qty</th>
                         <th style="text-align:center;">Type</th>
                         <th style="font-size:12px; color:#999;">Received</th>
+                        {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
+                        <th></th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -133,6 +136,18 @@
                         <td style="font-size:12px; color:#999;">
                             {{ record.received_at.strftime('%m/%d/%Y') if record.received_at else '—' }}
                         </td>
+                        {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
+                        <td>
+                            <form method="POST" action="/receiving/pulldown/{{ record.id }}">
+                                <input type="hidden" name="next" value="{{ request.url }}">
+                                <button type="submit" class="btn-secondary"
+                                        style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
+                                        onclick="return confirm('Pull down this box ({{ record.quantity }} units)? This will remove it from inventory.')">
+                                    Pulldown
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>

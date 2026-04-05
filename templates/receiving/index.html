@@ -8,7 +8,7 @@
 </div>
 
 {% if pending %}
-<div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:16px 20px; margin-bottom:1.5rem;">
+<div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:16px 20px; margin-bottom:1.5rem; max-width:600px;">
     <div style="display:flex; align-items:flex-start; gap:12px;">
         <div style="font-size:22px; line-height:1;">⚠️</div>
         <div style="flex:1;">
@@ -41,271 +41,147 @@
 </div>
 {% endif %}
 
-<!-- grid de dos columnas: formulario a la izquierda, historial a la derecha -->
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+<div class="form-card" style="max-width:600px;">
+    <h3 style="margin-bottom:1rem; font-size:16px;">Register New Box</h3>
 
-    <!-- ============================================
-         COLUMNA IZQUIERDA - formulario de recepcion
-         ============================================ -->
-    <div class="form-card">
-        <h3 style="margin-bottom:1rem; font-size:16px;">Register New Box</h3>
+    <form method="POST" action="/receiving/receive">
 
-        <form method="POST" action="/receiving/receive">
-
-            <!-- campo de busqueda con autocomplete -->
-            <div class="form-group">
-                <label>Part</label>
-                <!-- campo visible: acepta nombre libre o seleccion del autocomplete -->
-                <input type="text" id="part-search" name="part_name" placeholder="Type part name (e.g. toe33, Left Panel...)"
-                    autocomplete="off" style="width:100%;" required>
-                <!-- si el usuario selecciona del autocomplete, se guarda el id aqui -->
-                <input type="hidden" name="part_id" id="part-id">
-                <p style="font-size:11px; color:#999; margin-top:4px;">
-                    Select from list or type a new name — it will be created automatically
-                </p>
-                <!-- contenedor donde aparecen las sugerencias del autocomplete -->
-                <div id="suggestions" style="
-                    border:1px solid #ddd;
-                    border-radius:8px;
-                    background:white;
-                    display:none;
-                    max-height:200px;
-                    overflow-y:auto;
-                    margin-top:4px;">
-                </div>
-            </div>
-
-            <!-- cantidad de unidades en la caja -->
-            <div class="form-group">
-                <label>Quantity (units in this box)</label>
-                <input type="number" name="quantity" min="1" placeholder="120" required>
-            </div>
-
-            <!-- tipo de recepcion - overflow o directo al active -->
-            <div class="form-group">
-                <label>Receiving Type</label>
-                <!-- cuando cambia llama a toggleLocation() en javascript -->
-                <select name="receiving_type" id="receiving_type" onchange="toggleLocation()">
-                    <option value="overflow">To Overflow Location</option>
-                    <option value="direct">Direct to Active (urgent)</option>
-                </select>
-                <p style="font-size:12px; color:#999; margin-top:4px;">
-                    Use "Direct to Active" when the part goes straight to the picking shelf
-                </p>
-            </div>
-
-            <!-- campos de ubicacion - solo visibles cuando es overflow -->
-            <!-- cuando el usuario elige "Direct to Active" estos desaparecen -->
-            <div id="location-fields">
-                <p style="font-size:13px; font-weight:500; color:#444; margin-bottom:8px;">
-                    Where are you placing this box?
-                </p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                    <div class="form-group">
-                        <label>Aisle (1 - {{ config.total_aisles }})</label>
-                        <input type="number" name="aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Bay (1 - {{ config.total_bays }})</label>
-                        <input type="number" name="bay" min="1" max="{{ config.total_bays }}" placeholder="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Shelf (1 - {{ config.total_shelves }})</label>
-                        <input type="number" name="shelf" min="1" max="{{ config.total_shelves }}" placeholder="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Location (optional)</label>
-                        <input type="number" name="location" min="1" max="{{ config.total_locations }}" placeholder="1">
-                    </div>
-                </div>
-                <!-- nota informativa sobre shelves activos vs overflow -->
-                <p style="font-size:12px; color:#999; margin-bottom:1rem;">
-                    Shelves 1-{{ config.active_shelves }} = Active.
-                    Shelves {{ config.active_shelves + 1 }}-{{ config.total_shelves }} = Overflow.
-                </p>
-            </div>
-
-            <button type="submit" class="btn-primary" style="width:100%;">
-                Register Box
-            </button>
-
-        </form>
-    </div>
-
-    <!-- ============================================
-         COLUMNA DERECHA - historial de recepciones
-         ============================================ -->
-    <div>
-        <h3 style="margin-bottom:1rem; font-size:16px;">Recent Receiving (last 50)</h3>
-        {% if records %}
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Part</th>
-                        <th>Location</th>
-                        <th>Qty</th>
-                        <th>Type</th>
-                        <th>Pulldown</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- iteramos sobre los ultimos 50 registros -->
-                    {% for record in records %}
-                    <tr>
-                        <!-- nombre de la parte - viene de la relacion con Part -->
-                        <td style="font-size:13px;">{{ record.part.name }}</td>
-
-                        <!-- ubicacion formateada en ABSL -->
-                        <td style="font-family:monospace; font-size:12px;">
-                            {% if record.aisle %}
-                            A{{ '%02d'|format(record.aisle|int) }}
-                            B{{ '%02d'|format(record.bay|int) }}
-                            S{{ '%02d'|format(record.shelf|int) }}
-                            {% if record.location %}
-                            L{{ '%02d'|format(record.location|int) }}
-                            {% endif %}
-                            {% else %}
-                            <!-- si no tiene ubicacion fue recepcion directa -->
-                            Direct to Active
-                            {% endif %}
-                        </td>
-
-                        <td>{{ record.quantity }}</td>
-
-                        <!-- badge de color segun si es active o overflow -->
-                        <td>
-                            {% if record.is_active %}
-                            <span class="role-badge role-picker">Active</span>
-                            {% else %}
-                            <span class="role-badge role-inventory">Overflow</span>
-                            {% endif %}
-                        </td>
-
-                        <!-- pulldown: baja la caja completa y libera la ubicacion -->
-                        <td>
-                            <form method="POST" action="/receiving/pulldown/{{ record.id }}">
-                                <button type="submit" class="btn-create" style="font-size:11px; padding:5px 10px;"
-                                    onclick="return confirm('Pull down entire box ({{ record.quantity }} units)? This will free the location.')">
-                                    Pulldown
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="form-group">
+            <label>Part</label>
+            <input type="text" id="part-search" name="part_name"
+                   placeholder="Type part name (e.g. toe33, Left Panel...)"
+                   autocomplete="off" style="width:100%;" required>
+            <input type="hidden" name="part_id" id="part-id">
+            <p style="font-size:11px; color:#999; margin-top:4px;">
+                Select from list or type a new name — it will be created automatically
+            </p>
+            <div id="suggestions" style="border:1px solid #ddd; border-radius:8px; background:white;
+                                         display:none; max-height:200px; overflow-y:auto; margin-top:4px;"></div>
         </div>
-        {% else %}
-        <p style="color:#999; font-size:14px;">No receiving records yet.</p>
-        {% endif %}
-    </div>
 
+        <div class="form-group">
+            <label>Quantity (units in this box)</label>
+            <input type="number" name="quantity" min="1" placeholder="120" required>
+        </div>
+
+        <div class="form-group">
+            <label>Receiving Type</label>
+            <select name="receiving_type" id="receiving_type" onchange="toggleLocation()">
+                <option value="overflow">To Overflow Location</option>
+                <option value="direct">Direct to Active (urgent)</option>
+            </select>
+            <p style="font-size:12px; color:#999; margin-top:4px;">
+                Use "Direct to Active" when the part goes straight to the picking shelf
+            </p>
+        </div>
+
+        <div id="location-fields">
+            <p style="font-size:13px; font-weight:500; color:#444; margin-bottom:8px;">
+                Where are you placing this box?
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Aisle (1 - {{ config.total_aisles }})</label>
+                    <input type="number" name="aisle" min="1" max="{{ config.total_aisles }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Bay (1 - {{ config.total_bays }})</label>
+                    <input type="number" name="bay" min="1" max="{{ config.total_bays }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Shelf (1 - {{ config.total_shelves }})</label>
+                    <input type="number" name="shelf" min="1" max="{{ config.total_shelves }}" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Location (optional)</label>
+                    <input type="number" name="location" min="1" max="{{ config.total_locations }}" placeholder="1">
+                </div>
+            </div>
+            <p style="font-size:12px; color:#999; margin-bottom:1rem;">
+                Shelves 1-{{ config.active_shelves }} = Active.
+                Shelves {{ config.active_shelves + 1 }}-{{ config.total_shelves }} = Overflow.
+            </p>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%;">
+            Register Box
+        </button>
+
+    </form>
 </div>
 
-<!-- ============================================
-     JAVASCRIPT - logica del autocomplete y toggle
-     ============================================ -->
 <script>
-    // lista de partes que viene desde Python/Flask
-    // Jinja2 convierte el loop de Python en un array de JavaScript
-    const parts = [
-        {% for part in parts %}
+const parts = [
+    {% for part in parts %}
     { id: {{ part.id }}, name: "{{ part.name }}" },
     {% endfor %}
 ];
 
-    const searchInput = document.getElementById('part-search');
-    const partIdInput = document.getElementById('part-id');
-    const suggestions = document.getElementById('suggestions');
+const searchInput = document.getElementById('part-search');
+const partIdInput = document.getElementById('part-id');
+const suggestions = document.getElementById('suggestions');
 
-    // formatea el texto: separa letras de numeros y capitaliza cada palabra
-    // ej: "toe33" → "Toe 33", "leftpanel" → "Leftpanel"
-    function formatInput(str) {
-        let result = str.replace(/([a-zA-Z])(\d)/g, '$1 $2')
-                        .replace(/(\d)([a-zA-Z])/g, '$1 $2')
-                        .trim();
-        return result.charAt(0).toUpperCase() + result.slice(1);
-    }
+function formatInput(str) {
+    let result = str.replace(/([a-zA-Z])(\d)/g, '$1 $2')
+                    .replace(/(\d)([a-zA-Z])/g, '$1 $2').trim();
+    return result.charAt(0).toUpperCase() + result.slice(1);
+}
 
-    // escucha cada letra que el usuario escribe
-    searchInput.addEventListener('input', function () {
-        const formatted = formatInput(this.value);
-        const query = formatted.toLowerCase();
-        suggestions.innerHTML = '';
-        partIdInput.value = '';
-
-        // si no hay texto oculta las sugerencias
-        if (query.length < 1) { suggestions.style.display = 'none'; return; }
-
-        // filtra usando el texto formateado para encontrar "Toe 33" con "toe33"
-        const matches = parts.filter(p => p.name.toLowerCase().includes(query));
-
-        if (matches.length === 0) { suggestions.style.display = 'none'; return; }
-
-        // crea un div por cada coincidencia
-        matches.forEach(part => {
-            const div = document.createElement('div');
-            div.textContent = part.name;
-            div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
-            div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
-            div.addEventListener('mouseout', () => div.style.background = 'white');
-            // cuando el usuario hace click en una sugerencia
-            // llena el campo visible y el campo oculto con el id
-            div.addEventListener('click', () => {
-                searchInput.value = part.name;
-                partIdInput.value = part.id;
-                suggestions.style.display = 'none';
-            });
-            suggestions.appendChild(div);
+searchInput.addEventListener('input', function () {
+    const query = formatInput(this.value).toLowerCase();
+    suggestions.innerHTML = '';
+    partIdInput.value = '';
+    if (query.length < 1) { suggestions.style.display = 'none'; return; }
+    const matches = parts.filter(p => p.name.toLowerCase().includes(query));
+    if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+    matches.forEach(part => {
+        const div = document.createElement('div');
+        div.textContent = part.name;
+        div.style.cssText = 'padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid #f3f4f6;';
+        div.addEventListener('mouseover', () => div.style.background = '#f9fafb');
+        div.addEventListener('mouseout', () => div.style.background = 'white');
+        div.addEventListener('click', () => {
+            searchInput.value = part.name;
+            partIdInput.value = part.id;
+            suggestions.style.display = 'none';
         });
-        suggestions.style.display = 'block';
+        suggestions.appendChild(div);
     });
+    suggestions.style.display = 'block';
+});
 
-    // navegacion con teclado en el autocomplete
-    searchInput.addEventListener('keydown', function (e) {
-        const items = suggestions.querySelectorAll('div');
-        let current = suggestions.querySelector('.highlighted');
-        let index = Array.from(items).indexOf(current);
-
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (current) current.classList.remove('highlighted');
-            index = (index + 1) % items.length;
-            items[index].classList.add('highlighted');
-            items[index].scrollIntoView({ block: 'nearest' });
-
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (current) current.classList.remove('highlighted');
-            index = (index - 1 + items.length) % items.length;
-            items[index].classList.add('highlighted');
-            items[index].scrollIntoView({ block: 'nearest' });
-
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (current) current.click();
-
-        } else if (e.key === 'Escape') {
-            suggestions.style.display = 'none';
-        }
-    });
-
-    // oculta las sugerencias cuando el usuario hace click fuera
-    document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target)) {
-            suggestions.style.display = 'none';
-        }
-    });
-
-    // muestra u oculta los campos de ubicacion
-    // segun si el usuario elige overflow o direct to active
-    function toggleLocation() {
-        const type = document.getElementById('receiving_type').value;
-        const fields = document.getElementById('location-fields');
-        // si es directo oculta los campos, si es overflow los muestra
-        fields.style.display = type === 'direct' ? 'none' : 'block';
+searchInput.addEventListener('keydown', function (e) {
+    const items = suggestions.querySelectorAll('div');
+    let current = suggestions.querySelector('.highlighted');
+    let index = Array.from(items).indexOf(current);
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (current) current.classList.remove('highlighted');
+        index = (index + 1) % items.length;
+        items[index].classList.add('highlighted');
+        items[index].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (current) current.classList.remove('highlighted');
+        index = (index - 1 + items.length) % items.length;
+        items[index].classList.add('highlighted');
+        items[index].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (current) current.click();
+    } else if (e.key === 'Escape') {
+        suggestions.style.display = 'none';
     }
+});
+
+document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target)) suggestions.style.display = 'none';
+});
+
+function toggleLocation() {
+    const type = document.getElementById('receiving_type').value;
+    document.getElementById('location-fields').style.display = type === 'direct' ? 'none' : 'block';
+}
 </script>
 
 {% endblock %}

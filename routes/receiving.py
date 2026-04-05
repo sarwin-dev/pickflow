@@ -18,12 +18,10 @@ def index():
     check = warehouse_required()
     if check:
         return check
-    records = Inventory.query.order_by(Inventory.received_at.desc()).limit(50).all()
     config = WarehouseConfig.query.first()
     parts = Part.query.order_by(Part.name).all()
     pending = session.get('pending_receive')
     return render_template('receiving/index.html',
-                           records=records,
                            config=config,
                            parts=parts,
                            pending=pending)
@@ -160,7 +158,7 @@ def pulldown(record_id):
         return check
     record = Inventory.query.get(record_id)
     if record:
-        # el pulldown siempre baja la caja completa — libera la ubicacion
         db.session.delete(record)
         db.session.commit()
-    return redirect(url_for('receiving.index'))
+    next_url = request.form.get('next') or url_for('receiving.index')
+    return redirect(next_url)
