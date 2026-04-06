@@ -134,19 +134,26 @@ def toggle(pick_item_id):
         if order.status == 'pending' and action == 'pick':
             order.status = 'in_progress'
 
+        # aplica la accion a TODOS los pick items del mismo (slot, parte)
+        # necesario cuando template.quantity > 1 crea multiples pick items por slot
+        siblings = PickItem.query.filter_by(
+            order_item_id=pick_item.order_item_id,
+            part_template_id=pick_item.part_template_id
+        ).all()
+
         if action == 'pick':
-            # marca como picked - inventario se controla solo en pulldown (two-bin)
-            pick_item.is_picked = True
-            pick_item.is_missing = False
-            pick_item.picked_by = session['user_id']
-            pick_item.picked_at = datetime.utcnow()
+            for pi in siblings:
+                pi.is_picked = True
+                pi.is_missing = False
+                pi.picked_by = session['user_id']
+                pi.picked_at = datetime.utcnow()
 
         elif action == 'missing':
-            # marca como missing
-            pick_item.is_picked = False
-            pick_item.is_missing = True
-            pick_item.picked_by = None
-            pick_item.picked_at = None
+            for pi in siblings:
+                pi.is_picked = False
+                pi.is_missing = True
+                pi.picked_by = None
+                pi.picked_at = None
             # depleted automatico: elimina el registro activo de esa parte
             pt = PartTemplate.query.get(pick_item.part_template_id)
             if pt:
@@ -158,11 +165,11 @@ def toggle(pick_item_id):
                     depleted = True
 
         elif action == 'reset':
-            # vuelve a pending
-            pick_item.is_picked = False
-            pick_item.is_missing = False
-            pick_item.picked_by = None
-            pick_item.picked_at = None
+            for pi in siblings:
+                pi.is_picked = False
+                pi.is_missing = False
+                pi.picked_by = None
+                pi.picked_at = None
             # si la orden estaba completada la reabre
             if order.status == 'completed':
                 order.status = 'in_progress'
