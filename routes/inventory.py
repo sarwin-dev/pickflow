@@ -4,8 +4,34 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import Part, Inventory, ShoppingListItem, WarehouseConfig
 from datetime import datetime
+from sqlalchemy import cast, Integer, nullslast
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
+
+
+def build_part_item(part):
+    records = Inventory.query.filter_by(part_id=part.id).order_by(
+        Inventory.is_active.desc(),
+        cast(Inventory.aisle,    Integer),
+        cast(Inventory.bay,      Integer),
+        cast(Inventory.shelf,    Integer),
+        nullslast(cast(Inventory.location, Integer))
+    ).all()
+    overflow_total = sum(r.quantity for r in records if not r.is_active)
+    active_total   = sum(r.quantity for r in records if r.is_active)
+    min_qty        = records[0].min_quantity if records else 0
+    if overflow_total == 0:
+        status = 'out'
+    elif overflow_total <= min_qty:
+        status = 'low'
+    else:
+        status = 'ok'
+    in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
+    return {
+        'part': part, 'records': records,
+        'overflow_total': overflow_total, 'active_total': active_total,
+        'min_qty': min_qty, 'status': status, 'in_list': in_list,
+    }
 
 def inventory_required():
     if 'user_id' not in session:
@@ -40,44 +66,12 @@ def index():
             parts = Part.query.order_by(Part.name).all()
 
         for part in parts:
-            from sqlalchemy import cast, Integer, nullslast
-            records = Inventory.query.filter_by(part_id=part.id).order_by(
-                Inventory.is_active.desc(),
-                cast(Inventory.aisle,    Integer),
-                cast(Inventory.bay,      Integer),
-                cast(Inventory.shelf,    Integer),
-                nullslast(cast(Inventory.location, Integer))
-            ).all()
-
-            overflow_total = sum(r.quantity for r in records if not r.is_active)
-            active_total = sum(r.quantity for r in records if r.is_active)
-            min_qty = records[0].min_quantity if records else 0
-
-            if overflow_total == 0:
-                status = 'out'
-            elif overflow_total <= min_qty:
-                status = 'low'
-            else:
-                status = 'ok'
-
-            if filter_mode == 'low' and status == 'ok':
+            item = build_part_item(part)
+            if filter_mode == 'low' and item['status'] == 'ok':
                 continue
-
-            in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
-
-            # en modo low, ocultar partes que ya estan en el reorder list
-            if filter_mode == 'low' and in_list:
+            if filter_mode == 'low' and item['in_list']:
                 continue
-
-            part_results.append({
-                'part': part,
-                'records': records,
-                'overflow_total': overflow_total,
-                'active_total': active_total,
-                'min_qty': min_qty,
-                'status': status,
-                'in_list': in_list,
-            })
+            part_results.append(item)
 
     shopping_count = ShoppingListItem.query.count()
 
@@ -197,10 +191,16 @@ def depleted(record_id):
     if check:
         return check
     record = Inventory.query.get_or_404(record_id)
-    back = request.form.get('next', url_for('inventory.index'))
+    part_id = record.part_id
     db.session.delete(record)
     db.session.commit()
-    flash(f'Active box marked as depleted and removed.', 'success')
+    if request.headers.get('HX-Request'):
+        part = Part.query.get(part_id)
+        item = build_part_item(part)
+        return render_template('inventory/partials/part_card.html', item=item,
+                               search='', filter_mode='')
+    flash('Active box marked as depleted and removed.', 'success')
+    back = request.form.get('next', url_for('inventory.index'))
     return redirect(back)
 
 
