@@ -85,31 +85,13 @@
                     </div>
                 </div>
 
-                <!-- totales grandes en la esquina superior derecha -->
-                <div style="display:flex; gap:16px; text-align:center;">
-                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:100px;">
-                        <div style="font-size:2rem; font-weight:800; color:#1e1b4b; line-height:1;">
-                            {{ item.overflow_total }}
-                        </div>
-                        <div style="font-size:11px; color:#6b7280; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
-                            Overflow
-                        </div>
+                <!-- total overflow -->
+                <div style="background:#1e1b4b; border-radius:8px; padding:12px 20px; min-width:100px; text-align:center;">
+                    <div style="font-size:2rem; font-weight:800; color:white; line-height:1;">
+                        {{ item.overflow_total }}
                     </div>
-                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 20px; min-width:100px;">
-                        <div style="font-size:2rem; font-weight:800; color:#6b7280; line-height:1;">
-                            {{ item.active_total }}
-                        </div>
-                        <div style="font-size:11px; color:#6b7280; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
-                            Active
-                        </div>
-                    </div>
-                    <div style="background:#1e1b4b; border-radius:8px; padding:12px 20px; min-width:100px;">
-                        <div style="font-size:2rem; font-weight:800; color:white; line-height:1;">
-                            {{ item.overflow_total + item.active_total }}
-                        </div>
-                        <div style="font-size:11px; color:#a5b4fc; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
-                            Total
-                        </div>
+                    <div style="font-size:11px; color:#a5b4fc; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">
+                        Overflow
                     </div>
                 </div>
             </div>
