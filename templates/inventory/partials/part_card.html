@@ -48,13 +48,13 @@
             <tr id="row-{{ record.id }}">
                 <td>
                     {% if record.aisle %}
-                    <span id="loc-{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
+                    <span data-loc="{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
                         A{{ '%02d'|format(record.aisle|int) }}
                         B{{ '%02d'|format(record.bay|int) }}
                         S{{ '%02d'|format(record.shelf|int) }}
                         {% if record.location %}L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </span>
-                    {% else %}<span id="loc-{{ record.id }}" style="color:#ccc;">No location</span>{% endif %}
+                    {% else %}<span data-loc="{{ record.id }}" style="color:#ccc;">No location</span>{% endif %}
                 </td>
                 <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
                 <td style="text-align:center;">
@@ -83,7 +83,7 @@
                     {% endif %}
                     {% if session['user_role'] in ['admin', 'supervisor'] %}
                     <button type="button"
-                            id="swap-btn-{{ record.id }}"
+                            data-swap="{{ record.id }}"
                             onclick="selectForSwap({{ record.id }}, '{{ item.part.name }}', {{ 'true' if record.is_active else 'false' }})"
                             style="font-size:11px; padding:4px 10px; border:1px solid #c7d2fe;
                                    border-radius:6px; background:#eef2ff; color:#4f46e5; cursor:pointer;">
@@ -151,7 +151,7 @@
             <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;">
                 <div style="flex:1; min-width:0;">
                     {% if record.aisle %}
-                    <div id="loc-{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:700;
+                    <div data-loc="{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:700;
                                 color:#1e1b4b; letter-spacing:.04em; line-height:1.1;">
                         A{{ '%02d'|format(record.aisle|int) }}&middot;B{{ '%02d'|format(record.bay|int) }}&middot;S{{ '%02d'|format(record.shelf|int) }}{% if record.location %}&middot;L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </div>
@@ -201,7 +201,7 @@
                 {% endif %}
                 {% if session['user_role'] in ['admin', 'supervisor'] %}
                 <button type="button"
-                        id="swap-btn-{{ record.id }}"
+                        data-swap="{{ record.id }}"
                         onclick="selectForSwap({{ record.id }}, '{{ item.part.name }}', {{ 'true' if record.is_active else 'false' }})"
                         style="border:none; border-left:1px solid #e5e7eb; border-radius:0;
                                padding:8px 12px; font-size:13px; color:#4f46e5;

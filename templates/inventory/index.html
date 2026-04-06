@@ -112,12 +112,12 @@ function toggleEdit(id) {
 // --- swap logic ---
 let swapSelected = null; // { recordId, partName, isActive }
 
+function swapBtns(id)  { return document.querySelectorAll('[data-swap="' + id + '"]'); }
+function swapLocs(id)  { return document.querySelectorAll('[data-loc="' + id + '"]'); }
+
 function selectForSwap(recordId, partName, isActive) {
     if (swapSelected) {
-        if (swapSelected.recordId === recordId) {
-            clearSwapSelection();
-            return;
-        }
+        if (swapSelected.recordId === recordId) { clearSwapSelection(); return; }
         if (swapSelected.isActive !== isActive) {
             alert('Can only swap within the same type (active↔active or overflow↔overflow).');
             return;
@@ -126,16 +126,14 @@ function selectForSwap(recordId, partName, isActive) {
         return;
     }
     swapSelected = { recordId, partName, isActive };
-    const btn = document.getElementById('swap-btn-' + recordId);
-    if (btn) { btn.style.background = '#6366f1'; btn.style.color = 'white'; btn.style.borderColor = '#6366f1'; }
+    swapBtns(recordId).forEach(b => { b.style.background='#6366f1'; b.style.color='white'; b.style.borderColor='#6366f1'; });
     document.getElementById('swap-banner').style.display = 'flex';
     document.getElementById('swap-banner-name').textContent = '"' + partName + '"';
 }
 
 function clearSwapSelection() {
     if (swapSelected) {
-        const btn = document.getElementById('swap-btn-' + swapSelected.recordId);
-        if (btn) { btn.style.background = '#eef2ff'; btn.style.color = '#4f46e5'; btn.style.borderColor = '#c7d2fe'; }
+        swapBtns(swapSelected.recordId).forEach(b => { b.style.background='#eef2ff'; b.style.color='#4f46e5'; b.style.borderColor='#c7d2fe'; });
     }
     swapSelected = null;
     const banner = document.getElementById('swap-banner');
@@ -143,28 +141,24 @@ function clearSwapSelection() {
 }
 
 async function doSwap(recordAId, recordBId) {
-    // swap visual inmediato (optimistic UI)
-    const locA = document.getElementById('loc-' + recordAId);
-    const locB = document.getElementById('loc-' + recordBId);
-    const btnA = document.getElementById('swap-btn-' + recordAId);
-    const btnB = document.getElementById('swap-btn-' + recordBId);
+    const locsA = swapLocs(recordAId);
+    const locsB = swapLocs(recordBId);
 
-    if (locA && locB) {
-        const tmp = locA.innerHTML;
-        locA.innerHTML = locB.innerHTML;
-        locB.innerHTML = tmp;
-        // flash verde en ambos
-        [locA, locB].forEach(el => {
+    // swap visual inmediato en TODOS los elementos (desktop + mobile)
+    if (locsA.length && locsB.length) {
+        const tmp = locsA[0].innerHTML;
+        locsA.forEach(el => el.innerHTML = locsB[0].innerHTML);
+        locsB.forEach(el => el.innerHTML = tmp);
+        [...locsA, ...locsB].forEach(el => {
             el.style.transition = 'color 0.2s';
             el.style.color = '#16a34a';
             setTimeout(() => { el.style.color = ''; }, 800);
         });
     }
-    if (btnA) { btnA.style.background = '#dcfce7'; btnA.style.color = '#16a34a'; btnA.style.borderColor = '#86efac'; }
-    if (btnB) { btnB.style.background = '#dcfce7'; btnB.style.color = '#16a34a'; btnB.style.borderColor = '#86efac'; }
+    swapBtns(recordAId).forEach(b => { b.style.background='#dcfce7'; b.style.color='#16a34a'; b.style.borderColor='#86efac'; });
+    swapBtns(recordBId).forEach(b => { b.style.background='#dcfce7'; b.style.color='#16a34a'; b.style.borderColor='#86efac'; });
     clearSwapSelection();
 
-    // confirma con el servidor en segundo plano
     try {
         const res = await fetch('/inventory/swap', {
             method: 'POST',
@@ -173,19 +167,20 @@ async function doSwap(recordAId, recordBId) {
         });
         const data = await res.json();
         if (!data.success) {
-            // revierte si fallo
-            if (locA && locB) { const tmp = locA.innerHTML; locA.innerHTML = locB.innerHTML; locB.innerHTML = tmp; }
+            // revierte
+            const tmp = locsA[0].innerHTML;
+            locsA.forEach(el => el.innerHTML = locsB[0].innerHTML);
+            locsB.forEach(el => el.innerHTML = tmp);
             alert('Swap failed: ' + (data.error || 'unknown error'));
-            window.location.reload();
         } else {
-            // restaura colores de botones tras confirmacion
             setTimeout(() => {
-                if (btnA) { btnA.style.background = '#eef2ff'; btnA.style.color = '#4f46e5'; btnA.style.borderColor = '#c7d2fe'; }
-                if (btnB) { btnB.style.background = '#eef2ff'; btnB.style.color = '#4f46e5'; btnB.style.borderColor = '#c7d2fe'; }
+                swapBtns(recordAId).forEach(b => { b.style.background='#eef2ff'; b.style.color='#4f46e5'; b.style.borderColor='#c7d2fe'; });
+                swapBtns(recordBId).forEach(b => { b.style.background='#eef2ff'; b.style.color='#4f46e5'; b.style.borderColor='#c7d2fe'; });
             }, 1000);
         }
     } catch (e) {
-        if (locA && locB) { const tmp = locA.innerHTML; locA.innerHTML = locB.innerHTML; locB.innerHTML = tmp; }
+        const tmp = locsA[0]?.innerHTML;
+        if (tmp !== undefined) { locsA.forEach(el => el.innerHTML = locsB[0].innerHTML); locsB.forEach(el => el.innerHTML = tmp); }
         alert('Network error: ' + e.message);
     }
 }
