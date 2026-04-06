@@ -93,13 +93,17 @@ def pick_order(order_id):
                     'bay': int(part.active_bay) if part.active_bay else 99,
                     'shelf': int(part.active_shelf) if part.active_shelf else 99,
                     'loc': int(part.active_location) if part.active_location else 99,
-                    'slots': []
+                    'slots': [],
+                    'any_pick_item_id': None,
                 }
 
             pick_item = PickItem.query.join(OrderItem).filter(
                 OrderItem.id == item.id,
                 PickItem.part_template_id == template.id
             ).first()
+
+            if pick_item and location_groups[group_key]['any_pick_item_id'] is None:
+                location_groups[group_key]['any_pick_item_id'] = pick_item.id
 
             location_groups[group_key]['slots'].append({
                 'slot': item.slot,
@@ -148,13 +152,8 @@ def toggle(pick_item_id):
                 pi.picked_by = session['user_id']
                 pi.picked_at = datetime.utcnow()
 
-        elif action == 'missing':
-            for pi in siblings:
-                pi.is_picked = False
-                pi.is_missing = True
-                pi.picked_by = None
-                pi.picked_at = None
-            # depleted automatico: elimina el registro activo de esa parte
+        elif action == 'deplete':
+            # solo elimina el activo del inventario, no toca el estado del pick item
             pt = PartTemplate.query.get(pick_item.part_template_id)
             if pt:
                 active_record = Inventory.query.filter_by(

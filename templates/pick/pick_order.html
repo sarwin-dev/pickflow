@@ -92,6 +92,15 @@
                     Cart {{ 'A' if group.cart == 1 else 'B' }}
                 </span>
                 <span style="font-size:13px; color:#6b7280;">QTY: {{ group.slots|length }}</span>
+                {% if group.any_pick_item_id %}
+                <button type="button"
+                        onclick="depleteGroup(this, {{ group.any_pick_item_id }})"
+                        style="font-size:11px; padding:3px 10px; border-radius:6px;
+                               border:1px solid #fca5a5; background:#fff5f5; color:#dc2626;
+                               cursor:pointer; font-weight:600; white-space:nowrap;">
+                    Depleted
+                </button>
+                {% endif %}
             </div>
         </div>
 
@@ -144,15 +153,6 @@
     </a>
 </div>
 
-<!-- mensaje cuando esta completa pero con missing -->
-<div id="order-with-missing" style="display:none; text-align:center; padding:2rem;">
-    <div style="font-size:48px; margin-bottom:1rem;">⚠</div>
-    <h2 style="color:#92400e; margin-bottom:8px;">Order Finished with Missing Parts</h2>
-    <p style="color:#666;">Some parts were not available. Once pulldown is done, come back and pick the missing items.</p>
-    <a href="/pick" class="btn-primary" style="display:inline-block; margin-top:1rem; width:auto; padding:10px 24px;">
-        Back to Orders
-    </a>
-</div>
 
 <style>
     .active-filter {
@@ -185,26 +185,20 @@
     const allButtons = document.querySelectorAll('.tristate-btn');
     let total = allButtons.length;
     let picked = 0;
-    let missing = 0;
+    let missing = 0; // mantenido para compatibilidad con respuesta del servidor
 
     // cuenta estados iniciales
     allButtons.forEach(btn => {
         if (btn.dataset.state === 'picked') picked++;
-        else if (btn.dataset.state === 'missing') missing++;
     });
 
     document.getElementById('total-count').textContent = total;
     updateProgress();
 
-    // si la orden ya esta completa al cargar la pagina, muestra el overlay correcto
-    if (total > 0 && picked + missing === total) {
-        if (missing > 0) {
-            // mantiene la lista visible para q el picker pueda actuar en los missing
-            document.getElementById('order-with-missing').style.display = 'block';
-        } else {
-            document.getElementById('pick-list').style.display = 'none';
-            document.getElementById('order-complete').style.display = 'block';
-        }
+    // si la orden ya esta completa al cargar la pagina
+    if (total > 0 && picked === total) {
+        document.getElementById('pick-list').style.display = 'none';
+        document.getElementById('order-complete').style.display = 'block';
     }
 
     function applyState(btn, label, state) {
@@ -216,13 +210,6 @@
             label.style.textDecoration = 'line-through';
             label.style.color = '#9ca3af';
             label.style.fontWeight = 'normal';
-        } else if (state === 'missing') {
-            btn.textContent = '✕';
-            btn.style.background = '#fef3c7';
-            btn.style.borderColor = '#f59e0b';
-            label.style.textDecoration = 'none';
-            label.style.color = '#92400e';
-            label.style.fontWeight = '500';
         } else {
             btn.textContent = '';
             btn.style.background = 'white';
@@ -233,24 +220,15 @@
         }
     }
 
-    // cicla entre los 3 estados
+    // cicla entre 2 estados: pending <-> picked
     allButtons.forEach(btn => {
         btn.addEventListener('click', async function () {
             const pickId = this.dataset.id;
             const currentState = this.dataset.state;
             const label = document.getElementById('label-' + pickId);
 
-            let nextState, action;
-            if (currentState === 'pending') {
-                nextState = 'picked';
-                action = 'pick';
-            } else if (currentState === 'picked') {
-                nextState = 'missing';
-                action = 'missing';
-            } else {
-                nextState = 'pending';
-                action = 'reset';
-            }
+            const nextState = currentState === 'pending' ? 'picked' : 'pending';
+            const action   = currentState === 'pending' ? 'pick'   : 'reset';
 
             // actualiza visualmente de inmediato (optimistic UI)
             applyState(this, label, nextState);
@@ -264,51 +242,59 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // confirma con los conteos reales del servidor
                     picked = data.picked;
                     missing = data.missing;
                     total = data.total;
                     updateProgress();
 
-                    if (missing < total) {
-                        document.getElementById('order-with-missing').style.display = 'none';
-                    }
-
-                    if (picked + missing === total) {
+                    if (picked === total) {
                         setTimeout(() => {
-                            if (missing > 0) {
-                                document.getElementById('order-with-missing').style.display = 'block';
-                            } else {
-                                document.getElementById('pick-list').style.display = 'none';
-                                document.getElementById('order-complete').style.display = 'block';
-                            }
+                            document.getElementById('pick-list').style.display = 'none';
+                            document.getElementById('order-complete').style.display = 'block';
                         }, 500);
                     }
                 } else {
-                    // revierte si el servidor fallo
                     applyState(this, label, currentState);
                 }
             } catch (e) {
-                // revierte si hubo error de red
                 applyState(this, label, currentState);
                 console.error('Error:', e);
             }
         });
     });
 
+    async function depleteGroup(btn, pickItemId) {
+        if (!confirm('Mark this part as depleted? The active inventory record will be removed.')) return;
+        btn.disabled = true;
+        btn.textContent = '...';
+        try {
+            const response = await fetch(`/pick/toggle/${pickItemId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deplete' })
+            });
+            const data = await response.json();
+            if (data.success) {
+                btn.textContent = 'Depleted ✓';
+                btn.style.background = '#fee2e2';
+                btn.style.borderColor = '#ef4444';
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Depleted';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Depleted';
+            console.error('Error:', e);
+        }
+    }
+
     function updateProgress() {
         document.getElementById('picked-count').textContent = picked;
         document.getElementById('total-count').textContent = total;
-        // la barra solo refleja lo picked - missing no cuenta como completado
         const pct = total > 0 ? Math.round(picked / total * 100) : 0;
         document.getElementById('progress-bar').style.width = pct + '%';
-        // cambia el color de la barra segun si hay missing
-        const bar = document.getElementById('progress-bar');
-        if (missing > 0) {
-            bar.style.background = '#f59e0b'; // amarillo si hay missing
-        } else {
-            bar.style.background = '#059669'; // verde si todo picked
-        }
+        document.getElementById('progress-bar').style.background = '#059669';
     }
 
     document.querySelectorAll('.color-swatch[data-hex]').forEach(el => {
