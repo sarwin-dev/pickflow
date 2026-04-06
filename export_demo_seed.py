@@ -2,13 +2,19 @@
 Run once when the DB is in perfect demo state:
     python export_demo_seed.py
 
-Generates demo_seed.json with Colors, CabinetTypes (+ PartTemplates), and Parts.
+Generates demo_seed.json with:
+- Colors
+- Cabinet Types (+ PartTemplates)
+- Parts (with active location assignments)
+- Warehouse Config
+- Active inventory records (is_active=True)
 """
 import json
 from app import app
-from models import Color, CabinetType, PartTemplate, Part
+from models import Color, CabinetType, PartTemplate, Part, WarehouseConfig, Inventory
 
 with app.app_context():
+    config = WarehouseConfig.query.first()
     seed = {
         "colors": [
             {"name": c.name, "hex_code": c.hex_code}
@@ -26,13 +32,10 @@ with app.app_context():
                         "cart": pt.cart,
                         "is_optional": pt.is_optional,
                     }
-                    for pt in pt_list
+                    for pt in PartTemplate.query.filter_by(cabinet_type_id=ct.id).all()
                 ]
             }
-            for ct, pt_list in [
-                (ct, PartTemplate.query.filter_by(cabinet_type_id=ct.id).all())
-                for ct in CabinetType.query.order_by(CabinetType.id).all()
-            ]
+            for ct in CabinetType.query.order_by(CabinetType.id).all()
         ],
         "parts": [
             {
@@ -42,6 +45,23 @@ with app.app_context():
             }
             for p in Part.query.order_by(Part.id).all()
         ],
+        "warehouse_config": {
+            "total_aisles": config.total_aisles,
+            "total_bays": config.total_bays,
+            "total_shelves": config.total_shelves,
+            "total_locations": config.total_locations,
+            "active_shelves": config.active_shelves,
+        } if config else None,
+        "active_inventory": [
+            {
+                "part_name": r.part.name,
+                "aisle": r.aisle, "bay": r.bay,
+                "shelf": r.shelf, "location": r.location,
+                "quantity": r.quantity,
+                "min_quantity": r.min_quantity,
+            }
+            for r in Inventory.query.filter_by(is_active=True).order_by(Inventory.id).all()
+        ],
     }
 
 with open("demo_seed.json", "w") as f:
@@ -49,5 +69,6 @@ with open("demo_seed.json", "w") as f:
 
 print(f"Exported: {len(seed['colors'])} colors, "
       f"{len(seed['cabinet_types'])} cabinet types, "
-      f"{len(seed['parts'])} parts.")
+      f"{len(seed['parts'])} parts, "
+      f"{len(seed['active_inventory'])} active records.")
 print("demo_seed.json ready.")

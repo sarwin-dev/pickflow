@@ -438,12 +438,9 @@ def demo_reset():
     db.session.commit()
 
     # Restaurar Colors
-    color_map = {}
     for c in seed['colors']:
-        obj = Color(name=c['name'], hex_code=c.get('hex_code'))
-        db.session.add(obj)
-        db.session.flush()
-        color_map[c['name']] = obj.id
+        db.session.add(Color(name=c['name'], hex_code=c.get('hex_code')))
+    db.session.flush()
 
     # Restaurar Parts
     part_map = {}
@@ -475,9 +472,39 @@ def demo_reset():
                     is_optional=pt.get('is_optional', False),
                 ))
 
+    # Restaurar Warehouse Config
+    if seed.get('warehouse_config'):
+        from models import WarehouseConfig
+        wc = WarehouseConfig.query.first()
+        cfg = seed['warehouse_config']
+        if wc:
+            wc.total_aisles    = cfg['total_aisles']
+            wc.total_bays      = cfg['total_bays']
+            wc.total_shelves   = cfg['total_shelves']
+            wc.total_locations = cfg['total_locations']
+            wc.active_shelves  = cfg['active_shelves']
+        else:
+            db.session.add(WarehouseConfig(**cfg))
+
+    # Restaurar registros activos
+    active_count = 0
+    for r in seed.get('active_inventory', []):
+        part_id = part_map.get(r['part_name'])
+        if part_id:
+            db.session.add(Inventory(
+                part_id=part_id,
+                aisle=r['aisle'], bay=r['bay'],
+                shelf=r['shelf'], location=r['location'],
+                quantity=r['quantity'],
+                min_quantity=r.get('min_quantity', 100),
+                is_active=True,
+            ))
+            active_count += 1
+
     db.session.commit()
     return jsonify({
         'colors': len(seed['colors']),
         'cabinet_types': len(seed['cabinet_types']),
         'parts': len(seed['parts']),
+        'active_records': active_count,
     })
