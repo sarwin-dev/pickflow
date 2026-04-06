@@ -153,7 +153,7 @@ def toggle(pick_item_id):
                 pi.picked_at = datetime.utcnow()
 
         elif action == 'deplete':
-            # solo elimina el activo del inventario, no toca el estado del pick item
+            # elimina el activo del inventario
             pt = PartTemplate.query.get(pick_item.part_template_id)
             if pt:
                 active_record = Inventory.query.filter_by(
@@ -162,6 +162,15 @@ def toggle(pick_item_id):
                 if active_record:
                     db.session.delete(active_record)
                     depleted = True
+            # marca como missing todos los pick items pendientes de esta parte en la orden
+            pending_items = PickItem.query.join(OrderItem).filter(
+                OrderItem.work_order_id == order.id,
+                PickItem.part_template_id == pick_item.part_template_id,
+                PickItem.is_picked == False,
+                PickItem.is_missing == False
+            ).all()
+            for pi in pending_items:
+                pi.is_missing = True
 
         elif action == 'reset':
             for pi in siblings:
@@ -201,9 +210,33 @@ def toggle(pick_item_id):
             'picked': picked,
             'missing': missing,
             'total': total,
-            'depleted': depleted if action == 'missing' else None,
+            'depleted': depleted,
         })
     return jsonify({'error': 'not found'}), 404
+
+# cierra la orden marcando todo lo pendiente como missing
+@pick_bp.route('/<int:order_id>/complete', methods=['POST'])
+def complete_order(order_id):
+    check = picker_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 401
+    order = WorkOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'not found'}), 404
+
+    # marca todos los pendientes como missing
+    pending = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id,
+        PickItem.is_picked == False,
+        PickItem.is_missing == False
+    ).all()
+    for pi in pending:
+        pi.is_missing = True
+
+    order.status = 'completed'
+    db.session.commit()
+    return jsonify({'success': True})
+
 
 # resetea una orden a pending - solo supervisor y admin
 @pick_bp.route('/reset/<int:order_id>')

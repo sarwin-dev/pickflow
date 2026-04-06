@@ -50,7 +50,14 @@
         <option value="1">Cart A</option>
         <option value="2">Cart B</option>
     </select>
-    <a href="/pick" class="btn-secondary" style="margin-left:auto;">← Back</a>
+    <div style="display:flex; gap:8px; margin-left:auto;">
+        <a href="/pick" class="btn-secondary">← Back</a>
+        <button onclick="completeOrder({{ order.id }})"
+                class="btn-secondary"
+                style="border-color:#f59e0b; color:#92400e; background:#fffbeb; font-weight:600;">
+            Complete Order
+        </button>
+    </div>
 </div>
 
 <!-- filtro por aisle -->
@@ -210,6 +217,14 @@
             label.style.textDecoration = 'line-through';
             label.style.color = '#9ca3af';
             label.style.fontWeight = 'normal';
+        } else if (state === 'missing') {
+            btn.textContent = '✕';
+            btn.style.background = '#fee2e2';
+            btn.style.borderColor = '#fca5a5';
+            btn.disabled = true;
+            label.style.textDecoration = 'none';
+            label.style.color = '#dc2626';
+            label.style.fontWeight = '500';
         } else {
             btn.textContent = '';
             btn.style.background = 'white';
@@ -264,7 +279,7 @@
     });
 
     async function depleteGroup(btn, pickItemId) {
-        if (!confirm('Mark this part as depleted? The active inventory record will be removed.')) return;
+        if (!confirm('Mark this part as depleted? Unpicked slots will be marked as missing.')) return;
         btn.disabled = true;
         btn.textContent = '...';
         try {
@@ -278,6 +293,26 @@
                 btn.textContent = 'Depleted ✓';
                 btn.style.background = '#fee2e2';
                 btn.style.borderColor = '#ef4444';
+
+                // marca visualmente como missing todas las casillas pendientes del grupo
+                const group = btn.closest('.pick-group');
+                group.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
+                    const lbl = document.getElementById('label-' + b.dataset.id);
+                    applyState(b, lbl, 'missing');
+                });
+
+                // actualiza conteos y revisa si la orden cierra
+                picked = data.picked;
+                missing = data.missing;
+                total = data.total;
+                updateProgress();
+
+                if (picked + missing === total) {
+                    setTimeout(() => {
+                        document.getElementById('pick-list').style.display = 'none';
+                        document.getElementById('order-complete').style.display = 'block';
+                    }, 600);
+                }
             } else {
                 btn.disabled = false;
                 btn.textContent = 'Depleted';
@@ -285,6 +320,30 @@
         } catch (e) {
             btn.disabled = false;
             btn.textContent = 'Depleted';
+            console.error('Error:', e);
+        }
+    }
+
+    async function completeOrder(orderId) {
+        if (!confirm('Complete this order? All unpicked parts will be marked as missing.')) return;
+        try {
+            const response = await fetch(`/pick/${orderId}/complete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                // marca visualmente todos los pendientes como missing
+                document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
+                    const lbl = document.getElementById('label-' + b.dataset.id);
+                    applyState(b, lbl, 'missing');
+                });
+                setTimeout(() => {
+                    document.getElementById('pick-list').style.display = 'none';
+                    document.getElementById('order-complete').style.display = 'block';
+                }, 400);
+            }
+        } catch (e) {
             console.error('Error:', e);
         }
     }
