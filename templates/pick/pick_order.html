@@ -52,9 +52,11 @@
     </select>
     <div style="display:flex; gap:8px; margin-left:auto;">
         <a href="/pick" class="btn-secondary">← Back</a>
-        <button onclick="completeOrder({{ order.id }})"
+        <button id="btn-complete-order"
+                onclick="completeOrder({{ order.id }})"
                 class="btn-secondary"
-                style="border-color:#f59e0b; color:#92400e; background:#fffbeb; font-weight:600;">
+                style="border-color:#f59e0b; color:#92400e; background:#fffbeb; font-weight:600;"
+                disabled>
             Complete Order
         </button>
     </div>
@@ -354,6 +356,11 @@
         const pct = total > 0 ? Math.round(picked / total * 100) : 0;
         document.getElementById('progress-bar').style.width = pct + '%';
         document.getElementById('progress-bar').style.background = '#059669';
+
+        const completeBtn = document.getElementById('btn-complete-order');
+        if (completeBtn) {
+            completeBtn.disabled = (picked + missing) === 0;
+        }
     }
 
     document.querySelectorAll('.color-swatch[data-hex]').forEach(el => {
