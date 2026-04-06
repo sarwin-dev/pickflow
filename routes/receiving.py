@@ -201,6 +201,16 @@ def pulldown(record_id):
     return redirect(next_url)
 
 
+@receiving_bp.route('/demo-clear', methods=['POST'])
+def demo_clear():
+    check = warehouse_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+    deleted = Inventory.query.filter_by(is_active=False).delete()
+    db.session.commit()
+    return jsonify({'deleted': deleted})
+
+
 @receiving_bp.route('/demo-fill', methods=['POST'])
 def demo_fill():
     check = warehouse_required()
