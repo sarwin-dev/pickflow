@@ -194,9 +194,29 @@ def pulldown(record_id):
     if check:
         return check
     record = Inventory.query.get(record_id)
-    if record:
-        db.session.delete(record)
+    if not record:
+        next_url = request.form.get('next') or url_for('receiving.index')
+        return redirect(next_url)
+
+    part = Part.query.get(record.part_id)
+
+    if part and part.active_aisle:
+        # Mover a la ubicacion activa declarada en la parte
+        record.aisle     = part.active_aisle
+        record.bay       = part.active_bay
+        record.shelf     = part.active_shelf
+        record.location  = part.active_location
+        record.is_active = True
+        record.updated_at = datetime.utcnow()
         db.session.commit()
+        flash(f'Box pulled down to active location A{part.active_aisle} B{part.active_bay} S{part.active_shelf}.', 'success')
+    else:
+        # Si la parte no tiene ubicacion activa definida, solo cambiar estado
+        record.is_active = True
+        record.updated_at = datetime.utcnow()
+        db.session.commit()
+        flash('Box marked as active. No active location defined for this part — set it in Admin > Parts.', 'error')
+
     next_url = request.form.get('next') or url_for('receiving.index')
     return redirect(next_url)
 
