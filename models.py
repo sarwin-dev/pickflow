@@ -145,6 +145,7 @@ class WarehouseConfig(db.Model):
     total_shelves = db.Column(db.Integer, nullable=False, default=6)
     total_locations = db.Column(db.Integer, nullable=False, default=4)
     active_shelves = db.Column(db.Integer, nullable=False, default=2)
+    max_cart_slots = db.Column(db.Integer, nullable=False, default=24)
     # etiquetas dinamicas - cada empresa usa su propia terminologia
     label_aisle = db.Column(db.String(50), nullable=False, default='Aisle')
     label_bay = db.Column(db.String(50), nullable=False, default='Bay')

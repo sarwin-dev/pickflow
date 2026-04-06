@@ -51,6 +51,16 @@ with app.app_context():
             "total_shelves": config.total_shelves,
             "total_locations": config.total_locations,
             "active_shelves": config.active_shelves,
+            "max_cart_slots": config.max_cart_slots,
+            "name": config.name,
+            "label_aisle": config.label_aisle,
+            "label_bay": config.label_bay,
+            "label_shelf": config.label_shelf,
+            "label_location": config.label_location,
+            "prefix_aisle": config.prefix_aisle,
+            "prefix_bay": config.prefix_bay,
+            "prefix_shelf": config.prefix_shelf,
+            "prefix_location": config.prefix_location,
         } if config else None,
         "active_inventory": [
             {

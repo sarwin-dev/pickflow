@@ -494,13 +494,32 @@ def demo_reset():
         wc = WarehouseConfig.query.first()
         cfg = seed['warehouse_config']
         if wc:
+            wc.name            = cfg.get('name', 'My Warehouse')
             wc.total_aisles    = cfg['total_aisles']
             wc.total_bays      = cfg['total_bays']
             wc.total_shelves   = cfg['total_shelves']
             wc.total_locations = cfg['total_locations']
             wc.active_shelves  = cfg['active_shelves']
+            wc.max_cart_slots  = cfg.get('max_cart_slots', 24)
+            wc.label_aisle     = cfg.get('label_aisle', 'Aisle')
+            wc.label_bay       = cfg.get('label_bay', 'Bay')
+            wc.label_shelf     = cfg.get('label_shelf', 'Shelf')
+            wc.label_location  = cfg.get('label_location', 'Location')
+            wc.prefix_aisle    = cfg.get('prefix_aisle', 'A')
+            wc.prefix_bay      = cfg.get('prefix_bay', 'B')
+            wc.prefix_shelf    = cfg.get('prefix_shelf', 'S')
+            wc.prefix_location = cfg.get('prefix_location', 'L')
         else:
-            db.session.add(WarehouseConfig(**cfg))
+            db.session.add(WarehouseConfig(
+                name=cfg.get('name', 'My Warehouse'),
+                total_aisles=cfg['total_aisles'], total_bays=cfg['total_bays'],
+                total_shelves=cfg['total_shelves'], total_locations=cfg['total_locations'],
+                active_shelves=cfg['active_shelves'], max_cart_slots=cfg.get('max_cart_slots', 24),
+                label_aisle=cfg.get('label_aisle', 'Aisle'), label_bay=cfg.get('label_bay', 'Bay'),
+                label_shelf=cfg.get('label_shelf', 'Shelf'), label_location=cfg.get('label_location', 'Location'),
+                prefix_aisle=cfg.get('prefix_aisle', 'A'), prefix_bay=cfg.get('prefix_bay', 'B'),
+                prefix_shelf=cfg.get('prefix_shelf', 'S'), prefix_location=cfg.get('prefix_location', 'L'),
+            ))
 
     # Restaurar registros activos
     active_count = 0
