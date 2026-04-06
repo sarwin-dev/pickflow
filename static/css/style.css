@@ -459,6 +459,9 @@ body {
     font-size: 14px;
     font-weight: 500;
     transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-create:hover {
