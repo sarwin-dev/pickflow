@@ -143,6 +143,28 @@ function clearSwapSelection() {
 }
 
 async function doSwap(recordAId, recordBId) {
+    // swap visual inmediato (optimistic UI)
+    const locA = document.getElementById('loc-' + recordAId);
+    const locB = document.getElementById('loc-' + recordBId);
+    const btnA = document.getElementById('swap-btn-' + recordAId);
+    const btnB = document.getElementById('swap-btn-' + recordBId);
+
+    if (locA && locB) {
+        const tmp = locA.innerHTML;
+        locA.innerHTML = locB.innerHTML;
+        locB.innerHTML = tmp;
+        // flash verde en ambos
+        [locA, locB].forEach(el => {
+            el.style.transition = 'color 0.2s';
+            el.style.color = '#16a34a';
+            setTimeout(() => { el.style.color = ''; }, 800);
+        });
+    }
+    if (btnA) { btnA.style.background = '#dcfce7'; btnA.style.color = '#16a34a'; btnA.style.borderColor = '#86efac'; }
+    if (btnB) { btnB.style.background = '#dcfce7'; btnB.style.color = '#16a34a'; btnB.style.borderColor = '#86efac'; }
+    clearSwapSelection();
+
+    // confirma con el servidor en segundo plano
     try {
         const res = await fetch('/inventory/swap', {
             method: 'POST',
@@ -150,16 +172,21 @@ async function doSwap(recordAId, recordBId) {
             body: JSON.stringify({ record_a_id: recordAId, record_b_id: recordBId })
         });
         const data = await res.json();
-        if (data.success) {
-            clearSwapSelection();
+        if (!data.success) {
+            // revierte si fallo
+            if (locA && locB) { const tmp = locA.innerHTML; locA.innerHTML = locB.innerHTML; locB.innerHTML = tmp; }
+            alert('Swap failed: ' + (data.error || 'unknown error'));
             window.location.reload();
         } else {
-            alert('Swap failed: ' + (data.error || 'unknown error'));
-            clearSwapSelection();
+            // restaura colores de botones tras confirmacion
+            setTimeout(() => {
+                if (btnA) { btnA.style.background = '#eef2ff'; btnA.style.color = '#4f46e5'; btnA.style.borderColor = '#c7d2fe'; }
+                if (btnB) { btnB.style.background = '#eef2ff'; btnB.style.color = '#4f46e5'; btnB.style.borderColor = '#c7d2fe'; }
+            }, 1000);
         }
     } catch (e) {
+        if (locA && locB) { const tmp = locA.innerHTML; locA.innerHTML = locB.innerHTML; locB.innerHTML = tmp; }
         alert('Network error: ' + e.message);
-        clearSwapSelection();
     }
 }
 </script>

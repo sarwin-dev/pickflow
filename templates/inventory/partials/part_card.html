@@ -48,13 +48,13 @@
             <tr id="row-{{ record.id }}">
                 <td>
                     {% if record.aisle %}
-                    <span style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
+                    <span id="loc-{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
                         A{{ '%02d'|format(record.aisle|int) }}
                         B{{ '%02d'|format(record.bay|int) }}
                         S{{ '%02d'|format(record.shelf|int) }}
                         {% if record.location %}L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </span>
-                    {% else %}<span style="color:#ccc;">No location</span>{% endif %}
+                    {% else %}<span id="loc-{{ record.id }}" style="color:#ccc;">No location</span>{% endif %}
                 </td>
                 <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
                 <td style="text-align:center;">
@@ -151,7 +151,7 @@
             <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;">
                 <div style="flex:1; min-width:0;">
                     {% if record.aisle %}
-                    <div style="font-family:monospace; font-size:14px; font-weight:700;
+                    <div id="loc-{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:700;
                                 color:#1e1b4b; letter-spacing:.04em; line-height:1.1;">
                         A{{ '%02d'|format(record.aisle|int) }}&middot;B{{ '%02d'|format(record.bay|int) }}&middot;S{{ '%02d'|format(record.shelf|int) }}{% if record.location %}&middot;L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </div>
