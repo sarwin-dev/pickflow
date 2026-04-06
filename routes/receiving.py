@@ -215,15 +215,13 @@ def demo_fill():
     if not parts:
         return jsonify({'error': 'No parts in system'}), 400
 
-    # Ubicaciones ocupadas en overflow
+    # Ubicaciones libres en overflow
     occupied = set()
     for r in Inventory.query.filter_by(is_active=False).all():
         if r.aisle and r.bay and r.shelf:
             occupied.add((r.aisle, r.bay, r.shelf, r.location or ''))
 
-    filled = 0
-    full = False
-
+    free_slots = []
     for aisle in range(1, config.total_aisles + 1):
         for bay in range(1, config.total_bays + 1):
             for shelf in range(config.active_shelves + 1, config.total_shelves + 1):
@@ -231,36 +229,34 @@ def demo_fill():
                     for loc in range(1, config.total_locations + 1):
                         key = (str(aisle), str(bay), str(shelf), str(loc))
                         if key not in occupied:
-                            part = random.choice(parts)
-                            qty = random.choice([90, 100, 120])
-                            db.session.add(Inventory(
-                                part_id=part.id,
-                                aisle=str(aisle), bay=str(bay),
-                                shelf=str(shelf), location=str(loc),
-                                quantity=qty, is_active=False,
-                            ))
-                            filled += 1
+                            free_slots.append((str(aisle), str(bay), str(shelf), str(loc)))
                 else:
                     key = (str(aisle), str(bay), str(shelf), '')
                     if key not in occupied:
-                        part = random.choice(parts)
-                        qty = random.choice([90, 100, 120])
-                        db.session.add(Inventory(
-                            part_id=part.id,
-                            aisle=str(aisle), bay=str(bay),
-                            shelf=str(shelf), location=None,
-                            quantity=qty, is_active=False,
-                        ))
-                        filled += 1
+                        free_slots.append((str(aisle), str(bay), str(shelf), None))
+
+    if not free_slots:
+        return jsonify({'filled': 0, 'full': True})
+
+    # Distribuir partes en round-robin shuffleado para que todas aparezcan
+    random.shuffle(parts)
+    part_cycle = (parts * (len(free_slots) // len(parts) + 1))[:len(free_slots)]
+    random.shuffle(part_cycle)
+
+    for (aisle, bay, shelf, loc), part in zip(free_slots, part_cycle):
+        qty = random.choice([90, 100, 120])
+        db.session.add(Inventory(
+            part_id=part.id,
+            aisle=aisle, bay=bay, shelf=shelf,
+            location=loc,
+            quantity=qty, is_active=False,
+        ))
 
     db.session.commit()
 
     total_slots = config.total_aisles * config.total_bays * (config.total_shelves - config.active_shelves)
     if config.total_locations > 0:
         total_slots *= config.total_locations
-    remaining = total_slots - len(occupied) - filled
+    full = (len(occupied) + len(free_slots)) >= total_slots
 
-    if remaining <= 0:
-        full = True
-
-    return jsonify({'filled': filled, 'full': full})
+    return jsonify({'filled': len(free_slots), 'full': full})
