@@ -9,6 +9,26 @@
 
 <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; max-width:900px;">
 
+    <!-- Reset Demo -->
+    <div style="background:white; border:2px solid {% if has_seed %}#bbf7d0{% else %}#fecaca{% endif %}; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Reset to Demo State</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Clears Colors, Cabinet Types, Parts and Inventory, then reloads from
+            <code>demo_seed.json</code>. Use Fill Overflow after.
+            {% if not has_seed %}
+            <div style="margin-top:8px; color:#dc2626; font-weight:600;">
+                ⚠ demo_seed.json not found — run export_demo_seed.py first.
+            </div>
+            {% endif %}
+        </div>
+        <button id="btn-reset-demo" onclick="resetDemo()"
+                class="btn-primary" style="width:100%;"
+                {% if not has_seed %}disabled{% endif %}>
+            Reset Demo
+        </button>
+        <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
+    </div>
+
     <!-- Fill Overflow -->
     <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:20px;">
         <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Fill Overflow Warehouse</div>
@@ -46,6 +66,30 @@
 </div>
 
 <script>
+function resetDemo() {
+    if (!confirm('This will clear all inventory, parts, cabinet types and colors, then reload from demo_seed.json. Continue?')) return;
+    const btn = document.getElementById('btn-reset-demo');
+    const msg = document.getElementById('msg-reset-demo');
+    btn.disabled = true;
+    btn.textContent = 'Resetting...';
+    fetch('/admin/demo/reset', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                btn.textContent = 'Reset Demo';
+                btn.disabled = false;
+                msg.style.display = 'block';
+                msg.style.color = '#dc2626';
+                msg.textContent = data.error;
+            } else {
+                btn.textContent = 'Done';
+                msg.style.display = 'block';
+                msg.style.color = '#16a34a';
+                msg.textContent = `Loaded: ${data.colors} colors, ${data.cabinet_types} cabinet types, ${data.parts} parts. Now run Fill Overflow.`;
+            }
+        });
+}
+
 function resetMin() {
     const btn = document.getElementById('btn-reset-min');
     const msg = document.getElementById('msg-reset-min');

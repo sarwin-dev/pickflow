@@ -1,8 +1,10 @@
 import re
-from flask import Blueprint, render_template, session, redirect, url_for, request
+import json
+import os
+from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -409,4 +411,73 @@ def demo():
     check = admin_required()
     if check:
         return check
-    return render_template('admin/demo.html')
+    seed_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo_seed.json')
+    has_seed = os.path.exists(seed_path)
+    return render_template('admin/demo.html', has_seed=has_seed)
+
+
+@admin_bp.route('/demo/reset', methods=['POST'])
+def demo_reset():
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    seed_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo_seed.json')
+    if not os.path.exists(seed_path):
+        return jsonify({'error': 'demo_seed.json not found. Run export_demo_seed.py first.'}), 400
+
+    with open(seed_path) as f:
+        seed = json.load(f)
+
+    # Limpiar en orden (foreign keys)
+    Inventory.query.delete()
+    PartTemplate.query.delete()
+    Part.query.delete()
+    CabinetType.query.delete()
+    Color.query.delete()
+    db.session.commit()
+
+    # Restaurar Colors
+    color_map = {}
+    for c in seed['colors']:
+        obj = Color(name=c['name'], hex_code=c.get('hex_code'))
+        db.session.add(obj)
+        db.session.flush()
+        color_map[c['name']] = obj.id
+
+    # Restaurar Parts
+    part_map = {}
+    for p in seed['parts']:
+        obj = Part(
+            name=p['name'], is_shared=p['is_shared'],
+            active_aisle=p.get('active_aisle'), active_bay=p.get('active_bay'),
+            active_shelf=p.get('active_shelf'), active_location=p.get('active_location'),
+        )
+        db.session.add(obj)
+        db.session.flush()
+        part_map[p['name']] = obj.id
+
+    # Restaurar CabinetTypes + PartTemplates
+    for ct in seed['cabinet_types']:
+        obj = CabinetType(
+            code=ct['code'], name=ct['name'],
+            width=ct['width'], height=ct.get('height'),
+            color=ct.get('color'), is_custom=ct.get('is_custom', False),
+        )
+        db.session.add(obj)
+        db.session.flush()
+        for pt in ct.get('part_templates', []):
+            part_id = part_map.get(pt['part_name'])
+            if part_id:
+                db.session.add(PartTemplate(
+                    cabinet_type_id=obj.id, part_id=part_id,
+                    quantity=pt['quantity'], cart=pt['cart'],
+                    is_optional=pt.get('is_optional', False),
+                ))
+
+    db.session.commit()
+    return jsonify({
+        'colors': len(seed['colors']),
+        'cabinet_types': len(seed['cabinet_types']),
+        'parts': len(seed['parts']),
+    })
