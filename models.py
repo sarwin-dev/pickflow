@@ -107,7 +107,7 @@ class Inventory(db.Model):
     location = db.Column(db.String(5), nullable=True)
     quantity = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=False, index=True)
-    min_quantity = db.Column(db.Integer, default=10)
+    min_quantity = db.Column(db.Integer, default=100)
     received_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     part = db.relationship('Part', backref='inventory_records')
