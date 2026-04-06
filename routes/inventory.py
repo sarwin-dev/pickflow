@@ -27,10 +27,12 @@ def build_part_item(part):
     else:
         status = 'ok'
     in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
+    needs_pulldown = active_total == 0 and overflow_total > 0
     return {
         'part': part, 'records': records,
         'overflow_total': overflow_total, 'active_total': active_total,
         'min_qty': min_qty, 'status': status, 'in_list': in_list,
+        'needs_pulldown': needs_pulldown,
     }
 
 def inventory_required():
@@ -72,6 +74,9 @@ def index():
             if filter_mode == 'low' and item['in_list']:
                 continue
             part_results.append(item)
+
+        # partes que necesitan pulldown primero
+        part_results.sort(key=lambda x: (not x['needs_pulldown'], x['part'].name))
 
     shopping_count = ShoppingListItem.query.count()
 

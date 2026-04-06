@@ -1,10 +1,19 @@
 <div id="part-card-{{ item.part.id }}"
-     style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:24px; margin-bottom:24px;">
+     style="background:white;
+            border:2px solid {% if item.needs_pulldown %}#ef4444{% else %}#e5e7eb{% endif %};
+            border-radius:10px; padding:24px; margin-bottom:24px;
+            {% if item.needs_pulldown %}box-shadow:0 0 0 4px #fee2e2;{% endif %}">
 
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
         <div>
             <h2 style="font-size:20px; font-weight:700; margin:0;">{{ item.part.name }}</h2>
-            <div style="margin-top:8px;">
+            <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                {% if item.needs_pulldown %}
+                <span style="background:#dc2626; color:white; font-size:12px; font-weight:700;
+                             padding:3px 10px; border-radius:12px; letter-spacing:.03em;">
+                    ↓ NEEDS PULLDOWN
+                </span>
+                {% endif %}
                 {% if item.status == 'out' %}
                 <span class="badge badge-out">● Out of Stock</span>
                 {% elif item.status == 'low' %}
