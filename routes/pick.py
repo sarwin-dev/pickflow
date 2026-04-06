@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from extensions import db
-from models import WorkOrder, OrderItem, PickItem, Part
+from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate
 from datetime import datetime
 
 pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
@@ -134,6 +134,14 @@ def toggle(pick_item_id):
             pick_item.is_missing = True
             pick_item.picked_by = None
             pick_item.picked_at = None
+            # depleted automatico: elimina el registro activo de esa parte
+            pt = PartTemplate.query.get(pick_item.part_template_id)
+            if pt:
+                active_record = Inventory.query.filter_by(
+                    part_id=pt.part_id, is_active=True
+                ).first()
+                if active_record:
+                    db.session.delete(active_record)
 
         elif action == 'reset':
             # vuelve a pending
