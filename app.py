@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
 from extensions import db
 
@@ -66,6 +66,20 @@ with app.app_context():
             db.session.commit()
     except Exception as e:
         print(f'DB init error: {e}')
+
+SETUP_REQUIRED_PREFIXES = ('/receiving', '/inventory', '/orders', '/pick', '/supervision', '/losses')
+
+@app.before_request
+def check_setup():
+    if 'user_id' not in session:
+        return
+    if not request.path.startswith(SETUP_REQUIRED_PREFIXES):
+        return
+    from models import WarehouseConfig
+    if not WarehouseConfig.query.first():
+        flash('Warehouse is not configured. Load demo data first.', 'error')
+        return redirect(url_for('dashboard'))
+
 
 @app.route('/')
 def inicio():

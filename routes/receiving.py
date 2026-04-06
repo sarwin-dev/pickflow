@@ -21,6 +21,9 @@ def index():
     if check:
         return check
     config = WarehouseConfig.query.first()
+    if not config:
+        flash('Warehouse is not configured yet. Load demo data or set up the warehouse first.', 'error')
+        return redirect(url_for('dashboard'))
     parts = Part.query.order_by(Part.name).all()
     pending = session.get('pending_receive')
     records = ReceivingLog.query.order_by(ReceivingLog.received_at.asc()).limit(50).all()
