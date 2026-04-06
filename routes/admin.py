@@ -421,17 +421,13 @@ def demo_clear_all():
     check = admin_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
-    PickItem.query.delete()
-    OrderItem.query.delete()
-    WorkOrder.query.delete()
-    ShoppingListItem.query.delete()
-    Loss.query.delete()
-    Inventory.query.delete()
-    PartTemplate.query.delete()
-    Part.query.delete()
-    CabinetType.query.delete()
-    Color.query.delete()
-    WarehouseConfig.query.delete()
+    db.session.execute(db.text("""
+        TRUNCATE TABLE pick_items, order_items, work_orders,
+                       shopping_list, losses, inventory,
+                       part_templates, parts, cabinet_types,
+                       colors, warehouse_config
+        RESTART IDENTITY CASCADE
+    """))
     db.session.commit()
     return jsonify({'ok': True})
 
