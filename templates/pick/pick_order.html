@@ -368,7 +368,7 @@
 
         const completeBtn = document.getElementById('btn-complete-order');
         if (completeBtn) {
-            const inactive = (picked + missing) === 0;
+            const inactive = (picked + missing) < total;
             completeBtn.disabled = inactive;
             if (inactive) {
                 completeBtn.style.borderColor = '#d1d5db';
