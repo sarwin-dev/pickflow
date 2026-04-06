@@ -111,9 +111,14 @@ def dashboard():
             WorkOrder.status == 'completed',
             db.func.date(WorkOrder.updated_at) == today
         ).count()
-        stats['low_stock'] = Inventory.query.filter(
-            Inventory.is_active == True,
-            Inventory.quantity <= Inventory.min_quantity
+        from sqlalchemy import func
+        overflow_by_part = db.session.query(
+            Inventory.part_id,
+            func.sum(Inventory.quantity).label('overflow_total'),
+            func.max(Inventory.min_quantity).label('min_qty')
+        ).filter(Inventory.is_active == False).group_by(Inventory.part_id).subquery()
+        stats['low_stock'] = db.session.query(overflow_by_part).filter(
+            overflow_by_part.c.overflow_total <= overflow_by_part.c.min_qty
         ).count()
         stats['on_the_way'] = ShoppingListItem.query.count()
         stats['needs_pulldown'] = needs_pulldown
