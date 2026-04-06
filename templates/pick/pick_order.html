@@ -207,6 +207,32 @@
         }
     }
 
+    function applyState(btn, label, state) {
+        btn.dataset.state = state;
+        if (state === 'picked') {
+            btn.textContent = '✓';
+            btn.style.background = '#dcfce7';
+            btn.style.borderColor = '#86efac';
+            label.style.textDecoration = 'line-through';
+            label.style.color = '#9ca3af';
+            label.style.fontWeight = 'normal';
+        } else if (state === 'missing') {
+            btn.textContent = '✕';
+            btn.style.background = '#fef3c7';
+            btn.style.borderColor = '#f59e0b';
+            label.style.textDecoration = 'none';
+            label.style.color = '#92400e';
+            label.style.fontWeight = '500';
+        } else {
+            btn.textContent = '';
+            btn.style.background = 'white';
+            btn.style.borderColor = '#e5e7eb';
+            label.style.textDecoration = 'none';
+            label.style.color = '#374151';
+            label.style.fontWeight = 'normal';
+        }
+    }
+
     // cicla entre los 3 estados
     allButtons.forEach(btn => {
         btn.addEventListener('click', async function () {
@@ -214,7 +240,6 @@
             const currentState = this.dataset.state;
             const label = document.getElementById('label-' + pickId);
 
-            // determina el siguiente estado
             let nextState, action;
             if (currentState === 'pending') {
                 nextState = 'picked';
@@ -227,6 +252,9 @@
                 action = 'reset';
             }
 
+            // actualiza visualmente de inmediato (optimistic UI)
+            applyState(this, label, nextState);
+
             try {
                 const response = await fetch(`/pick/toggle/${pickId}`, {
                     method: 'POST',
@@ -236,39 +264,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    console.log('picked:', data.picked, 'missing:', data.missing, 'total:', data.total, 'depleted:', data.depleted);
-                    // actualiza visual del boton
-                    this.dataset.state = nextState;
-
-                    if (nextState === 'picked') {
-                        this.textContent = '✓';
-                        this.style.background = '#dcfce7';
-                        this.style.borderColor = '#86efac';
-                        label.style.textDecoration = 'line-through';
-                        label.style.color = '#9ca3af';
-                        label.style.fontWeight = 'normal';
-                    } else if (nextState === 'missing') {
-                        this.textContent = '✕';
-                        this.style.background = '#fef3c7';
-                        this.style.borderColor = '#f59e0b';
-                        label.style.textDecoration = 'none';
-                        label.style.color = '#92400e';
-                        label.style.fontWeight = '500';
-                    } else {
-                        this.textContent = '';
-                        this.style.background = 'white';
-                        this.style.borderColor = '#e5e7eb';
-                        label.style.textDecoration = 'none';
-                        label.style.color = '#374151';
-                        label.style.fontWeight = 'normal';
-                    }
-
+                    // confirma con los conteos reales del servidor
                     picked = data.picked;
                     missing = data.missing;
                     total = data.total;
                     updateProgress();
 
-                    // si habia un banner de missing y ya se resolvio, ocultalo
                     if (missing < total) {
                         document.getElementById('order-with-missing').style.display = 'none';
                     }
@@ -283,8 +284,13 @@
                             }
                         }, 500);
                     }
+                } else {
+                    // revierte si el servidor fallo
+                    applyState(this, label, currentState);
                 }
             } catch (e) {
+                // revierte si hubo error de red
+                applyState(this, label, currentState);
                 console.error('Error:', e);
             }
         });
