@@ -1116,5 +1116,473 @@
       "active_shelf": "1",
       "active_location": "4"
     }
+  ],
+  "warehouse_config": {
+    "total_aisles": 2,
+    "total_bays": 10,
+    "total_shelves": 4,
+    "total_locations": 4,
+    "active_shelves": 1
+  },
+  "active_inventory": [
+    {
+      "part_name": "Side L",
+      "aisle": "1",
+      "bay": "1",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Side R",
+      "aisle": "1",
+      "bay": "1",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 18 Tobacco",
+      "aisle": "2",
+      "bay": "2",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Nailer 21",
+      "aisle": "1",
+      "bay": "10",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 2112 Tobacco",
+      "aisle": "2",
+      "bay": "3",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 15 Tobacco",
+      "aisle": "2",
+      "bay": "2",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 18",
+      "aisle": "1",
+      "bay": "2",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 18 Cloud",
+      "aisle": "2",
+      "bay": "1",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Nailer 12",
+      "aisle": "1",
+      "bay": "10",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Shelf 18",
+      "aisle": "1",
+      "bay": "9",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 18 Tobacco",
+      "aisle": "2",
+      "bay": "5",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 2112 Cloud",
+      "aisle": "2",
+      "bay": "3",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 15 Cloud",
+      "aisle": "2",
+      "bay": "1",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Toe 15",
+      "aisle": "1",
+      "bay": "8",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Shelf 21",
+      "aisle": "1",
+      "bay": "9",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 1812 Cloud",
+      "aisle": "2",
+      "bay": "3",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 12",
+      "aisle": "1",
+      "bay": "2",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Shelf 15",
+      "aisle": "1",
+      "bay": "9",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Toe 21",
+      "aisle": "1",
+      "bay": "8",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 21 Tobacco",
+      "aisle": "2",
+      "bay": "2",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "L And R 12",
+      "aisle": "1",
+      "bay": "6",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 1812 Tobacco",
+      "aisle": "2",
+      "bay": "3",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 21 Cloud",
+      "aisle": "2",
+      "bay": "5",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Nailer 15",
+      "aisle": "1",
+      "bay": "10",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 1821 Cloud",
+      "aisle": "2",
+      "bay": "6",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Toe 12",
+      "aisle": "1",
+      "bay": "8",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 18 Cloud",
+      "aisle": "2",
+      "bay": "5",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 1812 Tobacco",
+      "aisle": "2",
+      "bay": "6",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 2112 Cloud",
+      "aisle": "2",
+      "bay": "6",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Bottom 21",
+      "aisle": "1",
+      "bay": "3",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "B And T 18",
+      "aisle": "1",
+      "bay": "7",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Toe 18",
+      "aisle": "1",
+      "bay": "8",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Nailer 18",
+      "aisle": "1",
+      "bay": "10",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 12 Cloud",
+      "aisle": "2",
+      "bay": "1",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 12 Tobacco",
+      "aisle": "2",
+      "bay": "4",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "B And T 21",
+      "aisle": "1",
+      "bay": "7",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 21 Tobacco",
+      "aisle": "2",
+      "bay": "5",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 12 Tobacco",
+      "aisle": "2",
+      "bay": "2",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 2112",
+      "aisle": "1",
+      "bay": "7",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 15 Cloud",
+      "aisle": "2",
+      "bay": "4",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 1812",
+      "aisle": "1",
+      "bay": "7",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Bottom 18",
+      "aisle": "1",
+      "bay": "3",
+      "shelf": "1",
+      "location": "3",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Front Face 21 Cloud",
+      "aisle": "2",
+      "bay": "1",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 21",
+      "aisle": "1",
+      "bay": "2",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Back 15",
+      "aisle": "1",
+      "bay": "2",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Shelf 12",
+      "aisle": "1",
+      "bay": "9",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 15 Tobacco",
+      "aisle": "2",
+      "bay": "4",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 100,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 2112 Tobacco",
+      "aisle": "2",
+      "bay": "6",
+      "shelf": "1",
+      "location": "4",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Bottom 12",
+      "aisle": "1",
+      "bay": "3",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 120,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Bottom 15",
+      "aisle": "1",
+      "bay": "3",
+      "shelf": "1",
+      "location": "2",
+      "quantity": 90,
+      "min_quantity": 100
+    },
+    {
+      "part_name": "Door 12 Cloud",
+      "aisle": "2",
+      "bay": "4",
+      "shelf": "1",
+      "location": "1",
+      "quantity": 100,
+      "min_quantity": 100
+    }
   ]
 }
