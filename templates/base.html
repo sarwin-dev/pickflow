@@ -154,12 +154,22 @@
         link.innerHTML = '&#8592; Back';
         link.style.cssText = [
             'display:inline-flex', 'align-items:center', 'gap:4px',
-            'font-size:13px', 'font-weight:500', 'color:#6b7280',
-            'text-decoration:none', 'margin-bottom:8px',
-            'transition:color 0.15s'
+            'font-size:13px', 'font-weight:600', 'color:#374151',
+            'text-decoration:none', 'margin-bottom:10px',
+            'background:#f3f4f6', 'border:1px solid #d1d5db',
+            'border-radius:8px', 'padding:5px 12px',
+            'transition:background 0.15s, color 0.15s'
         ].join(';');
-        link.addEventListener('mouseenter', function() { this.style.color = '#1e1b4b'; });
-        link.addEventListener('mouseleave', function() { this.style.color = '#6b7280'; });
+        link.addEventListener('mouseenter', function() {
+            this.style.background = '#1e1b4b';
+            this.style.color = 'white';
+            this.style.borderColor = '#1e1b4b';
+        });
+        link.addEventListener('mouseleave', function() {
+            this.style.background = '#f3f4f6';
+            this.style.color = '#374151';
+            this.style.borderColor = '#d1d5db';
+        });
 
         header.insertBefore(link, header.firstChild);
     })();
