@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -421,6 +421,11 @@ def demo_clear_all():
     check = admin_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
+    PickItem.query.delete()
+    OrderItem.query.delete()
+    WorkOrder.query.delete()
+    ShoppingListItem.query.delete()
+    Loss.query.delete()
     Inventory.query.delete()
     PartTemplate.query.delete()
     Part.query.delete()
