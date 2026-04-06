@@ -8,10 +8,11 @@ Generates demo_seed.json with:
 - Parts (with active location assignments)
 - Warehouse Config
 - Active inventory records (is_active=True)
+- Work Orders (+ OrderItems)
 """
 import json
 from app import app
-from models import Color, CabinetType, PartTemplate, Part, WarehouseConfig, Inventory
+from models import Color, CabinetType, PartTemplate, Part, WarehouseConfig, Inventory, WorkOrder, OrderItem
 
 with app.app_context():
     config = WarehouseConfig.query.first()
@@ -72,6 +73,25 @@ with app.app_context():
             }
             for r in Inventory.query.filter_by(is_active=True).order_by(Inventory.id).all()
         ],
+        "work_orders": [
+            {
+                "order_number": o.order_number,
+                "job_name": o.job_name,
+                "lot_number": o.lot_number,
+                "scheduled_date": o.scheduled_date.isoformat() if o.scheduled_date else None,
+                "status": o.status,
+                "color_name": o.color.name if o.color else None,
+                "items": [
+                    {
+                        "cabinet_code": i.cabinet.code,
+                        "slot": i.slot,
+                        "cart": i.cart,
+                    }
+                    for i in OrderItem.query.filter_by(work_order_id=o.id).all()
+                ]
+            }
+            for o in WorkOrder.query.order_by(WorkOrder.id).all()
+        ],
     }
 
 with open("demo_seed.json", "w") as f:
@@ -80,5 +100,6 @@ with open("demo_seed.json", "w") as f:
 print(f"Exported: {len(seed['colors'])} colors, "
       f"{len(seed['cabinet_types'])} cabinet types, "
       f"{len(seed['parts'])} parts, "
-      f"{len(seed['active_inventory'])} active records.")
+      f"{len(seed['active_inventory'])} active records, "
+      f"{len(seed['work_orders'])} orders.")
 print("demo_seed.json ready.")

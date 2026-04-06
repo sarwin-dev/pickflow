@@ -537,9 +537,42 @@ def demo_reset():
             active_count += 1
 
     db.session.commit()
+    # Restaurar Work Orders + OrderItems
+    from models import WorkOrder, OrderItem
+    from datetime import date as date_type
+    admin_user = User.query.filter_by(role='admin').first()
+    color_map2 = {c.name: c.id for c in Color.query.all()}
+    cabinet_map = {ct.code: ct.id for ct in CabinetType.query.all()}
+    order_count = 0
+    for o in seed.get('work_orders', []):
+        sched = date_type.fromisoformat(o['scheduled_date']) if o.get('scheduled_date') else None
+        wo = WorkOrder(
+            order_number=o['order_number'],
+            job_name=o.get('job_name'),
+            lot_number=o.get('lot_number'),
+            scheduled_date=sched,
+            status=o.get('status', 'pending'),
+            color_id=color_map2.get(o['color_name']) if o.get('color_name') else None,
+            created_by=admin_user.id,
+        )
+        db.session.add(wo)
+        db.session.flush()
+        for item in o.get('items', []):
+            cab_id = cabinet_map.get(item['cabinet_code'])
+            if cab_id:
+                db.session.add(OrderItem(
+                    work_order_id=wo.id,
+                    cabinet_type_id=cab_id,
+                    slot=item['slot'],
+                    cart=item['cart'],
+                ))
+        order_count += 1
+    db.session.commit()
+
     return jsonify({
         'colors': len(seed['colors']),
         'cabinet_types': len(seed['cabinet_types']),
         'parts': len(seed['parts']),
         'active_records': active_count,
+        'orders': order_count,
     })
