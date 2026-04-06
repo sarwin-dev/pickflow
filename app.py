@@ -97,6 +97,11 @@ def dashboard():
     role = session['user_role']
     stats = {}
 
+    # Partes con overflow pero sin active (necesitan pulldown)
+    parts_with_overflow = {r.part_id for r in db.session.query(Inventory.part_id).filter_by(is_active=False).distinct()}
+    parts_with_active   = {r.part_id for r in db.session.query(Inventory.part_id).filter_by(is_active=True).distinct()}
+    needs_pulldown = len(parts_with_overflow - parts_with_active)
+
     if role in ['admin', 'supervisor']:
         from models import ShoppingListItem
         today = date.today()
@@ -111,12 +116,14 @@ def dashboard():
             Inventory.quantity <= Inventory.min_quantity
         ).count()
         stats['on_the_way'] = ShoppingListItem.query.count()
+        stats['needs_pulldown'] = needs_pulldown
 
     elif role == 'warehouse':
         stats['available'] = WorkOrder.query.filter(
             WorkOrder.status.in_(['pending', 'in_progress'])
         ).count()
         stats['in_progress'] = WorkOrder.query.filter_by(status='in_progress').count()
+        stats['needs_pulldown'] = needs_pulldown
 
     elif role == 'order_entry':
         stats['my_orders'] = WorkOrder.query.filter_by(

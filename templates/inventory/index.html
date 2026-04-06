@@ -144,6 +144,16 @@
                                     onclick="toggleEdit({{ record.id }})">
                                 Edit
                             </button>
+                            {% if record.is_active %}
+                            <form method="POST" action="/inventory/depleted/{{ record.id }}" style="display:inline;">
+                                <input type="hidden" name="next" value="{{ request.url }}">
+                                <button type="submit" class="btn-secondary"
+                                        style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
+                                        onclick="return confirm('Mark this active box as depleted? It will be removed.')">
+                                    Depleted
+                                </button>
+                            </form>
+                            {% else %}
                             <form method="POST" action="/receiving/pulldown/{{ record.id }}" style="display:inline;">
                                 <input type="hidden" name="next" value="{{ request.url }}">
                                 <button type="submit" class="btn-secondary"
@@ -152,6 +162,7 @@
                                     Pulldown
                                 </button>
                             </form>
+                            {% endif %}
                         </td>
                         {% endif %}
                     </tr>

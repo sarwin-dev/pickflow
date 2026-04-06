@@ -190,6 +190,19 @@ def delete_record(record_id):
     return redirect(back)
 
 
+@inventory_bp.route('/depleted/<int:record_id>', methods=['POST'])
+def depleted(record_id):
+    check = inventory_required()
+    if check:
+        return check
+    record = Inventory.query.get_or_404(record_id)
+    back = request.form.get('next', url_for('inventory.index'))
+    db.session.delete(record)
+    db.session.commit()
+    flash(f'Active box marked as depleted and removed.', 'success')
+    return redirect(back)
+
+
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
 def set_min(part_id):
     check = supervisor_required()

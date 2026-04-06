@@ -52,6 +52,15 @@
         <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ stats.in_progress }}</div>
         <div style="font-size:12px; color:#6b7280; margin-top:4px;">In Progress</div>
     </div>
+    {% if stats.needs_pulldown > 0 %}
+    <a href="/inventory/" style="text-decoration:none;">
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center; cursor:pointer;">
+            <div style="font-size:2rem; font-weight:700; color:#dc2626;">{{ stats.needs_pulldown }}</div>
+            <div style="font-size:12px; color:#dc2626; margin-top:4px;">⚠ Need Pulldown</div>
+            <div style="font-size:11px; color:#dc2626; margin-top:2px; text-decoration:underline;">View →</div>
+        </div>
+    </a>
+    {% endif %}
 
     {% elif session['user_role'] == 'order_entry' %}
     <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
@@ -115,7 +124,14 @@
 
     <!-- inventory -->
     {% if session['user_role'] in ['admin', 'supervisor'] %}
-    <a href="/inventory" class="module-card inventory">
+    <a href="/inventory" class="module-card inventory" style="position:relative;">
+        {% if stats.needs_pulldown > 0 %}
+        <div style="position:absolute; top:-8px; right:-8px; background:#dc2626; color:white;
+                    border-radius:50%; width:22px; height:22px; font-size:11px; font-weight:700;
+                    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+            {{ stats.needs_pulldown }}
+        </div>
+        {% endif %}
         <div class="module-icon">□</div>
         <div class="module-info">
             <h3>Inventory</h3>
