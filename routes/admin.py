@@ -431,6 +431,7 @@ def demo_clear_all():
     Part.query.delete()
     CabinetType.query.delete()
     Color.query.delete()
+    WarehouseConfig.query.delete()
     db.session.commit()
     return jsonify({'ok': True})
 
