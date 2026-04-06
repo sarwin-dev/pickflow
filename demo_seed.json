@@ -1,0 +1,1120 @@
+{
+  "colors": [
+    {
+      "name": "Cloud",
+      "hex_code": "#ffffff"
+    },
+    {
+      "name": "Tobacco",
+      "hex_code": "#63452c"
+    }
+  ],
+  "cabinet_types": [
+    {
+      "code": "Base 12",
+      "name": "Cabinet 12",
+      "width": 12,
+      "height": null,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 12 Cloud",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 12 Cloud",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 12",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 12",
+      "name": "Cabinet 12",
+      "width": 12,
+      "height": null,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 12",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 12 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 12 Tobacco",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 12",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 15",
+      "name": "Cabinet 15",
+      "width": 15,
+      "height": null,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 15 Cloud",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 15 Cloud",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 15",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 15",
+      "name": "Cabinet 15",
+      "width": 15,
+      "height": null,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 15",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 15 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 15",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 15 Tobacco",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 18",
+      "name": "Cabinet 18",
+      "width": 18,
+      "height": null,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 18 Cloud",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 18 Cloud",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 18",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 18",
+      "name": "Cabinet 18",
+      "width": 18,
+      "height": null,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 18",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 18 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 18 Tobacco",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 18",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 21",
+      "name": "Cabinet 21",
+      "width": 21,
+      "height": null,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Back 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 21 Cloud",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 21 Cloud",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 21",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Base 21",
+      "name": "Cabinet 21",
+      "width": 21,
+      "height": null,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Back 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Bottom 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 21 Tobacco",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 21 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side L",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Side R",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Toe 21",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Shelf 21",
+          "quantity": 1,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Wall 1812",
+      "name": "Cabinet 1812",
+      "width": 18,
+      "height": 12,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Back 1812",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 1812 Cloud",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "L And R 12",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 18",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "B And T 18",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 1812 Tobacco",
+          "quantity": 2,
+          "cart": 2,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Wall 1812",
+      "name": "Cabinet 1812",
+      "width": 18,
+      "height": 12,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Back 1812",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 1812 Tobacco",
+          "quantity": 2,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "L And R 12",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 18",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 1812 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "B And T 18",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Wall 2112",
+      "name": "Cabinet 2112",
+      "width": 21,
+      "height": 12,
+      "color": "Cloud",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "Back 2112",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "B And T 21",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 2112 Cloud",
+          "quantity": 2,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 2112 Cloud",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "L And R 12",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 21",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        }
+      ]
+    },
+    {
+      "code": "Wall 2112",
+      "name": "Cabinet 2112",
+      "width": 21,
+      "height": 12,
+      "color": "Tobacco",
+      "is_custom": false,
+      "part_templates": [
+        {
+          "part_name": "L And R 12",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Back 2112",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "B And T 21",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Door 2112 Tobacco",
+          "quantity": 2,
+          "cart": 2,
+          "is_optional": false
+        },
+        {
+          "part_name": "Nailer 21",
+          "quantity": 2,
+          "cart": 1,
+          "is_optional": false
+        },
+        {
+          "part_name": "Front Face 2112 Tobacco",
+          "quantity": 1,
+          "cart": 1,
+          "is_optional": false
+        }
+      ]
+    }
+  ],
+  "parts": [
+    {
+      "name": "Side L",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Side R",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Back 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Back 15",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Back 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Back 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Bottom 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Bottom 15",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Bottom 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Bottom 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Nailer 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "10",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Nailer 15",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "10",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Nailer 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "10",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Nailer 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "10",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Toe 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "8",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Toe 15",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "8",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Toe 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "8",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Toe 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "8",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Front Face 12 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Front Face 15 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Front Face 18 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Front Face 21 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "1",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Front Face 12 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Front Face 15 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Front Face 18 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Front Face 21 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "2",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "L And R 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "6",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Back 2112",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "7",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Back 1812",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "7",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "B And T 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "7",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "B And T 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "7",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Front Face 1812 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Front Face 1812 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Front Face 2112 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Front Face 2112 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "3",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Door 12 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "4",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Door 12 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "4",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Door 15 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "4",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Door 15 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "4",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Door 18 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "5",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Door 18 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "5",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Door 21 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "5",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Door 21 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "5",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Door 1821 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "6",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Door 1812 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "6",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Door 2112 Cloud",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "6",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Door 2112 Tobacco",
+      "is_shared": false,
+      "active_aisle": "2",
+      "active_bay": "6",
+      "active_shelf": "1",
+      "active_location": "4"
+    },
+    {
+      "name": "Shelf 12",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "9",
+      "active_shelf": "1",
+      "active_location": "1"
+    },
+    {
+      "name": "Shelf 15",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "9",
+      "active_shelf": "1",
+      "active_location": "2"
+    },
+    {
+      "name": "Shelf 18",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "9",
+      "active_shelf": "1",
+      "active_location": "3"
+    },
+    {
+      "name": "Shelf 21",
+      "is_shared": false,
+      "active_aisle": "1",
+      "active_bay": "9",
+      "active_shelf": "1",
+      "active_location": "4"
+    }
+  ]
+}
