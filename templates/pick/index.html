@@ -9,12 +9,14 @@
 
 {% if date_groups %}
 
-{% for sched_date, orders in date_groups %}
+{% for sched_date, stats in date_groups %}
+
+{% set all_done = stats | selectattr('order.status', 'equalto', 'completed') | list | length == stats | length %}
 
 <!-- encabezado del día -->
 <div style="display:flex; align-items:center; gap:12px; margin:1.5rem 0 0.75rem;">
     {% if sched_date %}
-    <div style="background:#1e1b4b; color:white; border-radius:8px; padding:6px 14px;">
+    <div style="background:{% if all_done %}#16a34a{% else %}#1e1b4b{% endif %}; color:white; border-radius:8px; padding:6px 14px;">
         <div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.7;">Scheduled</div>
         <div style="font-size:16px; font-weight:700;">{{ sched_date.strftime('%A, %B %-d') }}</div>
     </div>
@@ -25,8 +27,11 @@
     </div>
     {% endif %}
     {% set cab_total = namespace(count=0) %}
-    {% for o in orders %}{% set cab_total.count = cab_total.count + o.items|length %}{% endfor %}
-    <div style="font-size:13px; color:#9ca3af;">{{ orders|length }} order{{ 's' if orders|length != 1 else '' }} ({{ cab_total.count }} cabinet{{ 's' if cab_total.count != 1 else '' }})</div>
+    {% for s in stats %}{% set cab_total.count = cab_total.count + s.order.items|length %}{% endfor %}
+    <div style="font-size:13px; color:#9ca3af;">{{ stats|length }} order{{ 's' if stats|length != 1 else '' }} ({{ cab_total.count }} cabinet{{ 's' if cab_total.count != 1 else '' }})</div>
+    {% if all_done and sched_date %}
+    <span style="font-size:12px; background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:12px; font-weight:600;">All done</span>
+    {% endif %}
 </div>
 
 <!-- vista desktop: tabla -->
@@ -38,12 +43,14 @@
                 <th>W.O</th>
                 <th>Cabinets</th>
                 <th>Status</th>
+                <th>Progress</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            {% for order in orders %}
-            <tr>
+            {% for stat in stats %}
+            {% set order = stat.order %}
+            <tr style="{% if order.status == 'completed' and stat.missing == 0 %}opacity:0.6;{% endif %}">
                 <td>
                     <strong>{{ order.job_name or '—' }}</strong>
                     {% if order.lot_number %}
@@ -57,11 +64,37 @@
                     <span class="role-badge role-inventory">Pending Pick</span>
                     {% elif order.status == 'in_progress' %}
                     <span class="role-badge role-order_entry">Picking</span>
+                    {% elif order.status == 'completed' %}
+                        {% if stat.missing > 0 %}
+                        <span class="badge badge-progress" style="background:#fef3c7; color:#92400e; border:1px solid #f59e0b;">
+                            ⚠ {{ stat.missing }} Missing
+                        </span>
+                        {% else %}
+                        <span class="badge badge-done">Completed</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td style="min-width:140px;">
+                    {% if stat.total > 0 %}
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="flex:1; background:#e5e7eb; border-radius:4px; height:6px; overflow:hidden;">
+                            <div style="width:{{ (stat.picked / stat.total * 100)|int }}%;
+                                        background:{% if stat.missing > 0 %}#f59e0b{% elif stat.picked == stat.total %}#16a34a{% else %}#6366f1{% endif %};
+                                        height:100%; border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px; color:#666; white-space:nowrap;">
+                            {{ stat.picked }}/{{ stat.total }}
+                        </span>
+                    </div>
                     {% endif %}
                 </td>
                 <td style="display:flex; gap:8px; align-items:center;">
-                    <a href="/pick/{{ order.id }}" class="btn-create" style="font-size:12px; padding:4px 12px;">
-                        {% if order.status == 'pending' %}Start Pick{% else %}Continue{% endif %}
+                    <a href="/pick/{{ order.id }}" class="{% if order.status == 'completed' and stat.missing == 0 %}btn-secondary{% elif order.status == 'completed' %}btn-create{% else %}btn-create{% endif %}"
+                       style="font-size:12px; padding:4px 12px;">
+                        {% if order.status == 'pending' %}Start Pick
+                        {% elif order.status == 'completed' and stat.missing == 0 %}View
+                        {% elif order.status == 'completed' %}Pick Missing
+                        {% else %}Continue{% endif %}
                     </a>
                     <a href="/pick/{{ order.id }}/pdf" target="_blank" class="btn-secondary"
                        style="font-size:12px; padding:4px 10px; background:#4CAF50; color:white; border-radius:3px;">
@@ -80,8 +113,11 @@
 
 <!-- vista móvil/tablet: cards -->
 <div class="pick-mobile">
-    {% for order in orders %}
-    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:10px;">
+    {% for stat in stats %}
+    {% set order = stat.order %}
+    <div style="background:white; border:1px solid {% if order.status == 'completed' and stat.missing > 0 %}#f59e0b{% elif order.status == 'completed' %}#d1d5db{% else %}#e5e7eb{% endif %};
+                border-radius:12px; padding:16px; margin-bottom:10px;
+                {% if order.status == 'completed' and stat.missing == 0 %}opacity:0.7;{% endif %}">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
             <div>
                 <div style="font-size:17px; font-weight:700; color:#1e1b4b;">
@@ -95,15 +131,37 @@
             <span class="role-badge role-inventory">Pending</span>
             {% elif order.status == 'in_progress' %}
             <span class="role-badge role-order_entry">Picking</span>
+            {% elif order.status == 'completed' %}
+                {% if stat.missing > 0 %}
+                <span style="font-size:12px; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-weight:600; border:1px solid #f59e0b;">
+                    ⚠ {{ stat.missing }} Missing
+                </span>
+                {% else %}
+                <span style="font-size:12px; background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:12px; font-weight:600;">Done</span>
+                {% endif %}
             {% endif %}
         </div>
+        {% if stat.total > 0 %}
+        <div style="margin-bottom:12px;">
+            <div style="background:#e5e7eb; border-radius:4px; height:6px; overflow:hidden;">
+                <div style="width:{{ (stat.picked / stat.total * 100)|int }}%;
+                            background:{% if stat.missing > 0 %}#f59e0b{% elif stat.picked == stat.total %}#16a34a{% else %}#6366f1{% endif %};
+                            height:100%; border-radius:4px;"></div>
+            </div>
+            <div style="font-size:12px; color:#6b7280; margin-top:4px;">{{ stat.picked }} picked · {{ stat.missing }} missing · {{ stat.total }} total</div>
+        </div>
+        {% endif %}
         <div style="font-size:13px; color:#6b7280; margin-bottom:14px;">
             {{ order.items|length }} cabinet(s)
         </div>
         <div style="display:flex; gap:10px;">
-            <a href="/pick/{{ order.id }}" class="btn-create"
+            <a href="/pick/{{ order.id }}"
+               class="{% if order.status == 'completed' and stat.missing == 0 %}btn-secondary{% else %}btn-create{% endif %}"
                style="flex:1; text-align:center; padding:12px; font-size:15px;">
-                {% if order.status == 'pending' %}Start Pick{% else %}Continue{% endif %}
+                {% if order.status == 'pending' %}Start Pick
+                {% elif order.status == 'completed' and stat.missing == 0 %}View
+                {% elif order.status == 'completed' %}Pick Missing
+                {% else %}Continue{% endif %}
             </a>
             <a href="/pick/{{ order.id }}/pdf" target="_blank" class="btn-secondary"
                style="padding:12px 16px; background:#4CAF50; color:white; border-radius:6px; font-size:14px;">
@@ -124,7 +182,7 @@
 {% else %}
 <div style="text-align:center; padding:3rem; color:#999;">
     <p style="font-size:16px;">No orders available for picking</p>
-    <p style="font-size:13px; margin-top:8px;">All orders are completed or there are no pending orders</p>
+    <p style="font-size:13px; margin-top:8px;">There are no active orders at this time</p>
 </div>
 {% endif %}
 

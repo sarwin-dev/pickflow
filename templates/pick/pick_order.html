@@ -134,11 +134,21 @@
     {% endfor %}
 </div>
 
-<!-- mensaje cuando esta completa -->
+<!-- mensaje cuando esta completa (sin missing) -->
 <div id="order-complete" style="display:none; text-align:center; padding:2rem;">
     <div style="font-size:48px; margin-bottom:1rem;">✓</div>
     <h2 style="color:#059669; margin-bottom:8px;">Order Complete!</h2>
     <p style="color:#666;">All parts have been picked for this order.</p>
+    <a href="/pick" class="btn-primary" style="display:inline-block; margin-top:1rem; width:auto; padding:10px 24px;">
+        Back to Orders
+    </a>
+</div>
+
+<!-- mensaje cuando esta completa pero con missing -->
+<div id="order-with-missing" style="display:none; text-align:center; padding:2rem;">
+    <div style="font-size:48px; margin-bottom:1rem;">⚠</div>
+    <h2 style="color:#92400e; margin-bottom:8px;">Order Finished with Missing Parts</h2>
+    <p style="color:#666;">Some parts were not available. Once pulldown is done, come back and pick the missing items.</p>
     <a href="/pick" class="btn-primary" style="display:inline-block; margin-top:1rem; width:auto; padding:10px 24px;">
         Back to Orders
     </a>
@@ -186,6 +196,17 @@
     document.getElementById('total-count').textContent = total;
     updateProgress();
 
+    // si la orden ya esta completa al cargar la pagina, muestra el overlay correcto
+    if (total > 0 && picked + missing === total) {
+        if (missing > 0) {
+            // mantiene la lista visible para q el picker pueda actuar en los missing
+            document.getElementById('order-with-missing').style.display = 'block';
+        } else {
+            document.getElementById('pick-list').style.display = 'none';
+            document.getElementById('order-complete').style.display = 'block';
+        }
+    }
+
     // cicla entre los 3 estados
     allButtons.forEach(btn => {
         btn.addEventListener('click', async function () {
@@ -215,7 +236,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    console.log('picked:', data.picked, 'missing:', data.missing, 'total:', data.total);
+                    console.log('picked:', data.picked, 'missing:', data.missing, 'total:', data.total, 'depleted:', data.depleted);
                     // actualiza visual del boton
                     this.dataset.state = nextState;
 
@@ -247,10 +268,19 @@
                     total = data.total;
                     updateProgress();
 
+                    // si habia un banner de missing y ya se resolvio, ocultalo
+                    if (missing < total) {
+                        document.getElementById('order-with-missing').style.display = 'none';
+                    }
+
                     if (picked + missing === total) {
                         setTimeout(() => {
-                            document.getElementById('pick-list').style.display = 'none';
-                            document.getElementById('order-complete').style.display = 'block';
+                            if (missing > 0) {
+                                document.getElementById('order-with-missing').style.display = 'block';
+                            } else {
+                                document.getElementById('pick-list').style.display = 'none';
+                                document.getElementById('order-complete').style.display = 'block';
+                            }
                         }, 500);
                     }
                 }

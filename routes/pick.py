@@ -18,18 +18,29 @@ def index():
     check = picker_required()
     if check:
         return check
-    # solo ordenes pendientes o en progreso
     from sqlalchemy import nullslast
     from datetime import date as date_type
     orders = WorkOrder.query.filter(
-        WorkOrder.status.in_(['pending', 'in_progress'])
+        WorkOrder.status.in_(['pending', 'in_progress', 'completed'])
     ).order_by(nullslast(WorkOrder.scheduled_date.asc()), WorkOrder.created_at.asc()).all()
+
+    # agrega conteo de pick items por orden
+    order_stats = []
+    for o in orders:
+        total = PickItem.query.join(OrderItem).filter(OrderItem.work_order_id == o.id).count()
+        picked = PickItem.query.join(OrderItem).filter(
+            OrderItem.work_order_id == o.id, PickItem.is_picked == True
+        ).count()
+        missing = PickItem.query.join(OrderItem).filter(
+            OrderItem.work_order_id == o.id, PickItem.is_missing == True
+        ).count()
+        order_stats.append({'order': o, 'total': total, 'picked': picked, 'missing': missing})
 
     # agrupa por fecha programada
     grouped = {}
-    for o in orders:
-        key = o.scheduled_date
-        grouped.setdefault(key, []).append(o)
+    for s in order_stats:
+        key = s['order'].scheduled_date
+        grouped.setdefault(key, []).append(s)
     date_groups = sorted(grouped.items(), key=lambda x: (x[0] is None, x[0] or date_type.max))
 
     return render_template('pick/index.html', date_groups=date_groups)
@@ -94,6 +105,7 @@ def pick_order(order_id):
                 'slot': item.slot,
                 'pick_item_id': pick_item.id if pick_item else None,
                 'is_picked': pick_item.is_picked if pick_item else False,
+                'is_missing': pick_item.is_missing if pick_item else False,
                 'picked_by': pick_item.picked_by if pick_item else None,
             })
 
@@ -116,6 +128,7 @@ def toggle(pick_item_id):
     action = request.json.get('action', 'pick')
 
     if pick_item:
+        depleted = False
         # cambia a in_progress en el primer pick
         order = pick_item.order_item.order
         if order.status == 'pending' and action == 'pick':
@@ -142,6 +155,7 @@ def toggle(pick_item_id):
                 ).first()
                 if active_record:
                     db.session.delete(active_record)
+                    depleted = True
 
         elif action == 'reset':
             # vuelve a pending
@@ -149,6 +163,9 @@ def toggle(pick_item_id):
             pick_item.is_missing = False
             pick_item.picked_by = None
             pick_item.picked_at = None
+            # si la orden estaba completada la reabre
+            if order.status == 'completed':
+                order.status = 'in_progress'
 
         db.session.commit()
 
@@ -177,7 +194,8 @@ def toggle(pick_item_id):
             'is_missing': pick_item.is_missing,
             'picked': picked,
             'missing': missing,
-            'total': total
+            'total': total,
+            'depleted': depleted if action == 'missing' else None,
         })
     return jsonify({'error': 'not found'}), 404
 
