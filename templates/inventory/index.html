@@ -110,38 +110,32 @@ function toggleEdit(id) {
 }
 
 // --- swap logic ---
-let swapSelected = null; // { cardId, recordId, partName }
+let swapSelected = null; // { recordId, partName, isActive }
 
-function selectForSwap(cardId, recordId, partName) {
+function selectForSwap(recordId, partName, isActive) {
     if (swapSelected) {
         if (swapSelected.recordId === recordId) {
-            // mismo boton: deselecciona
             clearSwapSelection();
             return;
         }
-        // segunda seleccion: hace el swap
+        if (swapSelected.isActive !== isActive) {
+            alert('Can only swap within the same type (active↔active or overflow↔overflow).');
+            return;
+        }
         doSwap(swapSelected.recordId, recordId);
         return;
     }
-    // primera seleccion
-    swapSelected = { cardId, recordId, partName };
-    const card = document.getElementById(cardId);
-    if (card) {
-        card.style.borderColor = '#6366f1';
-        card.style.boxShadow = '0 0 0 4px #eef2ff';
-    }
-    const btn = document.getElementById('swap-btn-' + cardId.replace('part-card-', ''));
-    if (btn) { btn.style.background = '#6366f1'; btn.style.color = 'white'; }
+    swapSelected = { recordId, partName, isActive };
+    const btn = document.getElementById('swap-btn-' + recordId);
+    if (btn) { btn.style.background = '#6366f1'; btn.style.color = 'white'; btn.style.borderColor = '#6366f1'; }
     document.getElementById('swap-banner').style.display = 'flex';
     document.getElementById('swap-banner-name').textContent = '"' + partName + '"';
 }
 
 function clearSwapSelection() {
     if (swapSelected) {
-        const card = document.getElementById(swapSelected.cardId);
-        if (card) { card.style.borderColor = ''; card.style.boxShadow = ''; }
-        const btn = document.getElementById('swap-btn-' + swapSelected.cardId.replace('part-card-', ''));
-        if (btn) { btn.style.background = '#eef2ff'; btn.style.color = '#4f46e5'; }
+        const btn = document.getElementById('swap-btn-' + swapSelected.recordId);
+        if (btn) { btn.style.background = '#eef2ff'; btn.style.color = '#4f46e5'; btn.style.borderColor = '#c7d2fe'; }
     }
     swapSelected = null;
     const banner = document.getElementById('swap-banner');
@@ -164,7 +158,7 @@ async function doSwap(recordAId, recordBId) {
             clearSwapSelection();
         }
     } catch (e) {
-        alert('Network error during swap.');
+        alert('Network error: ' + e.message);
         clearSwapSelection();
     }
 }

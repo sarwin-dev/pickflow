@@ -1,6 +1,6 @@
 import re
 from io import BytesIO
-from flask import Blueprint, render_template, session, redirect, url_for, request, send_file, flash
+from flask import Blueprint, render_template, session, redirect, url_for, request, send_file, flash, jsonify
 from extensions import db
 from models import Part, Inventory, ShoppingListItem, WarehouseConfig
 from datetime import datetime
@@ -180,10 +180,10 @@ def swap_locations():
 
     if not record_a or not record_b:
         return jsonify({'error': 'Record not found'}), 404
-    if not record_a.is_active or not record_b.is_active:
-        return jsonify({'error': 'Both records must be active'}), 400
     if record_a.id == record_b.id:
         return jsonify({'error': 'Cannot swap with itself'}), 400
+    if record_a.is_active != record_b.is_active:
+        return jsonify({'error': 'Cannot swap between active and overflow'}), 400
 
     # guarda las dos ubicaciones antes de modificar nada
     a_aisle, a_bay, a_shelf, a_location = record_a.aisle, record_a.bay, record_a.shelf, record_a.location
