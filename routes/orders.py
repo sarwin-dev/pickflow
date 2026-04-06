@@ -50,16 +50,19 @@ def create():
     error = None
     if request.method == 'POST':
         order_number = request.form['order_number']
+        lot_number = request.form.get('lot_number') or None
         existing = WorkOrder.query.filter_by(order_number=order_number).first()
         if existing:
-            error = f'Order number {order_number} already exists'
+            error = f'Order number {order_number} already exists.'
+        elif lot_number and WorkOrder.query.filter_by(lot_number=lot_number).first():
+            error = f'Batch "{lot_number}" already exists.'
         else:
             sched_raw = request.form.get('scheduled_date', '').strip()
             sched = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
             new_order = WorkOrder(
                 order_number=order_number,
                 job_name=request.form.get('job_name') or None,
-                lot_number=request.form.get('lot_number') or None,
+                lot_number=lot_number,
                 scheduled_date=sched,
                 created_by=session['user_id'],
                 status='pending'
@@ -106,16 +109,19 @@ def edit(order_id):
     error = None
     if request.method == 'POST':
         order.job_name = request.form.get('job_name') or None
-        order.lot_number = request.form.get('lot_number') or None
+        new_lot = request.form.get('lot_number') or None
         sched_raw = request.form.get('scheduled_date', '').strip()
         order.scheduled_date = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
         new_number = request.form['order_number']
         if new_number != order.order_number:
-            existing = WorkOrder.query.filter_by(order_number=new_number).first()
-            if existing:
-                error = f'Order number {new_number} already exists'
+            if WorkOrder.query.filter_by(order_number=new_number).first():
+                error = f'Order number {new_number} already exists.'
+        if not error and new_lot and new_lot != order.lot_number:
+            if WorkOrder.query.filter_by(lot_number=new_lot).first():
+                error = f'Batch "{new_lot}" already exists.'
         if not error:
             order.order_number = new_number
+            order.lot_number = new_lot
             # reemplaza los items
             for item in order.items:
                 PickItem.query.filter_by(order_item_id=item.id).delete()
