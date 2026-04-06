@@ -31,9 +31,36 @@
         <div id="msg-fill-overflow" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
+    <!-- Reset Min Quantity -->
+    <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Reset Min. Overflow to 100</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Sets min_quantity = 100 on all existing inventory records that are not already at 100.
+        </div>
+        <button id="btn-reset-min" onclick="resetMin()" class="btn-primary" style="width:100%;">
+            Run
+        </button>
+        <div id="msg-reset-min" style="font-size:13px; margin-top:10px; display:none;"></div>
+    </div>
+
 </div>
 
 <script>
+function resetMin() {
+    const btn = document.getElementById('btn-reset-min');
+    const msg = document.getElementById('msg-reset-min');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    fetch('/receiving/demo-reset-min', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.textContent = 'Done';
+            msg.style.display = 'block';
+            msg.style.color = '#16a34a';
+            msg.textContent = `${data.updated} records updated to min 100.`;
+        });
+}
+
 function clearOverflow() {
     if (!confirm('Delete all overflow records?')) return;
     const btn = document.getElementById('btn-clear-overflow');

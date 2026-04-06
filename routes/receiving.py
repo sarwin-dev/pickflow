@@ -201,6 +201,16 @@ def pulldown(record_id):
     return redirect(next_url)
 
 
+@receiving_bp.route('/demo-reset-min', methods=['POST'])
+def demo_reset_min():
+    check = warehouse_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+    updated = Inventory.query.filter(Inventory.min_quantity != 100).update({'min_quantity': 100})
+    db.session.commit()
+    return jsonify({'updated': updated})
+
+
 @receiving_bp.route('/demo-clear', methods=['POST'])
 def demo_clear():
     check = warehouse_required()
