@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="dashboard-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div class="pick-header-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
             <h1>{{ order.job_name or 'Work Order' }}</h1>
             <p style="margin:2px 0 0 0; color:#4b5563; font-size:14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
@@ -30,7 +30,7 @@
                 {% endif %}
             </p>
         </div>
-        <div style="text-align:right; min-width:180px;">
+        <div class="pick-progress" style="text-align:right; min-width:180px;">
             <div style="font-size:14px; color:#666; margin-bottom:6px;">
                 <span id="picked-count">0</span> / <span id="total-count">0</span> parts picked
             </div>
@@ -42,7 +42,7 @@
 </div>
 
 <!-- selector de carrito -->
-<div style="display:flex; gap:10px; margin-bottom:1rem; align-items:center;">
+<div class="pick-controls" style="display:flex; gap:10px; margin-bottom:1rem; align-items:center;">
     <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Cart:</label>
     <select onchange="filterCart(this.value)"
         style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:140px;">
@@ -84,19 +84,19 @@
     <div class="pick-group" data-aisle="{{ group.aisle }}" data-cart="{{ group.cart }}" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
                 margin-bottom:10px; overflow:hidden;">
 
-        <div style="background:#f9fafb; padding:10px 16px;
+        <div class="pick-group-header" style="background:#f9fafb; padding:10px 16px;
                     border-bottom:1px solid #e5e7eb;
                     display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <span style="font-family:monospace; font-size:14px;
+            <div class="pick-group-left" style="display:flex; align-items:center; gap:12px;">
+                <span class="pick-location" style="font-family:monospace; font-size:14px;
                              font-weight:500; color:#1e1b4b;">
                     {{ group.location }}
                 </span>
-                <span style="font-size:20px; font-weight:600; color:#1f2937;">
+                <span class="pick-part-name" style="font-size:20px; font-weight:600; color:#1f2937;">
                     {{ group.part_name }}
                 </span>
             </div>
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div class="pick-group-right" style="display:flex; align-items:center; gap:10px;">
                 <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
                     Cart {{ 'A' if group.cart == 1 else 'B' }}
                 </span>
@@ -113,7 +113,7 @@
             </div>
         </div>
 
-        <div style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px;">
+        <div class="pick-slots" style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px;">
             {% for slot in group.slots %}
             <div style="display:flex; align-items:center; gap:8px;">
                 <!-- tristate button — tamaño tactil para tablet/movil -->
@@ -138,11 +138,11 @@
                 {% endif %}
                 <!-- numero de slot -->
                 {% if slot.is_picked %}
-                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; text-decoration:line-through; color:#9ca3af;">#{{ slot.slot }}</label>
+                <label id="label-{{ slot.pick_item_id }}" class="slot-label" style="font-size:15px; text-decoration:line-through; color:#9ca3af;">#{{ slot.slot }}</label>
                 {% elif slot.is_missing %}
-                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; color:#92400e; font-weight:600;">#{{ slot.slot }}</label>
+                <label id="label-{{ slot.pick_item_id }}" class="slot-label" style="font-size:15px; color:#92400e; font-weight:600;">#{{ slot.slot }}</label>
                 {% else %}
-                <label id="label-{{ slot.pick_item_id }}" style="font-size:15px; color:#374151;">#{{ slot.slot }}</label>
+                <label id="label-{{ slot.pick_item_id }}" class="slot-label" style="font-size:15px; color:#374151;">#{{ slot.slot }}</label>
                 {% endif %}
             </div>
             {% endfor %}
@@ -172,21 +172,34 @@
     .pick-group.hidden {
         display: none;
     }
-    @media (max-width: 768px) {
-        .dashboard-header > div {
-            flex-direction: column;
-            align-items: flex-start !important;
-        }
-        .dashboard-header > div > div:last-child {
-            width: 100%;
-        }
-        .dashboard-header > div > div:last-child > div:last-child {
-            width: 100% !important;
-        }
-        .aisle-filter {
-            font-size: 14px !important;
-            padding: 8px 14px !important;
-        }
+
+    @media (max-width: 640px) {
+        /* header */
+        .dashboard-header { padding: 12px 16px !important; }
+        .dashboard-header h1 { font-size: 18px !important; }
+        .dashboard-header p  { font-size: 12px !important; }
+        .pick-header-row { flex-direction: column; align-items: flex-start !important; gap: 8px !important; }
+        .pick-progress   { width: 100% !important; min-width: unset !important; text-align: left !important; }
+
+        /* barra de controles */
+        .pick-controls { flex-wrap: wrap; gap: 6px !important; }
+        .pick-controls select { font-size: 12px !important; padding: 5px 8px !important; min-width: 100px !important; }
+        .pick-controls a, .pick-controls button { font-size: 12px !important; padding: 6px 10px !important; }
+
+        /* filtros aisle */
+        .aisle-filter { font-size: 11px !important; padding: 5px 10px !important; }
+
+        /* grupo header */
+        .pick-group-header { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; padding: 8px 12px !important; }
+        .pick-group-left  { flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
+        .pick-group-right { flex-wrap: wrap; gap: 6px !important; }
+        .pick-part-name   { font-size: 15px !important; }
+        .pick-location    { font-size: 12px !important; }
+
+        /* slots */
+        .pick-slots { padding: 10px 12px !important; gap: 8px !important; }
+        .tristate-btn { width: 38px !important; height: 38px !important; font-size: 17px !important; }
+        .slot-label   { font-size: 13px !important; }
     }
 </style>
 
