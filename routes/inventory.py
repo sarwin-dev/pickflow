@@ -42,6 +42,7 @@ def index():
         for part in parts:
             from sqlalchemy import cast, Integer, nullslast
             records = Inventory.query.filter_by(part_id=part.id).order_by(
+                Inventory.is_active.desc(),
                 cast(Inventory.aisle,    Integer),
                 cast(Inventory.bay,      Integer),
                 cast(Inventory.shelf,    Integer),
