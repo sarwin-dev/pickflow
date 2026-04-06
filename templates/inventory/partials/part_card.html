@@ -142,7 +142,7 @@
             <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;">
                 <div style="flex:1; min-width:0;">
                     {% if record.aisle %}
-                    <div style="font-family:monospace; font-size:18px; font-weight:700;
+                    <div style="font-family:monospace; font-size:14px; font-weight:700;
                                 color:#1e1b4b; letter-spacing:.04em; line-height:1.1;">
                         A{{ '%02d'|format(record.aisle|int) }}&middot;B{{ '%02d'|format(record.bay|int) }}&middot;S{{ '%02d'|format(record.shelf|int) }}{% if record.location %}&middot;L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </div>
@@ -170,8 +170,8 @@
             <div style="border-top:1px solid #e5e7eb; display:flex; gap:0;">
                 {% if record.is_active %}
                 <button class="btn-secondary"
-                        style="flex:1; border:none; border-radius:0; padding:12px;
-                               font-size:14px; font-weight:600; color:#d97706; background:#fffbeb;"
+                        style="flex:1; border:none; border-radius:0; padding:8px 12px;
+                               font-size:13px; font-weight:600; color:#d97706; background:#fffbeb;"
                         hx-post="/inventory/depleted/{{ record.id }}"
                         hx-target="#part-card-{{ item.part.id }}"
                         hx-swap="outerHTML"
@@ -180,8 +180,8 @@
                 </button>
                 {% else %}
                 <button class="btn-secondary"
-                        style="flex:1; border:none; border-radius:0; padding:14px;
-                               font-size:16px; font-weight:700; color:white;
+                        style="flex:1; border:none; border-radius:0; padding:8px 12px;
+                               font-size:13px; font-weight:700; color:white;
                                background:{% if item.needs_pulldown %}#dc2626{% else %}#4f46e5{% endif %};"
                         hx-post="/receiving/pulldown/{{ record.id }}"
                         hx-target="#part-card-{{ item.part.id }}"
@@ -193,7 +193,7 @@
                 {% if session['user_role'] in ['admin', 'supervisor'] %}
                 <button type="button"
                         style="border:none; border-left:1px solid #e5e7eb; border-radius:0;
-                               padding:12px 16px; font-size:13px; color:#6b7280;
+                               padding:8px 14px; font-size:13px; color:#6b7280;
                                background:white; cursor:pointer;"
                         onclick="toggleEdit({{ record.id }})">Edit</button>
                 {% endif %}
