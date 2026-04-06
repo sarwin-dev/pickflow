@@ -1,16 +1,17 @@
 <div id="part-card-{{ item.part.id }}"
      style="background:white;
             border:2px solid {% if item.needs_pulldown %}#ef4444{% else %}#e5e7eb{% endif %};
-            border-radius:10px; padding:24px; margin-bottom:24px;
+            border-radius:12px; padding:20px; margin-bottom:20px;
             {% if item.needs_pulldown %}box-shadow:0 0 0 4px #fee2e2;{% endif %}">
 
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
-        <div>
-            <h2 style="font-size:20px; font-weight:700; margin:0;">{{ item.part.name }}</h2>
+    <!-- header: nombre + badges + overflow total -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:12px;">
+        <div style="flex:1; min-width:0;">
+            <h2 style="font-size:18px; font-weight:700; margin:0; line-height:1.2;">{{ item.part.name }}</h2>
             <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                 {% if item.needs_pulldown %}
                 <span style="background:#dc2626; color:white; font-size:12px; font-weight:700;
-                             padding:3px 10px; border-radius:12px; letter-spacing:.03em;">
+                             padding:4px 12px; border-radius:12px; letter-spacing:.03em;">
                     ↓ NEEDS PULLDOWN
                 </span>
                 {% endif %}
@@ -23,23 +24,23 @@
                 {% endif %}
             </div>
         </div>
-        <div style="background:#1e1b4b; border-radius:8px; padding:12px 20px; min-width:100px; text-align:center;">
-            <div style="font-size:2rem; font-weight:800; color:white; line-height:1;">{{ item.overflow_total }}</div>
-            <div style="font-size:11px; color:#a5b4fc; margin-top:4px; text-transform:uppercase; letter-spacing:.05em;">Overflow</div>
+        <div style="background:#1e1b4b; border-radius:10px; padding:10px 16px; text-align:center; flex-shrink:0;">
+            <div style="font-size:1.8rem; font-weight:800; color:white; line-height:1;">{{ item.overflow_total }}</div>
+            <div style="font-size:10px; color:#a5b4fc; margin-top:2px; text-transform:uppercase; letter-spacing:.05em;">Overflow</div>
         </div>
     </div>
 
     {% if item.records %}
-    <table class="data-table" style="margin-bottom:16px;">
+
+    <!-- VISTA DESKTOP: tabla -->
+    <table class="data-table inv-desktop" style="margin-bottom:16px;">
         <thead>
             <tr>
                 <th>Location</th>
                 <th style="text-align:center;">Qty</th>
                 <th style="text-align:center;">Type</th>
                 <th style="font-size:12px; color:#999;">Received</th>
-                {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
-                <th></th>
-                {% endif %}
+                {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}<th></th>{% endif %}
             </tr>
         </thead>
         <tbody>
@@ -53,51 +54,36 @@
                         S{{ '%02d'|format(record.shelf|int) }}
                         {% if record.location %}L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </span>
-                    {% else %}
-                    <span style="color:#ccc;">No location</span>
-                    {% endif %}
+                    {% else %}<span style="color:#ccc;">No location</span>{% endif %}
                 </td>
                 <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
                 <td style="text-align:center;">
-                    {% if record.is_active %}
-                    <span class="badge badge-active">Active</span>
-                    {% else %}
-                    <span class="badge badge-overflow">Overflow</span>
-                    {% endif %}
+                    {% if record.is_active %}<span class="badge badge-active">Active</span>
+                    {% else %}<span class="badge badge-overflow">Overflow</span>{% endif %}
                 </td>
                 <td style="font-size:12px; color:#999;">
                     {{ record.received_at.strftime('%m/%d/%Y') if record.received_at else '—' }}
                 </td>
                 {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
                 <td style="white-space:nowrap;">
-                    <button type="button" class="btn-secondary"
-                            style="font-size:11px; padding:4px 10px;"
-                            onclick="toggleEdit({{ record.id }})">
-                        Edit
-                    </button>
+                    <button type="button" class="btn-secondary" style="font-size:11px; padding:4px 10px;"
+                            onclick="toggleEdit({{ record.id }})">Edit</button>
                     {% if record.is_active %}
-                    <button class="btn-secondary"
-                            style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
                             hx-post="/inventory/depleted/{{ record.id }}"
                             hx-target="#part-card-{{ item.part.id }}"
                             hx-swap="outerHTML"
-                            hx-confirm="Mark this active box as depleted? It will be removed.">
-                        Depleted
-                    </button>
+                            hx-confirm="Mark this active box as depleted? It will be removed.">Depleted</button>
                     {% else %}
-                    <button class="btn-secondary"
-                            style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
                             hx-post="/receiving/pulldown/{{ record.id }}"
                             hx-target="#part-card-{{ item.part.id }}"
                             hx-swap="outerHTML"
-                            hx-confirm="Pull down this box ({{ record.quantity }} units)?">
-                        Pulldown
-                    </button>
+                            hx-confirm="Pull down this box ({{ record.quantity }} units)?">Pulldown</button>
                     {% endif %}
                 </td>
                 {% endif %}
             </tr>
-            <!-- fila de edicion inline -->
             {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
             <tr id="edit-{{ record.id }}" style="display:none; background:#f0f9ff;">
                 <td colspan="5" style="padding:12px 16px;">
@@ -105,46 +91,32 @@
                         <form method="POST" action="/inventory/update-location/{{ record.id }}"
                               style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
                             <input type="hidden" name="back" value="{{ request.url }}">
-                            <div>
-                                <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
-                                <input type="number" name="aisle" value="{{ record.aisle or '' }}"
-                                       min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                            </div>
-                            <div>
-                                <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
-                                <input type="number" name="bay" value="{{ record.bay or '' }}"
-                                       min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                            </div>
-                            <div>
-                                <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
-                                <input type="number" name="shelf" value="{{ record.shelf or '' }}"
-                                       min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                            </div>
-                            <div>
-                                <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location</label>
-                                <input type="number" name="location" value="{{ record.location or '' }}"
-                                       min="1" style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"
-                                       placeholder="opt">
-                            </div>
-                            <div>
-                                <label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Qty</label>
-                                <input type="number" name="quantity" value="{{ record.quantity }}"
-                                       min="1" style="width:70px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
-                            </div>
+                            <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
+                                <input type="number" name="aisle" value="{{ record.aisle or '' }}" min="1"
+                                       style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></div>
+                            <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
+                                <input type="number" name="bay" value="{{ record.bay or '' }}" min="1"
+                                       style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></div>
+                            <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
+                                <input type="number" name="shelf" value="{{ record.shelf or '' }}" min="1"
+                                       style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></div>
+                            <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location</label>
+                                <input type="number" name="location" value="{{ record.location or '' }}" min="1" placeholder="opt"
+                                       style="width:64px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></div>
+                            <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Qty</label>
+                                <input type="number" name="quantity" value="{{ record.quantity }}" min="1"
+                                       style="width:70px; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></div>
                             <div style="display:flex; gap:6px; padding-bottom:1px;">
                                 <button type="submit" class="btn-primary" style="padding:5px 14px; font-size:12px;">Save</button>
                                 <button type="button" class="btn-secondary" style="padding:5px 12px; font-size:12px;"
                                         onclick="toggleEdit({{ record.id }})">Cancel</button>
                             </div>
                         </form>
-                        <form method="POST" action="/inventory/delete-record/{{ record.id }}"
-                              style="padding-top:18px;">
+                        <form method="POST" action="/inventory/delete-record/{{ record.id }}" style="padding-top:18px;">
                             <input type="hidden" name="back" value="{{ request.url }}">
                             <button type="submit" class="btn-secondary"
                                     style="padding:5px 12px; font-size:12px; color:#dc2626; border-color:#fca5a5;"
-                                    onclick="return confirm('Delete this box record permanently?')">
-                                Delete
-                            </button>
+                                    onclick="return confirm('Delete this box record permanently?')">Delete</button>
                         </form>
                     </div>
                     {% if record.is_active %}
@@ -158,25 +130,124 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- VISTA MÓVIL: tarjetas por registro -->
+    <div class="inv-mobile" style="margin-bottom:12px;">
+        {% for record in item.records %}
+        <div style="border:1px solid {% if record.is_active %}#fde68a{% else %}#e5e7eb{% endif %};
+                    border-radius:10px; margin-bottom:10px; overflow:hidden;
+                    {% if record.is_active %}background:#fffbeb;{% endif %}">
+
+            <!-- fila principal: ubicacion + qty + tipo -->
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;">
+                <div style="flex:1; min-width:0;">
+                    {% if record.aisle %}
+                    <div style="font-family:monospace; font-size:18px; font-weight:700;
+                                color:#1e1b4b; letter-spacing:.04em; line-height:1.1;">
+                        A{{ '%02d'|format(record.aisle|int) }}&middot;B{{ '%02d'|format(record.bay|int) }}&middot;S{{ '%02d'|format(record.shelf|int) }}{% if record.location %}&middot;L{{ '%02d'|format(record.location|int) }}{% endif %}
+                    </div>
+                    {% else %}
+                    <div style="font-size:14px; color:#aaa;">No location</div>
+                    {% endif %}
+                    <div style="margin-top:4px;">
+                        {% if record.is_active %}
+                        <span class="badge badge-active">Active</span>
+                        {% else %}
+                        <span class="badge badge-overflow">Overflow</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- cantidad grande -->
+                <div style="text-align:center; background:#f9fafb; border-radius:8px;
+                            padding:8px 14px; border:1px solid #e5e7eb; flex-shrink:0;">
+                    <div style="font-size:22px; font-weight:800; color:#111; line-height:1;">{{ record.quantity }}</div>
+                    <div style="font-size:10px; color:#9ca3af; text-transform:uppercase;">units</div>
+                </div>
+            </div>
+
+            <!-- boton de accion: ancho completo -->
+            {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
+            <div style="border-top:1px solid #e5e7eb; display:flex; gap:0;">
+                {% if record.is_active %}
+                <button class="btn-secondary"
+                        style="flex:1; border:none; border-radius:0; padding:12px;
+                               font-size:14px; font-weight:600; color:#d97706; background:#fffbeb;"
+                        hx-post="/inventory/depleted/{{ record.id }}"
+                        hx-target="#part-card-{{ item.part.id }}"
+                        hx-swap="outerHTML"
+                        hx-confirm="Mark this active box as depleted? It will be removed.">
+                    Mark Depleted
+                </button>
+                {% else %}
+                <button class="btn-secondary"
+                        style="flex:1; border:none; border-radius:0; padding:14px;
+                               font-size:16px; font-weight:700; color:white;
+                               background:{% if item.needs_pulldown %}#dc2626{% else %}#4f46e5{% endif %};"
+                        hx-post="/receiving/pulldown/{{ record.id }}"
+                        hx-target="#part-card-{{ item.part.id }}"
+                        hx-swap="outerHTML"
+                        hx-confirm="Pull down this box ({{ record.quantity }} units)?">
+                    ↓ Pull Down
+                </button>
+                {% endif %}
+                {% if session['user_role'] in ['admin', 'supervisor'] %}
+                <button type="button"
+                        style="border:none; border-left:1px solid #e5e7eb; border-radius:0;
+                               padding:12px 16px; font-size:13px; color:#6b7280;
+                               background:white; cursor:pointer;"
+                        onclick="toggleEdit({{ record.id }})">Edit</button>
+                {% endif %}
+            </div>
+            <!-- form de edicion (mobile) -->
+            {% if session['user_role'] in ['admin', 'supervisor'] %}
+            <div id="edit-{{ record.id }}-m" style="display:none; background:#f0f9ff; padding:14px 16px; border-top:1px solid #bfdbfe;">
+                <form method="POST" action="/inventory/update-location/{{ record.id }}">
+                    <input type="hidden" name="back" value="{{ request.url }}">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Aisle</label>
+                            <input type="number" name="aisle" value="{{ record.aisle or '' }}" min="1"
+                                   style="width:100%; padding:8px; border:1px solid #93c5fd; border-radius:6px; font-size:15px;"></div>
+                        <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Bay</label>
+                            <input type="number" name="bay" value="{{ record.bay or '' }}" min="1"
+                                   style="width:100%; padding:8px; border:1px solid #93c5fd; border-radius:6px; font-size:15px;"></div>
+                        <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Shelf</label>
+                            <input type="number" name="shelf" value="{{ record.shelf or '' }}" min="1"
+                                   style="width:100%; padding:8px; border:1px solid #93c5fd; border-radius:6px; font-size:15px;"></div>
+                        <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Location (opt)</label>
+                            <input type="number" name="location" value="{{ record.location or '' }}" min="1"
+                                   style="width:100%; padding:8px; border:1px solid #93c5fd; border-radius:6px; font-size:15px;"></div>
+                    </div>
+                    <div><label style="font-size:11px; color:#6b7280; display:block; margin-bottom:3px;">Quantity</label>
+                        <input type="number" name="quantity" value="{{ record.quantity }}" min="1"
+                               style="width:100%; padding:8px; border:1px solid #93c5fd; border-radius:6px; font-size:15px; margin-bottom:10px;"></div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:14px;">Save</button>
+                        <button type="button" class="btn-secondary" style="padding:10px 16px; font-size:14px;"
+                                onclick="toggleEdit({{ record.id }})">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
     {% else %}
     <p style="color:#999; font-size:14px; margin-bottom:16px;">No inventory records for this part.</p>
     {% endif %}
 
     {% if session['user_role'] in ['admin', 'supervisor'] %}
-    <div style="border-top:1px solid #f3f4f6; padding-top:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;">
+    <div style="border-top:1px solid #f3f4f6; padding-top:14px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-            <span style="font-size:13px; color:#6b7280;">
-                Min. Overflow: <strong>{{ item.min_qty }}</strong>
-            </span>
+            <span style="font-size:13px; color:#6b7280;">Min. Overflow: <strong>{{ item.min_qty }}</strong></span>
             <form method="POST" action="/inventory/set-min/{{ item.part.id }}"
                   style="display:flex; gap:8px; align-items:center;">
                 <input type="number" name="min_qty" value="{{ item.min_qty }}" min="0"
                        style="width:80px; padding:6px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; text-align:center;">
                 <input type="hidden" name="search" value="{{ search }}">
                 <input type="hidden" name="filter" value="{{ filter_mode }}">
-                <button type="submit" class="btn-primary" style="padding:6px 14px; font-size:13px;">
-                    Set Minimum
-                </button>
+                <button type="submit" class="btn-primary" style="padding:6px 14px; font-size:13px;">Set Minimum</button>
             </form>
         </div>
         {% if item.in_list %}
@@ -199,3 +270,11 @@
     {% endif %}
 
 </div>
+
+<style>
+.inv-mobile { display: none; }
+@media (max-width: 640px) {
+    .inv-desktop { display: none; }
+    .inv-mobile  { display: block; }
+}
+</style>

@@ -34,7 +34,7 @@
 
 <!-- barra de busqueda sticky -->
 <div style="position:sticky; top:0; z-index:20; background:white; padding:10px 0 12px; margin-bottom:1rem; border-bottom:1px solid #e5e7eb;">
-    <form method="GET" action="/inventory/" style="display:flex; gap:8px; max-width:500px;">
+    <form method="GET" action="/inventory/" style="display:flex; gap:8px; max-width:500px; width:100%;">
         <input type="text" name="search" value="{{ search }}"
                placeholder="Search part name (e.g. toe33, Left Panel...)"
                style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
@@ -85,8 +85,12 @@
 
 <script>
 function toggleEdit(id) {
-    const editRow = document.getElementById('edit-' + id);
-    editRow.style.display = editRow.style.display === 'none' ? 'table-row' : 'none';
+    // desktop table row
+    const desktop = document.getElementById('edit-' + id);
+    if (desktop) desktop.style.display = desktop.style.display === 'none' ? 'table-row' : 'none';
+    // mobile form panel
+    const mobile = document.getElementById('edit-' + id + '-m');
+    if (mobile) mobile.style.display = mobile.style.display === 'none' ? 'block' : 'none';
 }
 </script>
 
