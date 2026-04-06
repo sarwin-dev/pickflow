@@ -9,12 +9,25 @@
 
 <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; max-width:900px;">
 
+    <!-- Clear All -->
+    <div style="background:white; border:2px solid #fecaca; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Clear Everything</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Wipes all inventory, parts, cabinet types and colors. Leaves users and warehouse config intact.
+        </div>
+        <button id="btn-clear-all" onclick="clearAll()"
+                class="btn-secondary" style="width:100%; color:#dc2626; border-color:#fca5a5;">
+            Clear All
+        </button>
+        <div id="msg-clear-all" style="font-size:13px; margin-top:10px; display:none;"></div>
+    </div>
+
     <!-- Reset Demo -->
     <div style="background:white; border:2px solid {% if has_seed %}#bbf7d0{% else %}#fecaca{% endif %}; border-radius:10px; padding:20px;">
-        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Reset to Demo State</div>
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Load Demo State</div>
         <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Clears Colors, Cabinet Types, Parts and Inventory, then reloads from
-            <code>demo_seed.json</code>. Use Fill Overflow after.
+            Reloads colors, cabinet types, parts, warehouse config and active inventory from
+            <code>demo_seed.json</code>. Run Fill Overflow after.
             {% if not has_seed %}
             <div style="margin-top:8px; color:#dc2626; font-weight:600;">
                 ⚠ demo_seed.json not found — run export_demo_seed.py first.
@@ -24,7 +37,7 @@
         <button id="btn-reset-demo" onclick="resetDemo()"
                 class="btn-primary" style="width:100%;"
                 {% if not has_seed %}disabled{% endif %}>
-            Reset Demo
+            Load Demo
         </button>
         <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
@@ -43,40 +56,43 @@
             </button>
             <button id="btn-clear-overflow" onclick="clearOverflow()"
                     class="btn-secondary"
-                    style="flex:1; color:#dc2626; border-color:#fca5a5;"
-                    onclick="return confirm('Delete all overflow records?')">
+                    style="flex:1; color:#dc2626; border-color:#fca5a5;">
                 Clear
             </button>
         </div>
         <div id="msg-fill-overflow" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
-    <!-- Reset Min Quantity -->
-    <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:20px;">
-        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Reset Min. Overflow to 100</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Sets min_quantity = 100 on all existing inventory records that are not already at 100.
-        </div>
-        <button id="btn-reset-min" onclick="resetMin()" class="btn-primary" style="width:100%;">
-            Run
-        </button>
-        <div id="msg-reset-min" style="font-size:13px; margin-top:10px; display:none;"></div>
-    </div>
-
 </div>
 
 <script>
+function clearAll() {
+    if (!confirm('This will delete ALL inventory, parts, cabinet types and colors. Continue?')) return;
+    const btn = document.getElementById('btn-clear-all');
+    const msg = document.getElementById('msg-clear-all');
+    btn.disabled = true;
+    btn.textContent = 'Clearing...';
+    fetch('/admin/demo/clear-all', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.textContent = 'Done';
+            msg.style.display = 'block';
+            msg.style.color = '#16a34a';
+            msg.textContent = 'All data cleared. App is now empty.';
+        });
+}
+
 function resetDemo() {
-    if (!confirm('This will clear all inventory, parts, cabinet types and colors, then reload from demo_seed.json. Continue?')) return;
+    if (!confirm('This will reload all demo data from demo_seed.json. Continue?')) return;
     const btn = document.getElementById('btn-reset-demo');
     const msg = document.getElementById('msg-reset-demo');
     btn.disabled = true;
-    btn.textContent = 'Resetting...';
+    btn.textContent = 'Loading...';
     fetch('/admin/demo/reset', { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                btn.textContent = 'Reset Demo';
+                btn.textContent = 'Load Demo';
                 btn.disabled = false;
                 msg.style.display = 'block';
                 msg.style.color = '#dc2626';
@@ -87,21 +103,6 @@ function resetDemo() {
                 msg.style.color = '#16a34a';
                 msg.textContent = `Loaded: ${data.colors} colors, ${data.cabinet_types} cabinet types, ${data.parts} parts, ${data.active_records} active records. Now run Fill Overflow.`;
             }
-        });
-}
-
-function resetMin() {
-    const btn = document.getElementById('btn-reset-min');
-    const msg = document.getElementById('msg-reset-min');
-    btn.disabled = true;
-    btn.textContent = 'Running...';
-    fetch('/receiving/demo-reset-min', { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            btn.textContent = 'Done';
-            msg.style.display = 'block';
-            msg.style.color = '#16a34a';
-            msg.textContent = `${data.updated} records updated to min 100.`;
         });
 }
 
@@ -140,11 +141,11 @@ function fillOverflow() {
             } else {
                 btn.textContent = 'Done';
                 msg.style.color = '#374151';
-                msg.textContent = `${data.filled} boxes added. Some slots were already occupied.`;
+                msg.textContent = `${data.filled} boxes added.`;
             }
         })
         .catch(() => {
-            btn.textContent = 'Run Fill';
+            btn.textContent = 'Fill';
             btn.disabled = false;
             msg.style.display = 'block';
             msg.style.color = '#dc2626';

@@ -416,6 +416,20 @@ def demo():
     return render_template('admin/demo.html', has_seed=has_seed)
 
 
+@admin_bp.route('/demo/clear-all', methods=['POST'])
+def demo_clear_all():
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+    Inventory.query.delete()
+    PartTemplate.query.delete()
+    Part.query.delete()
+    CabinetType.query.delete()
+    Color.query.delete()
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
 @admin_bp.route('/demo/reset', methods=['POST'])
 def demo_reset():
     check = admin_required()
