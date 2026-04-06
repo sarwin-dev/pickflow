@@ -1122,7 +1122,17 @@
     "total_bays": 10,
     "total_shelves": 4,
     "total_locations": 4,
-    "active_shelves": 1
+    "active_shelves": 1,
+    "max_cart_slots": 10,
+    "name": "My Warehouse",
+    "label_aisle": "Aisle",
+    "label_bay": "Bay",
+    "label_shelf": "Shelf",
+    "label_location": "Location",
+    "prefix_aisle": "A",
+    "prefix_bay": "B",
+    "prefix_shelf": "S",
+    "prefix_location": "L"
   },
   "active_inventory": [
     {
@@ -1583,6 +1593,368 @@
       "location": "1",
       "quantity": 100,
       "min_quantity": 100
+    }
+  ],
+  "work_orders": [
+    {
+      "order_number": "123.1",
+      "job_name": "alpha",
+      "lot_number": "001",
+      "scheduled_date": "2026-05-28",
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 6,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.2",
+      "job_name": "beta",
+      "lot_number": "002",
+      "scheduled_date": "2026-05-28",
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 6,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.3",
+      "job_name": "gamma",
+      "lot_number": "003",
+      "scheduled_date": "2026-05-28",
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 12",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 6,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 7,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 8,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 9,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 10,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.4",
+      "job_name": "delta",
+      "lot_number": "004",
+      "scheduled_date": "2026-05-29",
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 6,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.5",
+      "job_name": "epsilon",
+      "lot_number": "005",
+      "scheduled_date": "2026-05-29",
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 12",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 6,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 7,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 8,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 9,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 12",
+          "slot": 10,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.7",
+      "job_name": "eta",
+      "lot_number": "007",
+      "scheduled_date": null,
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 12",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 6,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 7,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 8,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 9,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 10,
+          "cart": 1
+        }
+      ]
+    },
+    {
+      "order_number": "123.8",
+      "job_name": "theta",
+      "lot_number": "008",
+      "scheduled_date": null,
+      "status": "pending",
+      "color_name": null,
+      "items": [
+        {
+          "cabinet_code": "Base 12",
+          "slot": 1,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 2,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 3,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 4,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 1812",
+          "slot": 5,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Wall 2112",
+          "slot": 6,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 12",
+          "slot": 7,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 15",
+          "slot": 8,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 18",
+          "slot": 9,
+          "cart": 1
+        },
+        {
+          "cabinet_code": "Base 21",
+          "slot": 10,
+          "cart": 1
+        }
+      ]
     }
   ]
 }
