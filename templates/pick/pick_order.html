@@ -55,7 +55,7 @@
         <button id="btn-complete-order"
                 onclick="completeOrder({{ order.id }})"
                 class="btn-secondary"
-                style="border-color:#f59e0b; color:#92400e; background:#fffbeb; font-weight:600;"
+                style="border-color:#d1d5db; color:#9ca3af; background:#f9fafb; font-weight:600; cursor:not-allowed;"
                 disabled>
             Complete Order
         </button>
@@ -359,7 +359,19 @@
 
         const completeBtn = document.getElementById('btn-complete-order');
         if (completeBtn) {
-            completeBtn.disabled = (picked + missing) === 0;
+            const inactive = (picked + missing) === 0;
+            completeBtn.disabled = inactive;
+            if (inactive) {
+                completeBtn.style.borderColor = '#d1d5db';
+                completeBtn.style.color = '#9ca3af';
+                completeBtn.style.background = '#f9fafb';
+                completeBtn.style.cursor = 'not-allowed';
+            } else {
+                completeBtn.style.borderColor = '#f59e0b';
+                completeBtn.style.color = '#92400e';
+                completeBtn.style.background = '#fffbeb';
+                completeBtn.style.cursor = 'pointer';
+            }
         }
     }
 
