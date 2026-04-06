@@ -24,9 +24,22 @@
                 {% endif %}
             </div>
         </div>
-        <div style="background:#1e1b4b; border-radius:10px; padding:10px 16px; text-align:center; flex-shrink:0;">
-            <div style="font-size:1.8rem; font-weight:800; color:white; line-height:1;">{{ item.overflow_total }}</div>
-            <div style="font-size:10px; color:#a5b4fc; margin-top:2px; text-transform:uppercase; letter-spacing:.05em;">Overflow</div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
+            {% if item.active_record_id and session['user_role'] in ['admin', 'supervisor'] %}
+            <button type="button"
+                    id="swap-btn-{{ item.part.id }}"
+                    onclick="selectForSwap('part-card-{{ item.part.id }}', {{ item.active_record_id }}, '{{ item.part.name }}')"
+                    style="font-size:12px; font-weight:600; padding:4px 12px;
+                           border:1px solid #c7d2fe; border-radius:8px;
+                           background:#eef2ff; color:#4f46e5; cursor:pointer;
+                           white-space:nowrap; transition:background 0.15s;">
+                ↔ Swap
+            </button>
+            {% endif %}
+            <div style="background:#1e1b4b; border-radius:10px; padding:10px 16px; text-align:center;">
+                <div style="font-size:1.8rem; font-weight:800; color:white; line-height:1;">{{ item.overflow_total }}</div>
+                <div style="font-size:10px; color:#a5b4fc; margin-top:2px; text-transform:uppercase; letter-spacing:.05em;">Overflow</div>
+            </div>
         </div>
     </div>
 

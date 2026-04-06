@@ -28,11 +28,13 @@ def build_part_item(part):
         status = 'ok'
     in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
     needs_pulldown = active_total == 0 and overflow_total > 0
+    active_record = next((r for r in records if r.is_active), None)
     return {
         'part': part, 'records': records,
         'overflow_total': overflow_total, 'active_total': active_total,
         'min_qty': min_qty, 'status': status, 'in_list': in_list,
         'needs_pulldown': needs_pulldown,
+        'active_record_id': active_record.id if active_record else None,
     }
 
 def inventory_required():
@@ -164,6 +166,66 @@ def update_location(record_id):
     session.pop('pending_loc_edit', None)
     flash('Updated.', 'success')
     return redirect(back)
+
+
+@inventory_bp.route('/swap', methods=['POST'])
+def swap_locations():
+    check = supervisor_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 401
+
+    data = request.get_json()
+    record_a = Inventory.query.get(data.get('record_a_id'))
+    record_b = Inventory.query.get(data.get('record_b_id'))
+
+    if not record_a or not record_b:
+        return jsonify({'error': 'Record not found'}), 404
+    if not record_a.is_active or not record_b.is_active:
+        return jsonify({'error': 'Both records must be active'}), 400
+    if record_a.id == record_b.id:
+        return jsonify({'error': 'Cannot swap with itself'}), 400
+
+    # guarda las dos ubicaciones antes de modificar nada
+    a_aisle, a_bay, a_shelf, a_location = record_a.aisle, record_a.bay, record_a.shelf, record_a.location
+    b_aisle, b_bay, b_shelf, b_location = record_b.aisle, record_b.bay, record_b.shelf, record_b.location
+
+    # buffer NULL para A (evita conflictos temporales en la transaccion)
+    record_a.aisle = None
+    record_a.bay   = None
+    record_a.shelf = None
+    record_a.location = None
+    db.session.flush()
+
+    # B ocupa la posicion original de A
+    record_b.aisle    = a_aisle
+    record_b.bay      = a_bay
+    record_b.shelf    = a_shelf
+    record_b.location = a_location
+    db.session.flush()
+
+    # A ocupa la posicion original de B
+    record_a.aisle    = b_aisle
+    record_a.bay      = b_bay
+    record_a.shelf    = b_shelf
+    record_a.location = b_location
+    db.session.flush()
+
+    # actualiza Part.active_* para ambas partes
+    part_a = Part.query.get(record_a.part_id)
+    part_b = Part.query.get(record_b.part_id)
+    if part_a:
+        part_a.active_aisle    = record_a.aisle
+        part_a.active_bay      = record_a.bay
+        part_a.active_shelf    = record_a.shelf
+        part_a.active_location = record_a.location
+    if part_b:
+        part_b.active_aisle    = record_b.aisle
+        part_b.active_bay      = record_b.bay
+        part_b.active_shelf    = record_b.shelf
+        part_b.active_location = record_b.location
+
+    db.session.commit()
+    return jsonify({'success': True, 'part_a': part_a.name, 'part_b': part_b.name})
 
 
 @inventory_bp.route('/clear-pending-edit')
