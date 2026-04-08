@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Parts Analytics - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Parts Consumption Analytics</h1>
+    <p>Projected {{ months }}-month consumption based on production plan — ranked highest to lowest</p>
+</div>
+
+{% if not rows %}
+<div style="text-align:center; padding:3rem; color:#6b7280;">
+    <p style="font-size:16px; font-weight:600;">No data available</p>
+    <p style="font-size:13px; margin-top:8px;">
+        Set annual quantities on cabinet types first.<br>
+        Go to <a href="/admin/cabinets" style="color:#4f46e5;">Cabinet Types</a> or use
+        <a href="/admin/demo" style="color:#4f46e5;">Demo Tools → Simulate Production Data</a>.
+    </p>
+</div>
+{% else %}
+
+<!-- Summary bar -->
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1.5rem;">
+    <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 18px;">
+        <div style="font-size:11px; color:#6366f1; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Parts tracked</div>
+        <div style="font-size:22px; font-weight:700; color:#1e1b4b;">{{ rows | length }}</div>
+    </div>
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 18px;">
+        <div style="font-size:11px; color:#16a34a; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Total {{ months }}-mo units</div>
+        <div style="font-size:22px; font-weight:700; color:#15803d;">{{ rows | sum(attribute='consumed') | int | string }}</div>
+    </div>
+    <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 18px;">
+        <div style="font-size:11px; color:#ea580c; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Critical (&lt; 1 mo stock)</div>
+        <div style="font-size:22px; font-weight:700; color:#c2410c;">{{ critical_count }}</div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; font-size:12px; color:#6b7280;">
+    <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444;"></span> Critical &lt;1 mo
+    </span>
+    <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f97316;"></span> Low 1–2 mo
+    </span>
+    <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#eab308;"></span> Watch 2–3 mo
+    </span>
+    <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> OK &gt;3 mo
+    </span>
+    <span style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#d1d5db;"></span> No overflow
+    </span>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:44px; text-align:center;">#</th>
+                <th>Part Name</th>
+                <th style="text-align:center;">{{ months }}-mo Projection</th>
+                <th style="text-align:center;">Monthly Avg</th>
+                <th style="text-align:center;">Overflow Stock</th>
+                <th style="text-align:center;">Months Remaining</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            {% if row.months_remaining is none %}
+                {% set dot_color = '#d1d5db' %}
+                {% set mo_text = 'No stock' %}
+                {% set mo_style = 'color:#9ca3af;' %}
+            {% elif row.months_remaining < 1 %}
+                {% set dot_color = '#ef4444' %}
+                {% set mo_text = row.months_remaining | string + ' mo' %}
+                {% set mo_style = 'color:#dc2626; font-weight:700;' %}
+            {% elif row.months_remaining < 2 %}
+                {% set dot_color = '#f97316' %}
+                {% set mo_text = row.months_remaining | string + ' mo' %}
+                {% set mo_style = 'color:#ea580c; font-weight:600;' %}
+            {% elif row.months_remaining < 3 %}
+                {% set dot_color = '#eab308' %}
+                {% set mo_text = row.months_remaining | string + ' mo' %}
+                {% set mo_style = 'color:#ca8a04;' %}
+            {% else %}
+                {% set dot_color = '#22c55e' %}
+                {% set mo_text = row.months_remaining | string + ' mo' %}
+                {% set mo_style = 'color:#16a34a;' %}
+            {% endif %}
+            <tr>
+                <td style="text-align:center; color:#9ca3af; font-size:12px;">{{ row.rank }}</td>
+                <td>
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%;
+                                 background:{{ dot_color }}; margin-right:6px; flex-shrink:0;"></span>
+                    <strong>{{ row.part.name }}</strong>
+                </td>
+                <td style="text-align:center; font-weight:600;">{{ row.consumed }}</td>
+                <td style="text-align:center; color:#6b7280;">{{ row.monthly_avg }}</td>
+                <td style="text-align:center;">{{ row.stock }}</td>
+                <td style="text-align:center; {{ mo_style }}">{{ mo_text }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

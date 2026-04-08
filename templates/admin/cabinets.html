@@ -21,10 +21,10 @@
                 <th>Code</th>
                 <th>Name</th>
                 <th>Width</th>
-                <th>Height</th>
                 <th>Color</th>
                 <th>Type</th>
                 <th>Parts</th>
+                <th style="text-align:center;">Annual Qty</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -34,7 +34,6 @@
                 <td><strong>{{ cabinet.code }}</strong></td>
                 <td>{{ cabinet.name }}</td>
                 <td>{{ cabinet.width }}"</td>
-                <td>{{ cabinet.height or '-' }}</td>
                 <td>
                     {% if cabinet.color %}
                     <div style="display:flex; align-items:center; gap:6px;">
@@ -54,11 +53,18 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="/admin/cabinets/{{ cabinet.id }}/parts" 
-                       class="btn-create" 
+                    <a href="/admin/cabinets/{{ cabinet.id }}/parts"
+                       class="btn-create"
                        style="font-size:12px; padding:4px 10px;">
                         View Parts ({{ cabinet.parts | sum(attribute='quantity') }} pcs)
                     </a>
+                </td>
+                <td style="text-align:center;">
+                    <input type="number" min="0"
+                           value="{{ cabinet.annual_qty }}"
+                           onchange="saveAnnualQty({{ cabinet.id }}, this)"
+                           style="width:70px; padding:5px 8px; border:1px solid #e5e7eb;
+                                  border-radius:6px; font-size:13px; text-align:center;">
                 </td>
                 <td style="display:flex; gap:6px; align-items:center;">
                     <a href="/admin/cabinets/edit/{{ cabinet.id }}"
@@ -76,5 +82,20 @@
         </tbody>
     </table>
 </div>
+
+<script>
+async function saveAnnualQty(cabinetId, input) {
+    const val = parseInt(input.value) || 0;
+    input.style.borderColor = '#93c5fd';
+    const res = await fetch(`/admin/cabinets/${cabinetId}/annual-qty`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ annual_qty: val })
+    });
+    const data = await res.json();
+    input.style.borderColor = data.success ? '#86efac' : '#fca5a5';
+    setTimeout(() => { input.style.borderColor = '#e5e7eb'; }, 1200);
+}
+</script>
 
 {% endblock %}

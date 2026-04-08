@@ -2,7 +2,7 @@ import re
 from io import BytesIO
 from flask import Blueprint, render_template, session, redirect, url_for, request, send_file, flash, jsonify
 from extensions import db
-from models import Part, Inventory, ShoppingListItem, WarehouseConfig
+from models import Part, Inventory, ShoppingListItem, WarehouseConfig, CabinetType, PartTemplate
 from datetime import datetime
 from sqlalchemy import cast, Integer, nullslast
 
@@ -412,3 +412,65 @@ def shopping_pdf():
     filename = f"ReorderList_{datetime.now().strftime('%Y%m%d')}.pdf"
     return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=filename)
+
+
+@inventory_bp.route('/analytics')
+def analytics():
+    check = supervisor_required()
+    if check:
+        return check
+
+    MONTHS = 4
+
+    # Build consumption map: part_id -> projected units consumed in MONTHS months
+    consumption = {}  # part_id -> float
+    for cabinet in CabinetType.query.all():
+        if not cabinet.annual_qty:
+            continue
+        for tmpl in cabinet.parts:
+            projected = cabinet.annual_qty * (MONTHS / 12) * tmpl.quantity
+            consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
+
+    if not consumption:
+        return render_template('inventory/analytics.html', rows=[], months=MONTHS)
+
+    # Current overflow stock per part
+    from sqlalchemy import func
+    overflow = dict(
+        db.session.query(Inventory.part_id, func.sum(Inventory.quantity))
+        .filter(Inventory.is_active == False)
+        .group_by(Inventory.part_id)
+        .all()
+    )
+
+    # Build rows
+    rows = []
+    part_ids = list(consumption.keys())
+    parts = {p.id: p for p in Part.query.filter(Part.id.in_(part_ids)).all()}
+
+    for part_id, consumed in consumption.items():
+        part = parts.get(part_id)
+        if not part:
+            continue
+        monthly_avg = consumed / MONTHS
+        stock = overflow.get(part_id, 0)
+        months_remaining = (stock / monthly_avg) if monthly_avg > 0 else None
+        rows.append({
+            'part': part,
+            'consumed': round(consumed),
+            'monthly_avg': round(monthly_avg, 1),
+            'stock': stock,
+            'months_remaining': round(months_remaining, 1) if months_remaining is not None else None,
+        })
+
+    rows.sort(key=lambda r: r['consumed'], reverse=True)
+    for i, row in enumerate(rows, 1):
+        row['rank'] = i
+
+    critical_count = sum(
+        1 for r in rows
+        if r['months_remaining'] is not None and r['months_remaining'] < 1
+    )
+
+    return render_template('inventory/analytics.html', rows=rows, months=MONTHS,
+                           critical_count=critical_count)

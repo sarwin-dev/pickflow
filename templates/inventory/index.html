@@ -3,8 +3,17 @@
 {% block content %}
 
 <div class="dashboard-header">
-    <h1>Inventory Lookup</h1>
-    <p>Search a part to see its stock locations</p>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+        <div>
+            <h1>Inventory Lookup</h1>
+            <p>Search a part to see its stock locations</p>
+        </div>
+        {% if session['user_role'] in ['admin', 'supervisor'] %}
+        <a href="/inventory/analytics" class="btn-create" style="font-size:13px; padding:7px 14px; white-space:nowrap;">
+            Parts Analytics
+        </a>
+        {% endif %}
+    </div>
 </div>
 
 {% if pending_loc_edit %}

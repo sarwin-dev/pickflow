@@ -6,7 +6,7 @@ from extensions import db
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'cabinets_secret_key_2024')
 
-database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:cabinets123@localhost/cabinets_db')
+database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:agosto28@localhost/cabinets_db')
 # Railway a veces entrega postgres:// en lugar de postgresql://
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
@@ -26,6 +26,7 @@ with app.app_context():
         from sqlalchemy import text
         db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
         db.session.execute(text('ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS scheduled_date DATE'))
+        db.session.execute(text('ALTER TABLE cabinet_types ADD COLUMN IF NOT EXISTS annual_qty INTEGER NOT NULL DEFAULT 0'))
         # corrige registros de inventario mal marcados: si shelf > active_shelves deben ser overflow
         db.session.execute(text('''
             UPDATE inventory

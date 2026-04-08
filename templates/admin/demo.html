@@ -42,6 +42,20 @@
         <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
+    <!-- Simulate Production Data -->
+    <div style="background:white; border:1px solid #c7d2fe; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Simulate Production Plan</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Sets realistic annual quantities on all cabinet types based on width.
+            Wider cabinets → fewer units/year. Needed to test the Parts Analytics feature.
+        </div>
+        <button id="btn-sim-prod" onclick="simulateProd()"
+                class="btn-primary" style="width:100%; background:#6366f1; border-color:#6366f1;">
+            Simulate Production Data
+        </button>
+        <div id="msg-sim-prod" style="font-size:13px; margin-top:10px; display:none;"></div>
+    </div>
+
     <!-- Fill Overflow -->
     <div style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:20px;">
         <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Fill Overflow Warehouse</div>
@@ -122,6 +136,28 @@ function clearOverflow() {
             msg.textContent = `${data.deleted} records deleted. Ready to fill again.`;
             document.getElementById('btn-fill-overflow').disabled = false;
             document.getElementById('btn-fill-overflow').textContent = 'Fill';
+        });
+}
+
+function simulateProd() {
+    const btn = document.getElementById('btn-sim-prod');
+    const msg = document.getElementById('msg-sim-prod');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    fetch('/admin/demo/simulate-production', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.textContent = 'Done';
+            msg.style.display = 'block';
+            if (data.success) {
+                msg.style.color = '#4f46e5';
+                msg.textContent = `Annual quantities set on ${data.count} cabinet types. Go to Cabinet Types to review.`;
+            } else {
+                msg.style.color = '#dc2626';
+                msg.textContent = data.error || 'Error';
+                btn.disabled = false;
+                btn.textContent = 'Simulate Production Data';
+            }
         });
 }
 

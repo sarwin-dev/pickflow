@@ -215,6 +215,20 @@ def delete_cabinet(cabinet_id):
         db.session.commit()
     return redirect(url_for('admin.cabinets'))
 
+@admin_bp.route('/cabinets/<int:cabinet_id>/annual-qty', methods=['POST'])
+def set_annual_qty(cabinet_id):
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 401
+    cabinet = CabinetType.query.get_or_404(cabinet_id)
+    try:
+        cabinet.annual_qty = max(0, int(request.json.get('annual_qty', 0)))
+        db.session.commit()
+        return jsonify({'success': True, 'annual_qty': cabinet.annual_qty})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/edit/<int:part_id>', methods=['POST'])
 def edit_part(cabinet_id, part_id):
     check = admin_required()
@@ -576,3 +590,29 @@ def demo_reset():
         'active_records': active_count,
         'orders': order_count,
     })
+
+
+@admin_bp.route('/demo/simulate-production', methods=['POST'])
+def demo_simulate_production():
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+    cabinets = CabinetType.query.all()
+    for cabinet in cabinets:
+        w = cabinet.width or 0
+        if w <= 9:
+            cabinet.annual_qty = 150
+        elif w <= 12:
+            cabinet.annual_qty = 120
+        elif w <= 15:
+            cabinet.annual_qty = 100
+        elif w <= 18:
+            cabinet.annual_qty = 80
+        elif w <= 21:
+            cabinet.annual_qty = 60
+        elif w <= 24:
+            cabinet.annual_qty = 50
+        else:
+            cabinet.annual_qty = 36
+    db.session.commit()
+    return jsonify({'success': True, 'count': len(cabinets)})

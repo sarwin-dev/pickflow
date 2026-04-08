@@ -19,6 +19,7 @@ class CabinetType(db.Model):
     height = db.Column(db.Integer, nullable=True)
     color = db.Column(db.String(50), nullable=True)
     is_custom = db.Column(db.Boolean, default=False)
+    annual_qty = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     parts = db.relationship('PartTemplate', backref='cabinet', lazy=True, cascade='all, delete-orphan')
 
 # tabla maestra de partes - cada parte existe una sola vez
