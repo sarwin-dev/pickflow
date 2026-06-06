@@ -46,8 +46,13 @@
     <div style="background:white; border:1px solid #c7d2fe; border-radius:10px; padding:20px;">
         <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Simulate Production Plan</div>
         <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Sets realistic annual quantities on all cabinet types based on width.
-            Wider cabinets → fewer units/year. Needed to test the Parts Analytics feature.
+            Tells the system how many cabinets of each type your shop builds per year.
+            This is the foundation of the Parts Analytics — without a production plan,
+            the system can't calculate how many parts you'll need or when you'll run out.
+            <br><br>
+            <strong style="color:#4f46e5;">Example:</strong> If you build 120 base cabinets per year,
+            the system automatically knows you'll need 480 side panels in the next 4 months
+            and tells you if your current stock is enough.
         </div>
         <button id="btn-sim-prod" onclick="simulateProd()"
                 class="btn-primary" style="width:100%; background:#6366f1; border-color:#6366f1;">
