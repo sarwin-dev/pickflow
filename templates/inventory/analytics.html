@@ -2,12 +2,59 @@
 {% block title %}Parts Analytics - PickFlow{% endblock %}
 {% block content %}
 
+<!-- Tooltip styles — lightweight pure CSS, no library needed -->
+<style>
+.tip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dashed #9ca3af;
+}
+.tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1b4b;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 7px 11px;
+    border-radius: 7px;
+    white-space: pre-line;        /* allows \n line breaks inside tip text */
+    width: max-content;
+    max-width: 260px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s;
+    z-index: 99;
+}
+/* small arrow pointing down toward the element */
+.tip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1e1b4b;
+    opacity: 0;
+    transition: opacity .18s;
+    z-index: 99;
+}
+.tip:hover::after,
+.tip:hover::before { opacity: 1; }
+</style>
+
 <div class="dashboard-header">
     <h1>Parts Consumption Analytics</h1>
     <p>Projected {{ months }}-month consumption based on production plan — ranked highest to lowest</p>
 </div>
 
 {% if not rows %}
+<!-- Empty state: shown when no annual_qty has been set on any cabinet type -->
 <div style="text-align:center; padding:3rem; color:#6b7280;">
     <p style="font-size:16px; font-weight:600;">No data available</p>
     <p style="font-size:13px; margin-top:8px;">
@@ -18,37 +65,54 @@
 </div>
 {% else %}
 
-<!-- Summary bar -->
+<!-- Summary cards — three KPIs at a glance -->
 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1.5rem;">
-    <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 18px;">
+
+    <!-- Total unique parts that appear in at least one cabinet template -->
+    <div class="tip"
+         data-tip="Total unique parts that appear in at least one cabinet type template and have a production plan set."
+         style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 18px;">
         <div style="font-size:11px; color:#6366f1; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Parts tracked</div>
         <div style="font-size:22px; font-weight:700; color:#1e1b4b;">{{ rows | length }}</div>
     </div>
-    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 18px;">
+
+    <!-- Sum of all projected consumption across every part for the 4-month window -->
+    <div class="tip"
+         data-tip="Total units needed across all parts in the next {{ months }} months,\nbased on the annual production plan per cabinet type."
+         style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 18px;">
         <div style="font-size:11px; color:#16a34a; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Total {{ months }}-mo units</div>
         <div style="font-size:22px; font-weight:700; color:#15803d;">{{ rows | sum(attribute='consumed') | int | string }}</div>
     </div>
-    <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 18px;">
+
+    <!-- Parts where current overflow stock won't last even one month at production rate -->
+    <div class="tip"
+         data-tip="Parts where current overflow stock will run out in less than 1 month.\nThese need to be ordered immediately."
+         style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 18px;">
         <div style="font-size:11px; color:#ea580c; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Critical (&lt; 1 mo stock)</div>
         <div style="font-size:22px; font-weight:700; color:#c2410c;">{{ critical_count }}</div>
     </div>
 </div>
 
-<!-- Legend -->
+<!-- Color legend for the stock health indicator dots -->
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; font-size:12px; color:#6b7280;">
-    <span style="display:flex; align-items:center; gap:4px;">
+    <span class="tip" data-tip="Stock will run out in less than 1 month. Order now."
+          style="display:flex; align-items:center; gap:4px;">
         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444;"></span> Critical &lt;1 mo
     </span>
-    <span style="display:flex; align-items:center; gap:4px;">
+    <span class="tip" data-tip="1 to 2 months of stock remaining. Start the purchase process."
+          style="display:flex; align-items:center; gap:4px;">
         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f97316;"></span> Low 1–2 mo
     </span>
-    <span style="display:flex; align-items:center; gap:4px;">
+    <span class="tip" data-tip="2 to 3 months of stock remaining. Keep an eye on this part."
+          style="display:flex; align-items:center; gap:4px;">
         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#eab308;"></span> Watch 2–3 mo
     </span>
-    <span style="display:flex; align-items:center; gap:4px;">
+    <span class="tip" data-tip="More than 3 months of stock remaining. No action needed."
+          style="display:flex; align-items:center; gap:4px;">
         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> OK &gt;3 mo
     </span>
-    <span style="display:flex; align-items:center; gap:4px;">
+    <span class="tip" data-tip="No overflow stock recorded for this part."
+          style="display:flex; align-items:center; gap:4px;">
         <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#d1d5db;"></span> No overflow
     </span>
 </div>
@@ -57,16 +121,37 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width:44px; text-align:center;">#</th>
+                <!-- Rank by consumption volume, highest first -->
+                <th style="width:44px; text-align:center;">
+                    <span class="tip" data-tip="Consumption rank — part #1 is the most used and should be prioritized when ordering.">#</span>
+                </th>
                 <th>Part Name</th>
-                <th style="text-align:center;">{{ months }}-mo Projection</th>
-                <th style="text-align:center;">Monthly Avg</th>
-                <th style="text-align:center;">Overflow Stock</th>
-                <th style="text-align:center;">Months Remaining</th>
+
+                <!-- Units needed in the selected period window -->
+                <th style="text-align:center;">
+                    <span class="tip" data-tip="Projected units of this part needed over the next {{ months }} months,\ncalculated from: annual qty × ({{ months }}/12) × parts per cabinet.">{{ months }}-mo Projection</span>
+                </th>
+
+                <!-- Average monthly demand -->
+                <th style="text-align:center;">
+                    <span class="tip" data-tip="Average units consumed per month at the current production rate.\nUseful for planning recurring purchase orders.">Monthly Avg</span>
+                </th>
+
+                <!-- Current units in overflow warehouse -->
+                <th style="text-align:center;">
+                    <span class="tip" data-tip="Current units of this part sitting in the overflow warehouse,\nready to replenish the active pick location.">Overflow Stock</span>
+                </th>
+
+                <!-- How long current stock lasts at monthly consumption rate -->
+                <th style="text-align:center;">
+                    <span class="tip" data-tip="How many months the current overflow stock will last\nat the current production rate.\nColor indicates urgency level.">Months Remaining</span>
+                </th>
             </tr>
         </thead>
         <tbody>
             {% for row in rows %}
+
+            {# Determine dot color and text based on months of stock remaining #}
             {% if row.months_remaining is none %}
                 {% set dot_color = '#d1d5db' %}
                 {% set mo_text = 'No stock' %}
@@ -88,6 +173,7 @@
                 {% set mo_text = row.months_remaining | string + ' mo' %}
                 {% set mo_style = 'color:#16a34a;' %}
             {% endif %}
+
             <tr>
                 <td style="text-align:center; color:#9ca3af; font-size:12px;">{{ row.rank }}</td>
                 <td>
