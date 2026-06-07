@@ -662,11 +662,14 @@ def demo_generate_order():
     # Only pick cabinet types that match the selected color — all cabinets in one job are the same finish
     cabinets = CabinetType.query.filter_by(color=color.name).all()
     if not cabinets:
-        # Fallback: if no color match, use all cabinet types
         cabinets = CabinetType.query.all()
     if not cabinets:
         return jsonify({'error': 'No cabinet types found. Load demo data first.'}), 400
-    count = random.randint(8, 16)
+    # Cap count at max_cart_slots so the edit page never overflows one cart
+    from models import WarehouseConfig
+    wc = WarehouseConfig.query.first()
+    max_slots = wc.max_cart_slots if wc else 24
+    count = random.randint(min(8, max_slots), max_slots)
     chosen = random.choices(cabinets, k=count)
 
     # Get the admin user to assign as creator
@@ -683,18 +686,13 @@ def demo_generate_order():
     db.session.add(wo)
     db.session.flush()
 
-    # Distribute items across carts respecting max_cart_slots from WarehouseConfig
-    from models import WarehouseConfig
-    wc = WarehouseConfig.query.first()
-    max_slots = wc.max_cart_slots if wc else 24
-    for idx, cabinet in enumerate(chosen):
-        cart = (idx // max_slots) + 1
-        slot = (idx % max_slots) + 1
+    # All items on cart 1, sequential slots — count is already capped at max_slots above
+    for slot, cabinet in enumerate(chosen, 1):
         db.session.add(OrderItem(
             work_order_id=wo.id,
             cabinet_type_id=cabinet.id,
             slot=slot,
-            cart=cart,
+            cart=1,
         ))
 
     db.session.commit()
