@@ -59,11 +59,14 @@ def create():
         else:
             sched_raw = request.form.get('scheduled_date', '').strip()
             sched = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
+            color_name = request.form.get('color_filter') or None
+            color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
             new_order = WorkOrder(
                 order_number=order_number,
                 job_name=request.form.get('job_name') or None,
                 lot_number=lot_number,
                 scheduled_date=sched,
+                color_id=color_obj.id if color_obj else None,
                 created_by=session['user_id'],
                 status='pending'
             )
@@ -81,7 +84,7 @@ def create():
                     )
                     db.session.add(item)
             db.session.commit()
-            return redirect(url_for('orders.view', order_id=new_order.id))
+            return redirect(url_for('orders.index'))
     return render_template('orders/create.html', cabinets=cabinets, error=error, config=config, colors=colors)
 
 @orders_bp.route('/<int:order_id>')
@@ -122,6 +125,9 @@ def edit(order_id):
         if not error:
             order.order_number = new_number
             order.lot_number = new_lot
+            color_name = request.form.get('color_filter') or None
+            color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
+            order.color_id = color_obj.id if color_obj else order.color_id
             # reemplaza los items
             for item in order.items:
                 PickItem.query.filter_by(order_item_id=item.id).delete()
@@ -136,7 +142,7 @@ def edit(order_id):
                         cart=1
                     ))
             db.session.commit()
-            return redirect(url_for('orders.view', order_id=order.id))
+            return redirect(url_for('orders.index'))
     return render_template('orders/edit.html', order=order, cabinets=cabinets,
                            config=config, colors=colors, error=error)
 
