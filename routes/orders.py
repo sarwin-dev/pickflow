@@ -51,16 +51,18 @@ def create():
     if request.method == 'POST':
         order_number = request.form['order_number']
         lot_number = request.form.get('lot_number') or None
+        color_name = request.form.get('color_filter') or None
+        color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
         existing = WorkOrder.query.filter_by(order_number=order_number).first()
-        if existing:
+        if not color_obj:
+            error = 'Order Color is required.'
+        elif existing:
             error = f'Order number {order_number} already exists.'
         elif lot_number and WorkOrder.query.filter_by(lot_number=lot_number).first():
             error = f'Batch "{lot_number}" already exists.'
         else:
             sched_raw = request.form.get('scheduled_date', '').strip()
             sched = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
-            color_name = request.form.get('color_filter') or None
-            color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
             new_order = WorkOrder(
                 order_number=order_number,
                 job_name=request.form.get('job_name') or None,
@@ -111,23 +113,23 @@ def edit(order_id):
     colors = Color.query.order_by(Color.name).all()
     error = None
     if request.method == 'POST':
+        color_name = request.form.get('color_filter') or None
+        color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
         order.job_name = request.form.get('job_name') or None
         new_lot = request.form.get('lot_number') or None
         sched_raw = request.form.get('scheduled_date', '').strip()
         order.scheduled_date = datetime.strptime(sched_raw, '%Y-%m-%d').date() if sched_raw else None
         new_number = request.form['order_number']
-        if new_number != order.order_number:
-            if WorkOrder.query.filter_by(order_number=new_number).first():
-                error = f'Order number {new_number} already exists.'
-        if not error and new_lot and new_lot != order.lot_number:
-            if WorkOrder.query.filter_by(lot_number=new_lot).first():
-                error = f'Batch "{new_lot}" already exists.'
+        if not color_obj:
+            error = 'Order Color is required.'
+        elif new_number != order.order_number and WorkOrder.query.filter_by(order_number=new_number).first():
+            error = f'Order number {new_number} already exists.'
+        elif new_lot and new_lot != order.lot_number and WorkOrder.query.filter_by(lot_number=new_lot).first():
+            error = f'Batch "{new_lot}" already exists.'
         if not error:
             order.order_number = new_number
             order.lot_number = new_lot
-            color_name = request.form.get('color_filter') or None
-            color_obj = Color.query.filter_by(name=color_name).first() if color_name else None
-            order.color_id = color_obj.id if color_obj else order.color_id
+            order.color_id = color_obj.id
             # reemplaza los items
             for item in order.items:
                 PickItem.query.filter_by(order_item_id=item.id).delete()

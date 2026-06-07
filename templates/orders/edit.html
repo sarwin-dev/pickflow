@@ -46,14 +46,16 @@
         </div>
     </div>
 
-    <!-- filtro de color -->
+    <!-- color del trabajo — obligatorio, tambien filtra los gabinetes disponibles -->
     <div style="max-width:700px; margin-bottom:1rem;">
         <div class="form-card" style="padding:12px 16px;">
             <div style="display:flex; align-items:center; gap:12px;">
-                <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Filter by color:</label>
+                <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">
+                    Order Color <span style="color:#ef4444;">*</span>
+                </label>
                 <select id="color-filter" name="color_filter" onchange="applyColorFilter()"
                     style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:180px;">
-                    <option value="">— Show all —</option>
+                    <option value="" disabled {% if not order.color %}selected{% endif %}>— Select color —</option>
                     {% for color in colors %}
                     <option value="{{ color.name }}" data-hex="{{ color.hex_code or '' }}"
                         {% if order.color and order.color.name == color.name %}selected{% endif %}>
@@ -62,6 +64,7 @@
                     {% endfor %}
                 </select>
                 <div id="color-swatch" style="width:20px; height:20px; border-radius:4px; border:1px solid #e5e7eb; display:none;"></div>
+                <span id="color-required-msg" style="font-size:12px; color:#ef4444; display:none;">Required</span>
             </div>
         </div>
     </div>
@@ -89,8 +92,9 @@
     </div>
 
     <div style="display:flex; gap:12px; margin-top:1.5rem; max-width:700px;">
-        <button type="submit" class="btn-primary" style="width:auto; padding:10px 24px;">Save Changes</button>
-        <a href="/orders/{{ order.id }}" class="btn-secondary">Cancel</a>
+        <button type="button" class="btn-primary" style="width:auto; padding:10px 24px;"
+                onclick="submitOrder()">Save Changes</button>
+        <a href="/orders" class="btn-secondary">Cancel</a>
     </div>
 
 </form>
@@ -164,8 +168,22 @@ function removeSlot() {
     slotCount--;
 }
 
+function submitOrder() {
+    const color = document.getElementById('color-filter').value;
+    if (!color) {
+        document.getElementById('color-required-msg').style.display = 'inline';
+        document.getElementById('color-filter').style.borderColor = '#ef4444';
+        document.getElementById('color-filter').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+    document.querySelector('form').submit();
+}
+
 // carga los slots existentes de la orden
 existingSlots.forEach(id => addSlot(id));
+
+// aplica el color inicial si ya tiene uno asignado
+if (document.getElementById('color-filter').value) applyColorFilter();
 </script>
 
 {% endblock %}
