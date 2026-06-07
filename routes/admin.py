@@ -683,13 +683,18 @@ def demo_generate_order():
     db.session.add(wo)
     db.session.flush()
 
-    # All items go on cart 1 — door/drawer carts not yet implemented
-    for slot, cabinet in enumerate(chosen, 1):
+    # Distribute items across carts respecting max_cart_slots from WarehouseConfig
+    from models import WarehouseConfig
+    wc = WarehouseConfig.query.first()
+    max_slots = wc.max_cart_slots if wc else 24
+    for idx, cabinet in enumerate(chosen):
+        cart = (idx // max_slots) + 1
+        slot = (idx % max_slots) + 1
         db.session.add(OrderItem(
             work_order_id=wo.id,
             cabinet_type_id=cabinet.id,
             slot=slot,
-            cart=1,
+            cart=cart,
         ))
 
     db.session.commit()
