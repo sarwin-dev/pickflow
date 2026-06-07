@@ -680,14 +680,13 @@ def demo_generate_order():
     db.session.add(wo)
     db.session.flush()
 
-    # Assign slots sequentially; distribute across 2 carts
+    # All items go on cart 1 — door/drawer carts not yet implemented
     for slot, cabinet in enumerate(chosen, 1):
-        cart = 1 if slot <= len(chosen) // 2 + len(chosen) % 2 else 2
         db.session.add(OrderItem(
             work_order_id=wo.id,
             cabinet_type_id=cabinet.id,
             slot=slot,
-            cart=cart,
+            cart=1,
         ))
 
     db.session.commit()
