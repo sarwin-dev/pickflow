@@ -616,3 +616,86 @@ def demo_simulate_production():
             cabinet.annual_qty = 36
     db.session.commit()
     return jsonify({'success': True, 'count': len(cabinets)})
+
+
+@admin_bp.route('/demo/generate-order', methods=['POST'])
+def demo_generate_order():
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    import random
+
+    # Word pools for generating subdivision-style job names (Southern US style)
+    nature  = ['Silver', 'Copper', 'Iron', 'Cedar', 'Oak', 'Maple', 'Pine',
+               'Willow', 'Sage', 'Amber', 'Golden', 'Granite', 'Jasper',
+               'Laurel', 'Timber', 'Aspen', 'Birch', 'Magnolia', 'Pecan',
+               'Palmetto', 'Hickory', 'Sycamore', 'Chestnut', 'Cottonwood']
+    terrain = ['Ridge', 'Canyon', 'Trail', 'Bluff', 'Brook', 'Creek', 'Valley',
+               'Glen', 'Cove', 'Hollow', 'Meadow', 'Springs', 'Crossing',
+               'Landing', 'Bend', 'Estates', 'Heights', 'Hills', 'Falls',
+               'Branch', 'Preserve', 'Chase', 'Pointe', 'Reserve', 'Run']
+
+    # Keep generating names until we find one not already used
+    existing_names = {o.job_name for o in WorkOrder.query.with_entities(WorkOrder.job_name).all()}
+    for _ in range(50):
+        job_name = f"{random.choice(nature)} {random.choice(terrain)}"
+        if job_name not in existing_names:
+            break
+
+    # Lot: 3-digit number (100–999)
+    lot_number = str(random.randint(100, 999))
+
+    # Order number: "XXX.Y" — unique, Y is 0–9
+    existing_orders = {o.order_number for o in WorkOrder.query.with_entities(WorkOrder.order_number).all()}
+    for _ in range(200):
+        order_number = f"{random.randint(100, 999)}.{random.randint(0, 9)}"
+        if order_number not in existing_orders:
+            break
+
+    # Pick a random color from the database
+    colors = Color.query.all()
+    if not colors:
+        return jsonify({'error': 'No colors found. Load demo data first.'}), 400
+    color = random.choice(colors)
+
+    # Pick a random set of cabinet types (8–16, repetition allowed)
+    cabinets = CabinetType.query.all()
+    if not cabinets:
+        return jsonify({'error': 'No cabinet types found. Load demo data first.'}), 400
+    count = random.randint(8, 16)
+    chosen = random.choices(cabinets, k=count)
+
+    # Get the admin user to assign as creator
+    admin_user = User.query.filter_by(role='admin').first()
+
+    wo = WorkOrder(
+        order_number=order_number,
+        job_name=job_name,
+        lot_number=lot_number,
+        color_id=color.id,
+        status='pending',
+        created_by=admin_user.id,
+    )
+    db.session.add(wo)
+    db.session.flush()
+
+    # Assign slots sequentially; distribute across 2 carts
+    for slot, cabinet in enumerate(chosen, 1):
+        cart = 1 if slot <= len(chosen) // 2 + len(chosen) % 2 else 2
+        db.session.add(OrderItem(
+            work_order_id=wo.id,
+            cabinet_type_id=cabinet.id,
+            slot=slot,
+            cart=cart,
+        ))
+
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'order_number': order_number,
+        'job_name': job_name,
+        'lot_number': lot_number,
+        'color': color.name,
+        'cabinets': count,
+    })

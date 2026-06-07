@@ -42,6 +42,27 @@
         <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
+    <!-- Generate Random Work Order -->
+    <div style="background:white; border:1px solid #d1fae5; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Generate Random Work Order</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Creates one realistic work order with 8–16 random cabinets, a random color,
+            a unique subdivision-style job name, a 3-digit lot number and a work order
+            number in the <strong>XXX.Y</strong> format. Click multiple times to stack orders.
+        </div>
+        <button id="btn-gen-order" onclick="generateOrder()"
+                class="btn-primary" style="width:100%; background:#059669; border-color:#059669;">
+            Generate Work Order
+        </button>
+        <div id="msg-gen-order" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <!-- Running list of generated orders shown in the card -->
+        <div id="gen-order-list" style="margin-top:12px; display:none;">
+            <div style="font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase;
+                        letter-spacing:.05em; margin-bottom:6px;">Generated this session</div>
+            <ul id="gen-order-items" style="margin:0; padding:0; list-style:none; font-size:12px; color:#374151;"></ul>
+        </div>
+    </div>
+
     <!-- Simulate Production Data -->
     <div style="background:white; border:1px solid #c7d2fe; border-radius:10px; padding:20px;">
         <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Simulate Production Plan</div>
@@ -141,6 +162,42 @@ function clearOverflow() {
             msg.textContent = `${data.deleted} records deleted. Ready to fill again.`;
             document.getElementById('btn-fill-overflow').disabled = false;
             document.getElementById('btn-fill-overflow').textContent = 'Fill';
+        });
+}
+
+function generateOrder() {
+    const btn = document.getElementById('btn-gen-order');
+    const msg = document.getElementById('msg-gen-order');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    fetch('/admin/demo/generate-order', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Generate Work Order';
+            msg.style.display = 'block';
+            if (data.success) {
+                msg.style.color = '#059669';
+                msg.textContent = `Created: ${data.job_name} — Order ${data.order_number}`;
+                // append to running list inside the card
+                const list = document.getElementById('gen-order-list');
+                const items = document.getElementById('gen-order-items');
+                list.style.display = 'block';
+                const li = document.createElement('li');
+                li.style.cssText = 'padding:4px 0; border-bottom:1px solid #f3f4f6;';
+                li.innerHTML = `<strong>${data.order_number}</strong> · ${data.job_name} · Lot ${data.lot_number} · ${data.color} · ${data.cabinets} cabinets`;
+                items.prepend(li);
+            } else {
+                msg.style.color = '#dc2626';
+                msg.textContent = data.error || 'Error generating order.';
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Generate Work Order';
+            msg.style.display = 'block';
+            msg.style.color = '#dc2626';
+            msg.textContent = 'Network error — try again.';
         });
 }
 
