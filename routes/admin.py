@@ -653,22 +653,32 @@ def demo_generate_order():
         if order_number not in existing_orders:
             break
 
-    # Pick a random color from the database
-    colors = Color.query.all()
-    if not colors:
-        return jsonify({'error': 'No colors found. Load demo data first.'}), 400
-    color = random.choice(colors)
-
-    # Only pick cabinet types that match the selected color — all cabinets in one job are the same finish
-    cabinets = CabinetType.query.filter_by(color=color.name).all()
-    if not cabinets:
-        cabinets = CabinetType.query.all()
-    if not cabinets:
-        return jsonify({'error': 'No cabinet types found. Load demo data first.'}), 400
     # Cap count at max_cart_slots so the edit page never overflows one cart
     from models import WarehouseConfig
     wc = WarehouseConfig.query.first()
     max_slots = wc.max_cart_slots if wc else 24
+
+    # Build a map of color_name -> [cabinet_types] using only colors that actually have cabinets
+    all_colors = Color.query.all()
+    if not all_colors:
+        return jsonify({'error': 'No colors found. Load demo data first.'}), 400
+
+    color_cabinet_map = {}
+    for c in all_colors:
+        # Case-insensitive match to handle any capitalization differences in the DB
+        cabs = CabinetType.query.filter(
+            db.func.lower(CabinetType.color) == c.name.lower()
+        ).all()
+        if cabs:
+            color_cabinet_map[c] = cabs
+
+    if not color_cabinet_map:
+        return jsonify({'error': 'No cabinet types with color assigned. Load demo data first.'}), 400
+
+    # Pick a random color that actually has cabinets
+    color = random.choice(list(color_cabinet_map.keys()))
+    cabinets = color_cabinet_map[color]
+
     count = random.randint(min(8, max_slots), max_slots)
     chosen = random.choices(cabinets, k=count)
 

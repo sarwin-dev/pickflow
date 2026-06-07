@@ -51,6 +51,7 @@
                 <th>Job Name</th>
                 <th>Status</th>
                 <th>Cabinets</th>
+                <th>Color</th>
                 <th>Scheduled</th>
                 <th>Created by</th>
                 <th>Actions</th>
@@ -73,6 +74,7 @@
                     {% endif %}
                 </td>
                 <td>{{ order.items|length }}</td>
+                <td style="font-size:13px;">{{ order.color.name if order.color else '—' }}</td>
                 <td style="font-size:13px; color:#374151; font-weight:500;">
                     {% if order.scheduled_date %}
                     {{ order.scheduled_date.strftime('%m/%d/%Y') }}
