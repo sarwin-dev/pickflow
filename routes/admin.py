@@ -659,8 +659,11 @@ def demo_generate_order():
         return jsonify({'error': 'No colors found. Load demo data first.'}), 400
     color = random.choice(colors)
 
-    # Pick a random set of cabinet types (8–16, repetition allowed)
-    cabinets = CabinetType.query.all()
+    # Only pick cabinet types that match the selected color — all cabinets in one job are the same finish
+    cabinets = CabinetType.query.filter_by(color=color.name).all()
+    if not cabinets:
+        # Fallback: if no color match, use all cabinet types
+        cabinets = CabinetType.query.all()
     if not cabinets:
         return jsonify({'error': 'No cabinet types found. Load demo data first.'}), 400
     count = random.randint(8, 16)
