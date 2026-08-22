@@ -330,6 +330,17 @@
                 total = data.total;
                 updateProgress();
 
+                // siempre activa el botón Complete Order después de un Depleted
+                // el picker puede haber agotado esa ubicación y necesita poder cerrar la orden
+                const completeBtn = document.getElementById('btn-complete-order');
+                if (completeBtn) {
+                    completeBtn.disabled = false;
+                    completeBtn.style.borderColor = '#f59e0b';
+                    completeBtn.style.color = '#92400e';
+                    completeBtn.style.background = '#fffbeb';
+                    completeBtn.style.cursor = 'pointer';
+                }
+
                 if (picked + missing === total) {
                     setTimeout(() => {
                         document.getElementById('pick-list').style.display = 'none';
