@@ -208,9 +208,10 @@
     let picked = 0;
     let missing = 0; // mantenido para compatibilidad con respuesta del servidor
 
-    // cuenta estados iniciales
+    // cuenta estados iniciales de picked y missing al cargar la página
     allButtons.forEach(btn => {
         if (btn.dataset.state === 'picked') picked++;
+        if (btn.dataset.state === 'missing') missing++;
     });
 
     document.getElementById('total-count').textContent = total;
@@ -222,30 +223,38 @@
         document.getElementById('order-complete').style.display = 'block';
     }
 
+    // aplica el estilo visual de cada estado al boton y su etiqueta
+    // label puede ser null si el elemento no existe en el DOM, se verifica antes de tocarlo
     function applyState(btn, label, state) {
         btn.dataset.state = state;
         if (state === 'picked') {
             btn.textContent = '✓';
             btn.style.background = '#dcfce7';
             btn.style.borderColor = '#86efac';
-            label.style.textDecoration = 'line-through';
-            label.style.color = '#9ca3af';
-            label.style.fontWeight = 'normal';
+            if (label) {
+                label.style.textDecoration = 'line-through';
+                label.style.color = '#9ca3af';
+                label.style.fontWeight = 'normal';
+            }
         } else if (state === 'missing') {
             btn.textContent = '✕';
             btn.style.background = '#fee2e2';
             btn.style.borderColor = '#fca5a5';
             btn.disabled = true;
-            label.style.textDecoration = 'none';
-            label.style.color = '#dc2626';
-            label.style.fontWeight = '500';
+            if (label) {
+                label.style.textDecoration = 'none';
+                label.style.color = '#dc2626';
+                label.style.fontWeight = '500';
+            }
         } else {
             btn.textContent = '';
             btn.style.background = 'white';
             btn.style.borderColor = '#e5e7eb';
-            label.style.textDecoration = 'none';
-            label.style.color = '#374151';
-            label.style.fontWeight = 'normal';
+            if (label) {
+                label.style.textDecoration = 'none';
+                label.style.color = '#374151';
+                label.style.fontWeight = 'normal';
+            }
         }
     }
 

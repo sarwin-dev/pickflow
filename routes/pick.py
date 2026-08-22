@@ -153,7 +153,7 @@ def toggle(pick_item_id):
                 pi.picked_at = datetime.utcnow()
 
         elif action == 'deplete':
-            # elimina el activo del inventario
+            # elimina el registro activo de inventario de la parte específica
             pt = PartTemplate.query.get(pick_item.part_template_id)
             if pt:
                 active_record = Inventory.query.filter_by(
@@ -162,10 +162,10 @@ def toggle(pick_item_id):
                 if active_record:
                     db.session.delete(active_record)
                     depleted = True
-            # marca como missing todos los pick items pendientes de esta parte en la orden
+            # marca como missing TODOS los pick items pendientes de la orden completa
+            # esto permite que el botón Complete Order se active inmediatamente
             pending_items = PickItem.query.join(OrderItem).filter(
                 OrderItem.work_order_id == order.id,
-                PickItem.part_template_id == pick_item.part_template_id,
                 PickItem.is_picked == False,
                 PickItem.is_missing == False
             ).all()
