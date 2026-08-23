@@ -27,6 +27,8 @@ with app.app_context():
         db.session.execute(text('ALTER TABLE cabinet_types ALTER COLUMN code TYPE VARCHAR(15)'))
         db.session.execute(text('ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS scheduled_date DATE'))
         db.session.execute(text('ALTER TABLE cabinet_types ADD COLUMN IF NOT EXISTS annual_qty INTEGER NOT NULL DEFAULT 0'))
+        # columna para rastrear partes esperando pulldown (on hold)
+        db.session.execute(text('ALTER TABLE parts ADD COLUMN IF NOT EXISTS is_on_hold BOOLEAN NOT NULL DEFAULT FALSE'))
         # corrige registros de inventario mal marcados: si shelf > active_shelves deben ser overflow
         db.session.execute(text('''
             UPDATE inventory

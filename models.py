@@ -35,6 +35,9 @@ class Part(db.Model):
     active_bay = db.Column(db.String(5), nullable=True)
     active_shelf = db.Column(db.String(5), nullable=True)
     active_location = db.Column(db.String(5), nullable=True)
+    # indica si la parte esta en estado "on hold" — falta en active shelf, esperando pulldown
+    # cuando un picker marca missing, esto se activa. Erick ve la notificacion y hace pulldown
+    is_on_hold = db.Column(db.Boolean, default=False, server_default='0')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # vincula partes maestras con tipos de gabinete

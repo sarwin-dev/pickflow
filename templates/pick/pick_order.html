@@ -41,9 +41,10 @@
     </div>
 </div>
 
-<!-- panel fijo con botones principales -->
+<!-- panel fijo con botones principales — sticky para estar visible al scrollear -->
 <div class="pick-fixed-panel" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
-            padding:16px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            padding:16px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+            position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
     <div style="flex:1; min-width:250px;">
         <div style="font-size:12px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
             Progress
@@ -203,9 +204,9 @@
         font-weight: 600;
         font-size: 13px;
         white-space: nowrap;
-        cursor: not-allowed;
+        cursor: pointer;
     }
-    .btn-complete-panel:not(:disabled):hover {
+    .btn-complete-panel:hover:not(:disabled) {
         background: #fef3c7;
     }
     .btn-complete-panel:disabled {
