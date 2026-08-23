@@ -349,7 +349,7 @@ function renderAisles(aisles) {
     aislesContainer.innerHTML = '';
 
     aisles.forEach(aisle => {
-        const aisleFree = aisle.free;
+        const aisleFree = Math.max(0, aisle.free);  // Parche visual: nunca mostrar negativos
         const aisleTotalPositions = aisle.total;
         const aisle_occupied = aisle.occupied;
 
@@ -427,7 +427,7 @@ function renderBays(bays, container) {
 
         const bayFree = document.createElement('div');
         bayFree.style.cssText = 'color:#059669; font-weight:600;';
-        bayFree.textContent = `${bay.free} free`;
+        bayFree.textContent = `${Math.max(0, bay.free)} free`;  // Parche visual: nunca mostrar negativos
 
         bayCard.appendChild(bayLabel);
         bayCard.appendChild(bayFree);

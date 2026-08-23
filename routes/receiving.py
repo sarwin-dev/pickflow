@@ -104,13 +104,13 @@ def receive():
             )
             return redirect(url_for('receiving.index'))
 
-        # Verifica que la ubicación no esté ocupada por una parte diferente
+        # Verifica que la ubicación no esté ocupada (por cualquier parte)
         conflict = Inventory.query.filter(
             Inventory.aisle == aisle,
             Inventory.bay == bay,
             Inventory.shelf == str(shelf),
             Inventory.location == location,
-            Inventory.part_id != int(part_id)
+            Inventory.quantity > 0
         ).first()
         if conflict:
             flash(
