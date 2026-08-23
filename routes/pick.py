@@ -214,6 +214,64 @@ def toggle(pick_item_id):
         })
     return jsonify({'error': 'not found'}), 404
 
+# marca todos los pending de una orden como missing + activa is_on_hold en las partes
+# esto es para cuando el picker no encuentra stock en el active shelf
+@pick_bp.route('/<int:order_id>/mark-missing-all', methods=['POST'])
+def mark_missing_all(order_id):
+    check = picker_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 401
+
+    order = WorkOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'not found'}), 404
+
+    # obtiene todos los pending PickItems de la orden
+    pending_items = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id,
+        PickItem.is_picked == False,
+        PickItem.is_missing == False
+    ).all()
+
+    # recolecta las partes para activar is_on_hold
+    parts_to_hold = set()
+    for pi in pending_items:
+        pi.is_missing = True
+        # obtiene la parte de este pick item
+        part_template = PartTemplate.query.get(pi.part_template_id)
+        if part_template:
+            parts_to_hold.add(part_template.part_id)
+
+    # activa is_on_hold para todas las partes faltantes
+    # esto notifica globalmente que esas partes necesitan pulldown
+    for part_id in parts_to_hold:
+        part = Part.query.get(part_id)
+        if part:
+            part.is_on_hold = True
+
+    db.session.commit()
+
+    # recuenta desde la base de datos
+    total = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id
+    ).count()
+    picked = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id,
+        PickItem.is_picked == True
+    ).count()
+    missing = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id,
+        PickItem.is_missing == True
+    ).count()
+
+    return jsonify({
+        'success': True,
+        'picked': picked,
+        'missing': missing,
+        'total': total,
+        'parts_on_hold': len(parts_to_hold),
+    })
+
 # cierra la orden marcando todo lo pendiente como missing
 @pick_bp.route('/<int:order_id>/complete', methods=['POST'])
 def complete_order(order_id):

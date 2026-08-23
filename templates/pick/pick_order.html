@@ -344,19 +344,39 @@
     });
 
     async function markAllMissing() {
-        if (!confirm('Mark all unpicked items as missing?')) return;
+        if (!confirm('Mark all unpicked items as missing? This will trigger a pulldown alert.')) return;
 
-        // marca visualmente TODAS las casillas pending como missing
-        document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
-            const lbl = document.getElementById('label-' + b.dataset.id);
-            applyState(b, lbl, 'missing');
-        });
+        try {
+            // llama al servidor para marcar todos los pending como missing
+            // también activa is_on_hold en las partes correspondientes
+            const response = await fetch(`/pick/{{ order.id }}/mark-missing-all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
 
-        // actualiza conteos
-        missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
-        updateProgress();
+            if (data.success) {
+                // marca visualmente TODAS las casillas pending como missing
+                document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
+                    const lbl = document.getElementById('label-' + b.dataset.id);
+                    applyState(b, lbl, 'missing');
+                });
 
-        // nota: NO cierra automáticamente. El picker decide cuándo completar la orden
+                // actualiza conteos
+                picked = data.picked;
+                missing = data.missing;
+                total = data.total;
+                updateProgress();
+
+                // notificacion al usuario
+                alert(`✓ Marked ${data.parts_on_hold} parts as missing.\nErick will be notified for pulldown.`);
+            } else {
+                alert('Error: ' + (data.error || 'Failed to mark items as missing'));
+            }
+        } catch (e) {
+            console.error('Error:', e);
+            alert('Network error while marking items as missing');
+        }
     }
 
     async function completeOrder(orderId) {
