@@ -5,7 +5,7 @@ from extensions import db
 from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
 from routes.inventory import build_part_item
-from sqlalchemy import cast, Integer
+from sqlalchemy import cast, Integer, or_
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
 
@@ -105,11 +105,16 @@ def receive():
             return redirect(url_for('receiving.index'))
 
         # Verifica que la ubicación no esté ocupada (por cualquier parte)
+        # Maneja location = None o '' como "sin location"
+        loc_filter = (Inventory.location == location) if location else (
+            or_(Inventory.location == None, Inventory.location == '')
+        )
+
         conflict = Inventory.query.filter(
             Inventory.aisle == aisle,
             Inventory.bay == bay,
             Inventory.shelf == str(shelf),
-            Inventory.location == location,
+            loc_filter,
             Inventory.quantity > 0
         ).first()
         if conflict:
