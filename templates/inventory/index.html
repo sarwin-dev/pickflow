@@ -82,6 +82,59 @@
 </div>
 {% endif %}
 
+<!-- panel de partes esperando pulldown -->
+{% if on_hold_parts and on_hold_parts|length > 0 %}
+<div style="margin-bottom:1.5rem; padding:14px 16px; background:#fef2f2; border:2px solid #dc2626; border-radius:8px; box-shadow:0 0 12px rgba(220,38,38,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-size:14px; color:#dc2626; font-weight:700;">
+            🔴 {{ on_hold_parts|length }} part{{ 's' if on_hold_parts|length != 1 }} waiting for pulldown
+        </div>
+        <small style="font-size:11px; color:#9ca3af;">Pickers marked these as missing</small>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px;">
+        {% for part in on_hold_parts %}
+        <div style="background:white; border:1px solid #fecaca; border-radius:6px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    {{ part.name }}
+                </div>
+                <div style="font-size:11px; color:#9ca3af; margin-top:2px;">
+                    Location: {{ part.active_aisle or '—' }}{{ part.active_bay or '—' }}{{ part.active_shelf or '—' }}
+                </div>
+            </div>
+            <button type="button" onclick="completePartPulldown({{ part.id }}, '{{ part.name }}')"
+                    class="btn-primary" style="padding:6px 12px; font-size:12px; white-space:nowrap; margin-left:8px; flex-shrink:0;">
+                Done ✓
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script>
+async function completePartPulldown(partId, partName) {
+    if (!confirm(`Mark "${partName}" as pulldown complete?`)) return;
+
+    try {
+        const response = await fetch(`/inventory/pulldown/${partId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            // recarga la página para mostrar la lista actualizada
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to mark pulldown as complete'));
+        }
+    } catch (e) {
+        console.error('Error:', e);
+        alert('Network error while marking pulldown complete');
+    }
+}
+</script>
+{% endif %}
+
 {% if filter_mode == 'low' and not search %}
 <div style="margin-bottom:1.5rem; padding:12px 16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
     <span style="font-size:14px; color:#dc2626; font-weight:600;">⚠ Showing parts at or below minimum stock level</span>

@@ -82,13 +82,17 @@ def index():
 
     shopping_count = ShoppingListItem.query.count()
 
+    # partes en espera de pulldown (pickers las marcaron como missing)
+    on_hold_parts = Part.query.filter_by(is_on_hold=True).all()
+
     pending_loc_edit = session.get('pending_loc_edit')
     return render_template('inventory/index.html',
                            part_results=part_results,
                            search=search,
                            filter_mode=filter_mode,
                            shopping_count=shopping_count,
-                           pending_loc_edit=pending_loc_edit)
+                           pending_loc_edit=pending_loc_edit,
+                           on_hold_parts=on_hold_parts)
 
 @inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
 def update_location(record_id):
