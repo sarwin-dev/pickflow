@@ -722,13 +722,20 @@ def demo_clear_orders():
     if check:
         return jsonify({'error': 'unauthorized'}), 403
 
-    # Primero borra todos los OrderItem (dependencias)
-    db.session.query(OrderItem).delete()
-    # Luego borra todas las órdenes de trabajo
-    deleted = db.session.query(WorkOrder).delete()
-    db.session.commit()
+    try:
+        # Primero borra todos los OrderItem (dependencias)
+        db.session.query(OrderItem).delete()
+        # Luego borra todas las órdenes de trabajo
+        deleted = db.session.query(WorkOrder).delete()
+        db.session.commit()
 
-    return jsonify({
-        'success': True,
-        'deleted': deleted,
-    })
+        return jsonify({
+            'success': True,
+            'deleted': deleted,
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+        }), 500

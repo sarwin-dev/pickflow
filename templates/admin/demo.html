@@ -210,14 +210,17 @@ function clearGeneratedOrders() {
     btn.disabled = true;
     btn.textContent = 'Clearing...';
     fetch('/admin/demo/clear-orders', { method: 'POST' })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
         .then(data => {
             btn.disabled = false;
             btn.textContent = 'Clear All';
             if (data.success) {
                 msg.style.display = 'block';
-                msg.style.color = '#dc2626';
-                msg.textContent = `${data.deleted} work order(s) deleted. List cleared.`;
+                msg.style.color = '#16a34a';
+                msg.textContent = `${data.deleted} work order(s) deleted. Refresh to see changes in Order Entry.`;
                 // clear the visual list
                 document.getElementById('gen-order-list').style.display = 'none';
                 document.getElementById('gen-order-items').innerHTML = '';
@@ -227,12 +230,12 @@ function clearGeneratedOrders() {
                 msg.textContent = data.error || 'Error clearing orders.';
             }
         })
-        .catch(() => {
+        .catch((err) => {
             btn.disabled = false;
             btn.textContent = 'Clear All';
             msg.style.display = 'block';
             msg.style.color = '#dc2626';
-            msg.textContent = 'Network error — try again.';
+            msg.textContent = `Error: ${err.message}`;
         });
 }
 
