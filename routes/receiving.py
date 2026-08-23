@@ -205,15 +205,44 @@ def pulldown(record_id):
     part = Part.query.get(record.part_id)
 
     if part and part.active_aisle:
-        record.aisle      = part.active_aisle
-        record.bay        = part.active_bay
-        record.shelf      = part.active_shelf
-        record.location   = part.active_location
-        record.is_active  = True
-        record.updated_at = datetime.utcnow()
-        # si la parte estaba en espera (on_hold), desactivar esa flag
+        # obtiene la cantidad de la caja de overflow que se va a bajar
+        overflow_quantity = record.quantity
+
+        # busca el registro en la active location (siempre existe para esta parte)
+        active_record = Inventory.query.filter_by(
+            part_id=part.id,
+            aisle=part.active_aisle,
+            bay=part.active_bay,
+            shelf=part.active_shelf,
+            location=part.active_location,
+            is_active=True
+        ).first()
+
+        if active_record:
+            # actualiza la cantidad en la active location (reemplaza o suma)
+            active_record.quantity = overflow_quantity
+            active_record.updated_at = datetime.utcnow()
+        else:
+            # crea un nuevo registro en la active location (en caso de que no exista)
+            active_record = Inventory(
+                part_id=part.id,
+                aisle=part.active_aisle,
+                bay=part.active_bay,
+                shelf=part.active_shelf,
+                location=part.active_location,
+                quantity=overflow_quantity,
+                is_active=True,
+                received_at=datetime.utcnow()
+            )
+            db.session.add(active_record)
+
+        # borra el registro de overflow (ya no existe esa caja en esa ubicación)
+        db.session.delete(record)
+
+        # desactiva is_on_hold si estaba marcada
         if part.is_on_hold:
             part.is_on_hold = False
+
         db.session.commit()
         if request.headers.get('HX-Request'):
             item = build_part_item(part)
@@ -221,14 +250,7 @@ def pulldown(record_id):
                                    search='', filter_mode='')
         flash(f'Box pulled down to active location A{part.active_aisle} B{part.active_bay} S{part.active_shelf}.', 'success')
     else:
-        record.is_active  = True
-        record.updated_at = datetime.utcnow()
-        db.session.commit()
-        if request.headers.get('HX-Request'):
-            item = build_part_item(part)
-            return render_template('inventory/partials/part_card.html', item=item,
-                                   search='', filter_mode='')
-        flash('Box marked as active. No active location defined for this part — set it in Admin > Parts.', 'error')
+        flash('Box cannot be pulled down. No active location defined for this part — set it in Admin > Parts.', 'error')
 
     next_url = request.form.get('next') or url_for('receiving.index')
     return redirect(next_url)

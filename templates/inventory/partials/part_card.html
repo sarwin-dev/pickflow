@@ -45,10 +45,10 @@
         </thead>
         <tbody>
             {% for record in item.records %}
-            <tr id="row-{{ record.id }}">
+            <tr id="row-{{ record.id }}" style="{% if record.quantity == 0 %}background:#f3f4f6; opacity:0.6;{% endif %}">
                 <td>
                     {% if record.aisle %}
-                    <span data-loc="{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em;">
+                    <span data-loc="{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:600; letter-spacing:.05em; {% if record.quantity == 0 %}color:#9ca3af;{% endif %}">
                         A{{ '%02d'|format(record.aisle|int) }}
                         B{{ '%02d'|format(record.bay|int) }}
                         S{{ '%02d'|format(record.shelf|int) }}
@@ -56,9 +56,11 @@
                     </span>
                     {% else %}<span data-loc="{{ record.id }}" style="color:#ccc;">No location</span>{% endif %}
                 </td>
-                <td style="text-align:center; font-size:16px; font-weight:700;">{{ record.quantity }}</td>
+                <td style="text-align:center; font-size:16px; font-weight:700;">
+                    {% if record.quantity == 0 %}<span style="color:#9ca3af;">—</span>{% else %}{{ record.quantity }}{% endif %}
+                </td>
                 <td style="text-align:center;">
-                    {% if record.is_active %}<span class="badge badge-active">Active</span>
+                    {% if record.is_active %}<span class="badge badge-active" style="{% if record.quantity == 0 %}background:#e5e7eb; color:#9ca3af;{% endif %}">{% if record.quantity == 0 %}Empty{% else %}Active{% endif %}</span>
                     {% else %}<span class="badge badge-overflow">Overflow</span>{% endif %}
                 </td>
                 <td style="font-size:12px; color:#999;">
@@ -69,11 +71,16 @@
                     <button type="button" class="btn-secondary" style="font-size:11px; padding:4px 10px;"
                             onclick="toggleEdit({{ record.id }})">Edit</button>
                     {% if record.is_active %}
-                    <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
-                            hx-post="/inventory/depleted/{{ record.id }}"
-                            hx-target="#part-card-{{ item.part.id }}"
-                            hx-swap="outerHTML"
-                            hx-confirm="Mark this active box as depleted? It will be removed.">Depleted</button>
+                        {% if record.quantity > 0 %}
+                        <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
+                                hx-post="/inventory/depleted/{{ record.id }}"
+                                hx-target="#part-card-{{ item.part.id }}"
+                                hx-swap="outerHTML"
+                                hx-confirm="Mark this location as depleted? Pickers will not be able to pick from here.">Depleted</button>
+                        {% else %}
+                        <button class="btn-secondary" disabled style="font-size:11px; padding:4px 10px; color:#9ca3af; border-color:#e5e7eb; cursor:not-allowed;"
+                                title="Location is empty - refill from overflow">Empty</button>
+                        {% endif %}
                     {% else %}
                     <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
                             hx-post="/receiving/pulldown/{{ record.id }}"
@@ -143,16 +150,16 @@
     <!-- VISTA MÓVIL: tarjetas por registro -->
     <div class="inv-mobile" style="margin-bottom:12px;">
         {% for record in item.records %}
-        <div style="border:1px solid {% if record.is_active %}#fde68a{% else %}#e5e7eb{% endif %};
+        <div style="border:1px solid {% if record.quantity == 0 %}#e5e7eb{% elif record.is_active %}#fde68a{% else %}#e5e7eb{% endif %};
                     border-radius:10px; margin-bottom:10px; overflow:hidden;
-                    {% if record.is_active %}background:#fffbeb;{% endif %}">
+                    {% if record.quantity == 0 %}background:#f3f4f6;{% elif record.is_active %}background:#fffbeb;{% endif %}">
 
             <!-- fila principal: ubicacion + qty + tipo -->
-            <div style="display:flex; align-items:center; gap:12px; padding:14px 16px;">
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; {% if record.quantity == 0 %}opacity:0.6;{% endif %}">
                 <div style="flex:1; min-width:0;">
                     {% if record.aisle %}
                     <div data-loc="{{ record.id }}" style="font-family:monospace; font-size:14px; font-weight:700;
-                                color:#1e1b4b; letter-spacing:.04em; line-height:1.1;">
+                                color:{% if record.quantity == 0 %}#9ca3af{% else %}#1e1b4b{% endif %}; letter-spacing:.04em; line-height:1.1;">
                         A{{ '%02d'|format(record.aisle|int) }}&middot;B{{ '%02d'|format(record.bay|int) }}&middot;S{{ '%02d'|format(record.shelf|int) }}{% if record.location %}&middot;L{{ '%02d'|format(record.location|int) }}{% endif %}
                     </div>
                     {% else %}
@@ -160,17 +167,17 @@
                     {% endif %}
                     <div style="margin-top:4px;">
                         {% if record.is_active %}
-                        <span class="badge badge-active">Active</span>
+                        <span class="badge badge-active" style="{% if record.quantity == 0 %}background:#e5e7eb; color:#9ca3af;{% endif %}">{% if record.quantity == 0 %}Empty{% else %}Active{% endif %}</span>
                         {% else %}
                         <span class="badge badge-overflow">Overflow</span>
                         {% endif %}
                     </div>
                 </div>
                 <!-- cantidad grande -->
-                <div style="text-align:center; background:#f9fafb; border-radius:8px;
-                            padding:8px 14px; border:1px solid #e5e7eb; flex-shrink:0;">
-                    <div style="font-size:22px; font-weight:800; color:#111; line-height:1;">{{ record.quantity }}</div>
-                    <div style="font-size:10px; color:#9ca3af; text-transform:uppercase;">units</div>
+                <div style="text-align:center; background:{% if record.quantity == 0 %}#e5e7eb{% else %}#f9fafb{% endif %}; border-radius:8px;
+                            padding:8px 14px; border:1px solid {% if record.quantity == 0 %}#d1d5db{% else %}#e5e7eb{% endif %}; flex-shrink:0;">
+                    <div style="font-size:22px; font-weight:800; color:{% if record.quantity == 0 %}#9ca3af{% else %}#111{% endif %}; line-height:1;">{% if record.quantity == 0 %}—{% else %}{{ record.quantity }}{% endif %}</div>
+                    <div style="font-size:10px; color:#9ca3af; text-transform:uppercase;">{% if record.quantity == 0 %}empty{% else %}units{% endif %}</div>
                 </div>
             </div>
 
@@ -178,15 +185,24 @@
             {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
             <div style="border-top:1px solid #e5e7eb; display:flex; gap:0;">
                 {% if record.is_active %}
-                <button class="btn-secondary"
-                        style="flex:1; border:none; border-radius:0; padding:8px 12px;
-                               font-size:13px; font-weight:600; color:#d97706; background:#fffbeb;"
-                        hx-post="/inventory/depleted/{{ record.id }}"
-                        hx-target="#part-card-{{ item.part.id }}"
-                        hx-swap="outerHTML"
-                        hx-confirm="Mark this active box as depleted? It will be removed.">
-                    Mark Depleted
-                </button>
+                    {% if record.quantity > 0 %}
+                    <button class="btn-secondary"
+                            style="flex:1; border:none; border-radius:0; padding:8px 12px;
+                                   font-size:13px; font-weight:600; color:#d97706; background:#fffbeb;"
+                            hx-post="/inventory/depleted/{{ record.id }}"
+                            hx-target="#part-card-{{ item.part.id }}"
+                            hx-swap="outerHTML"
+                            hx-confirm="Mark this location as depleted? Pickers will not be able to pick from here.">
+                        Mark Depleted
+                    </button>
+                    {% else %}
+                    <button class="btn-secondary" disabled
+                            style="flex:1; border:none; border-radius:0; padding:8px 12px;
+                                   font-size:13px; font-weight:600; color:#9ca3af; background:#e5e7eb; cursor:not-allowed;"
+                            title="Location is empty - refill from overflow">
+                        Empty (Refill from Overflow)
+                    </button>
+                    {% endif %}
                 {% else %}
                 <button class="btn-secondary"
                         style="flex:1; border:none; border-radius:0; padding:8px 12px;

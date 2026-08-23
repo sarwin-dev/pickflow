@@ -17,8 +17,9 @@ def build_part_item(part):
         cast(Inventory.shelf,    Integer),
         nullslast(cast(Inventory.location, Integer))
     ).all()
-    overflow_total = sum(r.quantity for r in records if not r.is_active)
-    active_total   = sum(r.quantity for r in records if r.is_active)
+    # no contar registros vacíos (quantity = 0) en los totales
+    overflow_total = sum(r.quantity for r in records if not r.is_active and r.quantity > 0)
+    active_total   = sum(r.quantity for r in records if r.is_active and r.quantity > 0)
     min_qty        = records[0].min_quantity if records else 0
     if overflow_total == 0:
         status = 'out'
@@ -28,7 +29,7 @@ def build_part_item(part):
         status = 'ok'
     in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
     needs_pulldown = active_total == 0 and overflow_total > 0
-    active_record = next((r for r in records if r.is_active), None)
+    active_record = next((r for r in records if r.is_active and r.quantity > 0), None)
     return {
         'part': part, 'records': records,
         'overflow_total': overflow_total, 'active_total': active_total,
@@ -259,14 +260,16 @@ def depleted(record_id):
         return check
     record = Inventory.query.get_or_404(record_id)
     part_id = record.part_id
-    db.session.delete(record)
+    # marca como vacío (quantity = 0) en lugar de borrar, para mostrar ubicación desactivada
+    record.quantity = 0
+    record.updated_at = datetime.utcnow()
     db.session.commit()
     if request.headers.get('HX-Request'):
         part = Part.query.get(part_id)
         item = build_part_item(part)
         return render_template('inventory/partials/part_card.html', item=item,
                                search='', filter_mode='')
-    flash('Active box marked as depleted and removed.', 'success')
+    flash('Active location marked as depleted. Manager will refill from overflow.', 'success')
     back = request.form.get('next', url_for('inventory.index'))
     return redirect(back)
 
