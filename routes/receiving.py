@@ -5,6 +5,7 @@ from extensions import db
 from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
 from routes.inventory import build_part_item
+from sqlalchemy import cast, Integer
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
 
@@ -321,3 +322,76 @@ def demo_fill():
     full = (len(occupied) + len(free_slots)) >= total_slots
 
     return jsonify({'filled': len(free_slots), 'full': full})
+
+
+@receiving_bp.route('/free-locations')
+def free_locations():
+    check = warehouse_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    config = WarehouseConfig.query.first()
+    if not config:
+        return jsonify({'error': 'Warehouse not configured'}), 400
+
+    # Calcula ubicaciones libres por aisle/bay en overflow
+    aisles_data = []
+    total_free = 0
+
+    for aisle_num in range(1, config.total_aisles + 1):
+        aisle_str = str(aisle_num)
+
+        # Total posiciones en este aisle (solo overflow shelves)
+        positions_per_aisle = config.total_bays * (config.total_shelves - config.active_shelves)
+        if config.total_locations > 0:
+            positions_per_aisle *= config.total_locations
+
+        # Ocupadas en este aisle
+        occupied_in_aisle = Inventory.query.filter(
+            Inventory.is_active == False,
+            Inventory.aisle == aisle_str,
+            cast(Inventory.shelf, Integer) >= config.active_shelves + 1
+        ).count()
+
+        free_in_aisle = positions_per_aisle - occupied_in_aisle
+        total_free += free_in_aisle
+
+        # Calcula por bay dentro de este aisle
+        bays_data = []
+        for bay_num in range(1, config.total_bays + 1):
+            bay_str = str(bay_num)
+
+            # Total posiciones en este bay
+            positions_per_bay = (config.total_shelves - config.active_shelves)
+            if config.total_locations > 0:
+                positions_per_bay *= config.total_locations
+
+            # Ocupadas en este bay
+            occupied_in_bay = Inventory.query.filter(
+                Inventory.is_active == False,
+                Inventory.aisle == aisle_str,
+                Inventory.bay == bay_str,
+                cast(Inventory.shelf, Integer) >= config.active_shelves + 1
+            ).count()
+
+            free_in_bay = positions_per_bay - occupied_in_bay
+
+            bays_data.append({
+                'bay': bay_num,
+                'free': free_in_bay,
+                'occupied': occupied_in_bay,
+                'total': positions_per_bay
+            })
+
+        aisles_data.append({
+            'aisle': aisle_num,
+            'free': free_in_aisle,
+            'occupied': occupied_in_aisle,
+            'total': positions_per_aisle,
+            'bays': bays_data
+        })
+
+    return jsonify({
+        'total_free': total_free,
+        'aisles': aisles_data
+    })

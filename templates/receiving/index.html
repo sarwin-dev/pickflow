@@ -2,9 +2,14 @@
 {% block title %}Receiving - PickFlow{% endblock %}
 {% block content %}
 
-<div class="dashboard-header">
-    <h1>Receiving</h1>
-    <p>Register incoming boxes and update inventory</p>
+<div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h1>Receiving</h1>
+        <p>Register incoming boxes and update inventory</p>
+    </div>
+    <button id="free-locations-btn" class="btn-secondary" style="white-space:nowrap; padding:10px 16px; font-size:14px; font-weight:600;">
+        📦 <span id="free-count">—</span> free locations
+    </button>
 </div>
 
 {% if pending %}
@@ -159,6 +164,24 @@
 
 </div><!-- fin grid -->
 
+<!-- Modal de ubicaciones libres -->
+<div id="free-locations-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto;">
+    <div style="background:white; margin:0 auto; padding:20px; max-width:600px; min-height:100vh;
+         display:flex; flex-direction:column;">
+        <!-- Header del modal -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #e5e7eb; padding-bottom:12px;">
+            <h2 style="margin:0; font-size:18px; font-weight:700;">Free Locations</h2>
+            <button onclick="closeFreeLocationsModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">×</button>
+        </div>
+
+        <!-- Container de aisles -->
+        <div id="aisles-container" style="flex:1; overflow-y:auto;">
+            <!-- Se llena con JavaScript -->
+        </div>
+    </div>
+</div>
+
 <style>
     /* en movil: una columna, form primero, recent entries colapsado abajo */
     @media (max-width: 640px) {
@@ -277,6 +300,140 @@ function validatePartSelection() {
 // en movil, colapsa Recent Entries al cargar para que el form tenga protagonismo
 if (window.innerWidth <= 640) {
     document.querySelector('.recent-entries-panel').removeAttribute('open');
+}
+
+// ========== Panel de Ubicaciones Libres ==========
+
+const freeLocationsBtn = document.getElementById('free-locations-btn');
+const freeLocationsModal = document.getElementById('free-locations-modal');
+const freeCountSpan = document.getElementById('free-count');
+const aislesContainer = document.getElementById('aisles-container');
+
+// Carga ubicaciones libres al iniciar la página
+loadFreeLocations();
+
+freeLocationsBtn.addEventListener('click', () => {
+    freeLocationsModal.style.display = 'block';
+});
+
+function closeFreeLocationsModal() {
+    freeLocationsModal.style.display = 'none';
+}
+
+// Cierra modal al hacer click fuera
+freeLocationsModal.addEventListener('click', (e) => {
+    if (e.target === freeLocationsModal) {
+        closeFreeLocationsModal();
+    }
+});
+
+async function loadFreeLocations() {
+    try {
+        const response = await fetch('/receiving/free-locations');
+        const data = await response.json();
+
+        if (data.error) {
+            freeCountSpan.textContent = '?';
+            return;
+        }
+
+        freeCountSpan.textContent = data.total_free;
+        renderAisles(data.aisles);
+    } catch (e) {
+        freeCountSpan.textContent = '?';
+        console.error('Error loading free locations:', e);
+    }
+}
+
+function renderAisles(aisles) {
+    aislesContainer.innerHTML = '';
+
+    aisles.forEach(aisle => {
+        const aisleFree = aisle.free;
+        const aisleTotalPositions = aisle.total;
+        const aisle_occupied = aisle.occupied;
+
+        // Barra de progreso
+        const percentFree = aisleTotalPositions > 0 ? (aisleFree / aisleTotalPositions) * 100 : 0;
+
+        // Tarjeta del aisle
+        const aisle_card = document.createElement('div');
+        aisle_card.style.cssText = 'background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 14px; margin-bottom:10px; cursor:pointer;';
+
+        const aisle_header = document.createElement('div');
+        aisle_header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;';
+
+        const aisle_title = document.createElement('div');
+        aisle_title.style.cssText = 'font-weight:600; color:#1f2937;';
+        aisle_title.textContent = `Aisle ${String(aisle.aisle).padStart(2, '0')}`;
+
+        const aisle_expand = document.createElement('span');
+        aisle_expand.style.cssText = 'font-size:12px; color:#9ca3af;';
+        aisle_expand.textContent = '▼';
+
+        aisle_header.appendChild(aisle_title);
+        aisle_header.appendChild(aisle_expand);
+
+        // Progress bar
+        const progress_container = document.createElement('div');
+        progress_container.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:8px;';
+
+        const progress_bar = document.createElement('div');
+        progress_bar.style.cssText = 'flex:1; height:8px; background:#d1d5db; border-radius:4px; overflow:hidden;';
+
+        const progress_fill = document.createElement('div');
+        progress_fill.style.cssText = `width:${percentFree}%; height:100%; background:#059669; transition:width 0.3s;`;
+        progress_bar.appendChild(progress_fill);
+
+        const progress_text = document.createElement('div');
+        progress_text.style.cssText = 'font-size:13px; font-weight:600; color:#059669; white-space:nowrap;';
+        progress_text.textContent = `${aisleFree} free`;
+
+        progress_container.appendChild(progress_bar);
+        progress_container.appendChild(progress_text);
+
+        // Container de bays (inicialmente oculto)
+        const bays_container = document.createElement('div');
+        bays_container.style.cssText = 'display:none; margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb;';
+
+        renderBays(aisle.bays, bays_container);
+
+        // Event listener para expandir/colapsar
+        aisle_card.addEventListener('click', () => {
+            const isVisible = bays_container.style.display !== 'none';
+            bays_container.style.display = isVisible ? 'none' : 'grid';
+            aisle_expand.textContent = isVisible ? '▼' : '▲';
+        });
+
+        aisle_card.appendChild(aisle_header);
+        aisle_card.appendChild(progress_container);
+        aisle_card.appendChild(bays_container);
+
+        aislesContainer.appendChild(aisle_card);
+    });
+}
+
+function renderBays(bays, container) {
+    container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(120px, 1fr))';
+    container.style.gap = '8px';
+
+    bays.forEach(bay => {
+        const bayCard = document.createElement('div');
+        bayCard.style.cssText = 'background:white; border:1px solid #e5e7eb; border-radius:6px; padding:8px; text-align:center; font-size:12px;';
+
+        const bayLabel = document.createElement('div');
+        bayLabel.style.cssText = 'font-weight:600; color:#374151; margin-bottom:4px;';
+        bayLabel.textContent = `Bay ${String(bay.bay).padStart(2, '0')}`;
+
+        const bayFree = document.createElement('div');
+        bayFree.style.cssText = 'color:#059669; font-weight:600;';
+        bayFree.textContent = `${bay.free} free`;
+
+        bayCard.appendChild(bayLabel);
+        bayCard.appendChild(bayFree);
+
+        container.appendChild(bayCard);
+    });
 }
 
 
