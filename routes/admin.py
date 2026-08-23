@@ -714,3 +714,19 @@ def demo_generate_order():
         'color': color.name,
         'cabinets': count,
     })
+
+
+@admin_bp.route('/demo/clear-orders', methods=['POST'])
+def demo_clear_orders():
+    check = admin_required()
+    if check:
+        return jsonify({'error': 'unauthorized'}), 403
+
+    # Borra todas las órdenes de trabajo (pending o no)
+    deleted = db.session.query(WorkOrder).delete()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'deleted': deleted,
+    })
