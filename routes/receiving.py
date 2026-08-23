@@ -82,7 +82,6 @@ def receive():
         aisle = request.form.get('aisle')
         bay = request.form.get('bay')
         shelf = int(request.form.get('shelf', 0))
-        stack_confirmed = request.form.get('stack_confirmed') == '1'
 
         # overflow siempre es overflow, independientemente del numero de shelf
         is_active = False
@@ -125,34 +124,7 @@ def receive():
             )
             return redirect(url_for('receiving.index'))
 
-        # verifica si ya hay una caja de la misma parte en esa ubicacion
-        same_part_same_loc = Inventory.query.filter(
-            Inventory.aisle == aisle,
-            Inventory.bay == bay,
-            Inventory.shelf == str(shelf),
-            Inventory.location == location,
-            Inventory.part_id == int(part_id)
-        ).first()
-
-        if same_part_same_loc and not stack_confirmed:
-            loc_str = f"A{int(aisle):02d}.B{int(bay):02d}.S{int(shelf):02d}"
-            if location:
-                loc_str += f".L{int(location):02d}"
-            # guarda los datos pendientes en sesion para el formulario de confirmacion
-            session['pending_receive'] = {
-                'part_id': str(part_id),
-                'part_name': Part.query.get(int(part_id)).name,
-                'quantity': quantity,
-                'aisle': aisle,
-                'bay': bay,
-                'shelf': str(shelf),
-                'location': location,
-                'loc_str': loc_str,
-                'existing_qty': same_part_same_loc.quantity,
-            }
-            return redirect(url_for('receiving.index'))
-
-        # crea siempre un nuevo registro separado (cada caja tiene su propio pulldown)
+        # Crea nuevo registro (una location solo puede tener UNA caja)
         new_record = Inventory(
             part_id=part_id,
             aisle=aisle,
@@ -181,7 +153,6 @@ def receive():
         received_by=session.get('user_id'),
     ))
     db.session.commit()
-    session.pop('pending_receive', None)
     return redirect(url_for('receiving.index'))
 
 @receiving_bp.route('/pulldown/<int:record_id>', methods=['POST'])
