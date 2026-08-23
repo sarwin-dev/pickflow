@@ -7,126 +7,98 @@
     <p>Setup workflow — follow these steps in order</p>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr; gap:16px; max-width:900px;">
+<div style="background:white; border:2px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:20px;">
+    <div style="font-size:14px; color:#6b7280; margin-bottom:20px;">
+        Follow this setup sequence:
+    </div>
 
-    <!-- STEP 1: Load Demo State -->
-    <div style="background:{% if has_seed %}#f0fdf4{% else %}#fef2f2{% endif %}; border:2px solid {% if has_seed %}#86efac{% else %}#fecaca{% endif %}; border-radius:12px; padding:24px; position:relative;">
-        <div style="position:absolute; top:16px; right:16px; background:#059669; color:white;
-                    border-radius:50%; width:32px; height:32px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:16px;">1</div>
-        <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Load Demo State</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Loads colors, cabinet types, parts, warehouse configuration and initial active inventory from <code>demo_seed.json</code>.
-            <br><strong>Run this first, then proceed to step 2.</strong>
+    <!-- Step 1: Load Demo State -->
+    <div style="margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">1. Load Demo State</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
+            Loads colors, cabinet types, parts, warehouse config and initial inventory from <code>demo_seed.json</code>.
             {% if not has_seed %}
-            <div style="margin-top:8px; color:#dc2626; font-weight:600;">
+            <div style="color:#dc2626; font-weight:600; margin-top:4px;">
                 ⚠ demo_seed.json not found — run <code>export_demo_seed.py</code> first.
             </div>
             {% endif %}
         </div>
         <button id="btn-reset-demo" onclick="resetDemo()"
-                class="btn-primary" style="width:100%; background:#059669; border-color:#059669; color:white; font-weight:600;"
+                class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;"
                 {% if not has_seed %}disabled{% endif %}>
-            1. Load Demo State
+            Load Demo
         </button>
-        <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <div id="msg-reset-demo" style="font-size:12px; margin-top:8px; display:none;"></div>
     </div>
 
-    <!-- STEP 2: Fill Overflow -->
-    <div style="background:white; border:2px solid #d1d5db; border-radius:12px; padding:24px; position:relative;">
-        <div style="position:absolute; top:16px; right:16px; background:#4f46e5; color:white;
-                    border-radius:50%; width:32px; height:32px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:16px;">2</div>
-        <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Fill Overflow Warehouse</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Fills all free overflow locations with random parts (90, 100 or 120 units each).
-            All parts guaranteed to appear at least once.
+    <!-- Step 2: Fill Overflow -->
+    <div style="margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">2. Fill Overflow Warehouse</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
+            Fills all free overflow locations with random parts (90–120 units each).
         </div>
         <div style="display:flex; gap:8px;">
             <button id="btn-fill-overflow" onclick="fillOverflow()"
-                    class="btn-primary" style="flex:1; background:#4f46e5; border-color:#4f46e5; color:white; font-weight:600;">
-                2. Fill Overflow
+                    class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
+                Fill
             </button>
             <button id="btn-clear-overflow" onclick="clearOverflow()"
-                    class="btn-secondary"
-                    style="flex:1; color:#6b7280; border-color:#d1d5db; font-weight:600;">
+                    class="btn-secondary" style="color:#6b7280; border-color:#d1d5db; padding:8px 16px; font-size:13px; font-weight:600;">
                 Clear
             </button>
         </div>
-        <div id="msg-fill-overflow" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <div id="msg-fill-overflow" style="font-size:12px; margin-top:8px; display:none;"></div>
     </div>
 
-    <!-- STEP 3: Generate Work Orders -->
-    <div style="background:white; border:2px solid #d1d5db; border-radius:12px; padding:24px; position:relative;">
-        <div style="position:absolute; top:16px; right:16px; background:#059669; color:white;
-                    border-radius:50%; width:32px; height:32px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:16px;">3</div>
-        <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Generate Random Work Orders</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Creates realistic work orders with 8–16 random cabinets, assigned color,
-            unique job name, lot number and order number (<strong>XXX.Y</strong> format).
-            <br><strong>Click multiple times to generate several orders and stack them.</strong>
+    <!-- Step 3: Generate Work Orders -->
+    <div style="margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">3. Generate Random Work Orders</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
+            Creates realistic work orders with 8–16 cabinets, assigned color, unique job name, lot and order number.
+            Click multiple times to generate several.
         </div>
         <div style="display:flex; gap:8px;">
             <button id="btn-gen-order" onclick="generateOrder()"
-                    class="btn-primary" style="flex:1; background:#059669; border-color:#059669; color:white; font-weight:600;">
-                3. Generate Order
+                    class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
+                Generate
             </button>
             <button id="btn-clear-gen-order" onclick="clearGeneratedOrders()"
-                    class="btn-secondary"
-                    style="flex:1; color:#6b7280; border-color:#d1d5db; font-weight:600;">
+                    class="btn-secondary" style="color:#6b7280; border-color:#d1d5db; padding:8px 16px; font-size:13px; font-weight:600;">
                 Clear All
             </button>
         </div>
-        <div id="msg-gen-order" style="font-size:13px; margin-top:10px; display:none;"></div>
-        <!-- Running list of generated orders shown in the card -->
-        <div id="gen-order-list" style="margin-top:16px; display:none;">
+        <div id="msg-gen-order" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="gen-order-list" style="margin-top:12px; display:none;">
             <div style="font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase;
-                        letter-spacing:.05em; margin-bottom:8px;">Generated this session</div>
+                        letter-spacing:.05em; margin-bottom:6px;">Generated this session</div>
             <ul id="gen-order-items" style="margin:0; padding:0; list-style:none; font-size:12px; color:#374151;"></ul>
         </div>
     </div>
 
-    <!-- STEP 4: Simulate Production Plan -->
-    <div style="background:white; border:2px solid #d1d5db; border-radius:12px; padding:24px; position:relative;">
-        <div style="position:absolute; top:16px; right:16px; background:#7c3aed; color:white;
-                    border-radius:50%; width:32px; height:32px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:16px;">4</div>
-        <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Simulate Production Plan</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            Sets annual cabinet quantities for your production. This enables <strong>Parts Analytics</strong>
-            to calculate consumption forecasts.
-            <br><br>
-            <strong style="color:#7c3aed;">Example:</strong> If you build 120 base cabinets/year,
-            the system knows you need 480 side panels every 4 months.
+    <!-- Step 4: Simulate Production Plan -->
+    <div style="margin-bottom:20px;">
+        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">4. Simulate Production Plan</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
+            Sets annual cabinet quantities. Enables Parts Analytics to calculate consumption and forecast stock needs.
         </div>
         <button id="btn-sim-prod" onclick="simulateProd()"
-                class="btn-primary" style="width:100%; background:#7c3aed; border-color:#7c3aed; color:white; font-weight:600;">
-                4. Simulate Production
+                class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
+                Simulate
         </button>
-        <div id="msg-sim-prod" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <div id="msg-sim-prod" style="font-size:12px; margin-top:8px; display:none;"></div>
     </div>
 
-    <!-- DANGER: Clear Everything -->
-    <div style="background:#fef2f2; border:2px solid #fecaca; border-radius:12px; padding:24px; position:relative;">
-        <div style="position:absolute; top:16px; right:16px; background:#dc2626; color:white;
-                    border-radius:50%; width:32px; height:32px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:700; font-size:18px;">×</div>
-        <div style="font-size:16px; font-weight:700; margin-bottom:8px;">Clear Everything</div>
-        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
-            ⚠ <strong>Dangerous:</strong> Deletes all inventory, parts, cabinet types, colors and warehouse configuration.
-            <br>Users remain intact. Use only to reset the entire demo.
+    <!-- Clear Everything -->
+    <div style="border-top:1px solid #e5e7eb; padding-top:20px;">
+        <div style="font-size:13px; font-weight:700; color:#dc2626; margin-bottom:8px;">⚠ Clear Everything</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
+            Deletes all inventory, parts, cabinet types, colors and warehouse config. Users remain.
         </div>
         <button id="btn-clear-all" onclick="clearAll()"
-                class="btn-secondary" style="width:100%; color:#dc2626; border-color:#fecaca; background:#fff5f5; font-weight:600;">
-            Clear Everything
+                class="btn-secondary" style="color:#dc2626; border-color:#fecaca; padding:8px 16px; font-size:13px; font-weight:600;">
+            Clear All
         </button>
-        <div id="msg-clear-all" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <div id="msg-clear-all" style="font-size:12px; margin-top:8px; display:none;"></div>
     </div>
 
 </div>
@@ -158,7 +130,7 @@ function resetDemo() {
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                btn.textContent = '1. Load Demo State';
+                btn.textContent = 'Load Demo';
                 btn.disabled = false;
                 msg.style.display = 'block';
                 msg.style.color = '#dc2626';
@@ -167,7 +139,7 @@ function resetDemo() {
                 btn.textContent = 'Done ✓';
                 msg.style.display = 'block';
                 msg.style.color = '#16a34a';
-                msg.textContent = `Loaded: ${data.colors} colors, ${data.cabinet_types} cabinet types, ${data.parts} parts, ${data.active_records} active records. Now proceed to step 2.`;
+                msg.textContent = `Loaded: ${data.colors} colors, ${data.cabinet_types} cabinet types, ${data.parts} parts, ${data.active_records} active records.`;
             }
         });
 }
@@ -187,7 +159,7 @@ function clearOverflow() {
             msg.style.color = '#dc2626';
             msg.textContent = `${data.deleted} records deleted. Ready to fill again.`;
             document.getElementById('btn-fill-overflow').disabled = false;
-            document.getElementById('btn-fill-overflow').textContent = '2. Fill Overflow';
+            document.getElementById('btn-fill-overflow').textContent = 'Fill';
         });
 }
 
@@ -200,7 +172,7 @@ function generateOrder() {
         .then(r => r.json())
         .then(data => {
             btn.disabled = false;
-            btn.textContent = '3. Generate Order';
+            btn.textContent = 'Generate';
             msg.style.display = 'block';
             if (data.success) {
                 msg.style.color = '#059669';
@@ -220,7 +192,7 @@ function generateOrder() {
         })
         .catch(() => {
             btn.disabled = false;
-            btn.textContent = '3. Generate Order';
+            btn.textContent = 'Generate';
             msg.style.display = 'block';
             msg.style.color = '#dc2626';
             msg.textContent = 'Network error — try again.';
@@ -278,7 +250,7 @@ function simulateProd() {
                 msg.style.color = '#dc2626';
                 msg.textContent = data.error || 'Error';
                 btn.disabled = false;
-                btn.textContent = '4. Simulate Production';
+                btn.textContent = 'Simulate';
             }
         });
 }
