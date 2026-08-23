@@ -352,11 +352,37 @@ def free_locations():
 
             free_in_bay = positions_per_bay - occupied_in_bay
 
+            # Calcula por shelf dentro de este bay
+            shelves_data = []
+            for shelf_num in range(config.active_shelves + 1, config.total_shelves + 1):
+                shelf_str = str(shelf_num)
+
+                # Total posiciones en este shelf
+                positions_per_shelf = config.total_locations if config.total_locations > 0 else 1
+
+                # Ocupadas en este shelf
+                occupied_in_shelf = Inventory.query.filter(
+                    Inventory.is_active == False,
+                    Inventory.aisle == aisle_str,
+                    Inventory.bay == bay_str,
+                    Inventory.shelf == shelf_str
+                ).count()
+
+                free_in_shelf = positions_per_shelf - occupied_in_shelf
+
+                shelves_data.append({
+                    'shelf': shelf_num,
+                    'free': free_in_shelf,
+                    'occupied': occupied_in_shelf,
+                    'total': positions_per_shelf
+                })
+
             bays_data.append({
                 'bay': bay_num,
                 'free': free_in_bay,
                 'occupied': occupied_in_bay,
-                'total': positions_per_bay
+                'total': positions_per_bay,
+                'shelves': shelves_data
             })
 
         aisles_data.append({
