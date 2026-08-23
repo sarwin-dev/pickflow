@@ -4,70 +4,70 @@
 
 <div class="dashboard-header">
     <h1>Demo Tools</h1>
-    <p>Setup workflow — follow these steps in order</p>
+    <p>Utilities for loading demo data — remove before production</p>
 </div>
 
-<div style="background:white; border:2px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:20px;">
-    <div style="font-size:14px; color:#6b7280; margin-bottom:20px;">
-        Follow this setup sequence:
-    </div>
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; max-width:900px;">
 
-    <!-- Step 1: Load Demo State -->
-    <div style="margin-bottom:20px;">
-        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">1. Load Demo State</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
-            Loads colors, cabinet types, parts, warehouse config and initial inventory from <code>demo_seed.json</code>.
+    <!-- Load Demo State -->
+    <div style="background:{% if has_seed %}#f0fdf4{% else %}#fef2f2{% endif %}; border:2px solid {% if has_seed %}#86efac{% else %}#fecaca{% endif %}; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Load Demo State</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Loads colors, cabinet types, parts, warehouse config and active inventory from <code>demo_seed.json</code>.
             {% if not has_seed %}
-            <div style="color:#dc2626; font-weight:600; margin-top:4px;">
-                ⚠ demo_seed.json not found — run <code>export_demo_seed.py</code> first.
+            <div style="margin-top:8px; color:#dc2626; font-weight:600;">
+                ⚠ demo_seed.json not found — run export_demo_seed.py first.
             </div>
             {% endif %}
         </div>
         <button id="btn-reset-demo" onclick="resetDemo()"
-                class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;"
+                class="btn-primary" style="width:100%; background:#059669; border-color:#059669; color:white; font-weight:600;"
                 {% if not has_seed %}disabled{% endif %}>
             Load Demo
         </button>
-        <div id="msg-reset-demo" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="msg-reset-demo" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
-    <!-- Step 2: Fill Overflow -->
-    <div style="margin-bottom:20px;">
-        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">2. Fill Overflow Warehouse</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
-            Fills all free overflow locations with random parts (90–120 units each).
+    <!-- Fill Overflow Warehouse -->
+    <div style="background:white; border:2px solid #86efac; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Fill Overflow Warehouse</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Fills all free overflow locations with random parts (90, 100 or 120 units each).
+            All parts guaranteed to appear at least once.
         </div>
         <div style="display:flex; gap:8px;">
             <button id="btn-fill-overflow" onclick="fillOverflow()"
-                    class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
+                    class="btn-primary" style="flex:1; background:#059669; border-color:#059669; color:white; font-weight:600;">
                 Fill
             </button>
             <button id="btn-clear-overflow" onclick="clearOverflow()"
-                    class="btn-secondary" style="color:#6b7280; border-color:#d1d5db; padding:8px 16px; font-size:13px; font-weight:600;">
+                    class="btn-secondary" style="flex:1; color:#059669; border-color:#86efac; font-weight:600;">
                 Clear
             </button>
         </div>
-        <div id="msg-fill-overflow" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="msg-fill-overflow" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
-    <!-- Step 3: Generate Work Orders -->
-    <div style="margin-bottom:20px;">
-        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">3. Generate Random Work Orders</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
-            Creates realistic work orders with 8–16 cabinets, assigned color, unique job name, lot and order number.
-            Click multiple times to generate several.
+    <!-- Generate Random Work Order -->
+    <div style="background:white; border:2px solid #86efac; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Generate Random Work Order</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Creates one realistic work order with 8–16 random cabinets, a random color,
+            a unique subdivision-style job name, a 3-digit lot number and a work order
+            number in the <strong>XXX.Y</strong> format. Click multiple times to stack orders.
         </div>
         <div style="display:flex; gap:8px;">
             <button id="btn-gen-order" onclick="generateOrder()"
-                    class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
+                    class="btn-primary" style="flex:1; background:#059669; border-color:#059669; color:white; font-weight:600;">
                 Generate
             </button>
             <button id="btn-clear-gen-order" onclick="clearGeneratedOrders()"
-                    class="btn-secondary" style="color:#6b7280; border-color:#d1d5db; padding:8px 16px; font-size:13px; font-weight:600;">
-                Clear All
+                    class="btn-secondary" style="flex:1; color:#059669; border-color:#86efac; font-weight:600;">
+                Clear
             </button>
         </div>
-        <div id="msg-gen-order" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="msg-gen-order" style="font-size:13px; margin-top:10px; display:none;"></div>
+        <!-- Running list of generated orders shown in the card -->
         <div id="gen-order-list" style="margin-top:12px; display:none;">
             <div style="font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase;
                         letter-spacing:.05em; margin-bottom:6px;">Generated this session</div>
@@ -75,30 +75,34 @@
         </div>
     </div>
 
-    <!-- Step 4: Simulate Production Plan -->
-    <div style="margin-bottom:20px;">
-        <div style="font-size:13px; font-weight:700; color:#374151; margin-bottom:8px;">4. Simulate Production Plan</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
-            Sets annual cabinet quantities. Enables Parts Analytics to calculate consumption and forecast stock needs.
+    <!-- Simulate Production Data -->
+    <div style="background:white; border:2px solid #86efac; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Simulate Production Plan</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Tells the system how many cabinets of each type your shop builds per year.
+            This is the foundation of the Parts Analytics.
+            <br><br>
+            <strong style="color:#059669;">Example:</strong> If you build 120 base cabinets per year,
+            the system automatically knows you'll need 480 side panels in the next 4 months.
         </div>
         <button id="btn-sim-prod" onclick="simulateProd()"
-                class="btn-primary" style="background:#059669; border-color:#059669; color:white; padding:8px 16px; font-size:13px; font-weight:600;">
-                Simulate
+                class="btn-primary" style="width:100%; background:#059669; border-color:#059669; color:white; font-weight:600;">
+                Simulate Production
         </button>
-        <div id="msg-sim-prod" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="msg-sim-prod" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
     <!-- Clear Everything -->
-    <div style="border-top:1px solid #e5e7eb; padding-top:20px;">
-        <div style="font-size:13px; font-weight:700; color:#dc2626; margin-bottom:8px;">⚠ Clear Everything</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:12px;">
-            Deletes all inventory, parts, cabinet types, colors and warehouse config. Users remain.
+    <div style="background:#fef2f2; border:2px solid #fecaca; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Clear Everything</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Wipes all inventory, parts, cabinet types, colors and warehouse config. Leaves only users intact.
         </div>
         <button id="btn-clear-all" onclick="clearAll()"
-                class="btn-secondary" style="color:#dc2626; border-color:#fecaca; padding:8px 16px; font-size:13px; font-weight:600;">
+                class="btn-secondary" style="width:100%; color:#dc2626; border-color:#fca5a5; font-weight:600;">
             Clear All
         </button>
-        <div id="msg-clear-all" style="font-size:12px; margin-top:8px; display:none;"></div>
+        <div id="msg-clear-all" style="font-size:13px; margin-top:10px; display:none;"></div>
     </div>
 
 </div>
