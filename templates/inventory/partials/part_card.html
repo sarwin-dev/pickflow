@@ -1,8 +1,8 @@
 <div id="part-card-{{ item.part.id }}"
-     style="background:white;
+     style="background:{% if item.needs_pulldown %}#fee2e2{% else %}white{% endif %};
             border:2px solid {% if item.needs_pulldown %}#ef4444{% else %}#e5e7eb{% endif %};
             border-radius:12px; padding:20px; margin-bottom:20px;
-            {% if item.needs_pulldown %}box-shadow:0 0 0 4px #fee2e2;{% endif %}">
+            {% if item.needs_pulldown %}box-shadow:0 0 0 4px #fecaca;{% endif %}">
 
     <!-- header: nombre + badges + overflow total -->
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:12px;">
