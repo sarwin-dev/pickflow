@@ -722,7 +722,9 @@ def demo_clear_orders():
     if check:
         return jsonify({'error': 'unauthorized'}), 403
 
-    # Borra todas las órdenes de trabajo (pending o no)
+    # Primero borra todos los OrderItem (dependencias)
+    db.session.query(OrderItem).delete()
+    # Luego borra todas las órdenes de trabajo
     deleted = db.session.query(WorkOrder).delete()
     db.session.commit()
 
