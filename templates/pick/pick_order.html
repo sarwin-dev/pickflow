@@ -62,16 +62,12 @@
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button type="button"
                 onclick="markAllMissing()"
-                style="padding:10px 18px; border-radius:8px; border:1px solid #ef4444;
-                       background:#fee2e2; color:#dc2626; font-weight:600; cursor:pointer;
-                       font-size:13px; white-space:nowrap;">
+                class="btn-mark-missing">
             Mark Missing (All)
         </button>
         <button id="btn-complete-order"
                 onclick="completeOrder({{ order.id }})"
-                style="padding:10px 18px; border-radius:8px; border:1px solid #f59e0b;
-                       background:#fffbeb; color:#92400e; font-weight:600;
-                       font-size:13px; white-space:nowrap; cursor:not-allowed;"
+                class="btn-complete-panel"
                 disabled>
             Complete Order
         </button>
@@ -182,6 +178,41 @@
 
 
 <style>
+    /* botones del panel fixed */
+    .btn-mark-missing {
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 1px solid #ef4444;
+        background: #fee2e2;
+        color: #dc2626;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    .btn-mark-missing:hover {
+        background: #fecaca;
+    }
+
+    .btn-complete-panel {
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 1px solid #f59e0b;
+        background: #fffbeb;
+        color: #92400e;
+        font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
+        cursor: not-allowed;
+    }
+    .btn-complete-panel:not(:disabled):hover {
+        background: #fef3c7;
+    }
+    .btn-complete-panel:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
     .active-filter {
         background: #1e1b4b;
         color: white;
@@ -320,19 +351,9 @@
             applyState(b, lbl, 'missing');
         });
 
-        // actualiza conteos y activa el botón Complete Order
+        // actualiza conteos
         missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
         updateProgress();
-
-        // activa el botón Complete Order para que el picker pueda cerrar la orden manualmente
-        const completeBtn = document.getElementById('btn-complete-order');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.style.borderColor = '#f59e0b';
-            completeBtn.style.color = '#92400e';
-            completeBtn.style.background = '#fffbeb';
-            completeBtn.style.cursor = 'pointer';
-        }
 
         // nota: NO cierra automáticamente. El picker decide cuándo completar la orden
     }
@@ -374,17 +395,6 @@
         if (completeBtn) {
             const canComplete = (picked + missing) === total;
             completeBtn.disabled = !canComplete;
-            if (canComplete) {
-                completeBtn.style.borderColor = '#f59e0b';
-                completeBtn.style.color = '#92400e';
-                completeBtn.style.background = '#fffbeb';
-                completeBtn.style.cursor = 'pointer';
-            } else {
-                completeBtn.style.borderColor = '#d1d5db';
-                completeBtn.style.color = '#9ca3af';
-                completeBtn.style.background = '#f9fafb';
-                completeBtn.style.cursor = 'not-allowed';
-            }
         }
     }
 
