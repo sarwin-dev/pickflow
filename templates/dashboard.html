@@ -42,6 +42,15 @@
         </div>
     </a>
     {% endif %}
+    {% if stats.waiting_for_pulldown > 0 %}
+    <a href="/inventory/" style="text-decoration:none;">
+        <div style="background:#fef2f2; border:2px solid #dc2626; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center; cursor:pointer; box-shadow:0 0 12px rgba(220,38,38,0.15);">
+            <div style="font-size:2rem; font-weight:700; color:#dc2626;">{{ stats.waiting_for_pulldown }}</div>
+            <div style="font-size:12px; color:#dc2626; margin-top:4px;">🔴 Waiting for Pulldown</div>
+            <div style="font-size:11px; color:#dc2626; margin-top:2px; text-decoration:underline;">Pickers marked missing →</div>
+        </div>
+    </a>
+    {% endif %}
 
     {% elif session['user_role'] == 'warehouse' %}
     <div style="background:white; border:1px solid #e5e7eb; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center;">
@@ -52,12 +61,12 @@
         <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ stats.in_progress }}</div>
         <div style="font-size:12px; color:#6b7280; margin-top:4px;">In Progress</div>
     </div>
-    {% if stats.needs_pulldown > 0 %}
+    {% if stats.waiting_for_pulldown > 0 %}
     <a href="/inventory/" style="text-decoration:none;">
-        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center; cursor:pointer;">
-            <div style="font-size:2rem; font-weight:700; color:#dc2626;">{{ stats.needs_pulldown }}</div>
-            <div style="font-size:12px; color:#dc2626; margin-top:4px;">⚠ Need Pulldown</div>
-            <div style="font-size:11px; color:#dc2626; margin-top:2px; text-decoration:underline;">View →</div>
+        <div style="background:#fef2f2; border:2px solid #dc2626; border-radius:8px; padding:20px 28px; min-width:140px; text-align:center; cursor:pointer; box-shadow:0 0 12px rgba(220,38,38,0.15);">
+            <div style="font-size:2rem; font-weight:700; color:#dc2626;">{{ stats.waiting_for_pulldown }}</div>
+            <div style="font-size:12px; color:#dc2626; margin-top:4px;">🔴 Waiting for Pulldown</div>
+            <div style="font-size:11px; color:#dc2626; margin-top:2px; text-decoration:underline;">Pickers marked missing →</div>
         </div>
     </a>
     {% endif %}

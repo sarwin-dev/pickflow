@@ -109,12 +109,15 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    from models import WorkOrder, Inventory
+    from models import WorkOrder, Inventory, Part
     from datetime import date
     role = session['user_role']
     stats = {}
 
-    # Partes con overflow pero sin active (necesitan pulldown)
+    # Partes que los pickers han marcado como missing (esperando pulldown de Erick)
+    on_hold_count = Part.query.filter_by(is_on_hold=True).count()
+
+    # Partes con overflow pero sin active (tradicional - para referencia)
     parts_with_overflow = {r.part_id for r in db.session.query(Inventory.part_id).filter_by(is_active=False).distinct()}
     parts_with_active   = {r.part_id for r in db.session.query(Inventory.part_id).filter_by(is_active=True).distinct()}
     needs_pulldown = len(parts_with_overflow - parts_with_active)
@@ -139,6 +142,7 @@ def dashboard():
         ).count()
         stats['on_the_way'] = ShoppingListItem.query.count()
         stats['needs_pulldown'] = needs_pulldown
+        stats['waiting_for_pulldown'] = on_hold_count
 
     elif role == 'warehouse':
         stats['available'] = WorkOrder.query.filter(
@@ -146,6 +150,7 @@ def dashboard():
         ).count()
         stats['in_progress'] = WorkOrder.query.filter_by(status='in_progress').count()
         stats['needs_pulldown'] = needs_pulldown
+        stats['waiting_for_pulldown'] = on_hold_count
 
     elif role == 'order_entry':
         stats['my_orders'] = WorkOrder.query.filter_by(
