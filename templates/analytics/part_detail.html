@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}{{ part.name }} - Analytics{% endblock %}
+{% block content %}
+
+<div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1 style="display:flex; align-items:center; gap:12px;">
+            <a href="/analytics/parts" style="text-decoration:none; color:#4f46e5; font-weight:400;">←</a>
+            {{ part.name }}
+        </h1>
+        <p>Consumption breakdown by cabinet type — {{ months }}-month projection</p>
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:2rem;">
+    <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 18px;">
+        <div style="font-size:11px; color:#6366f1; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Overflow Stock</div>
+        <div style="font-size:22px; font-weight:700; color:#1e1b4b;">{{ overflow_stock }}</div>
+    </div>
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 18px;">
+        <div style="font-size:11px; color:#16a34a; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Used By</div>
+        <div style="font-size:22px; font-weight:700; color:#15803d;">{{ cabinet_data | length }}</div>
+    </div>
+</div>
+
+{% if cabinet_data %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Cabinet Type</th>
+                <th style="text-align:center;">Width</th>
+                <th style="text-align:center;">Annual Qty</th>
+                <th style="text-align:center;">Per Unit</th>
+                <th style="text-align:center;">{{ months }}-mo Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in cabinet_data %}
+            <tr>
+                <td><strong>{{ data.cabinet.name }}</strong></td>
+                <td style="text-align:center;">{{ data.cabinet.width }}"</td>
+                <td style="text-align:center; font-weight:600;">{{ data.cabinet.annual_qty }}</td>
+                <td style="text-align:center;">{{ data.qty_per_unit }}</td>
+                <td style="text-align:center; font-weight:700; color:#059669;">{{ data.projected }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; background:white; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280;">
+    <p style="font-size:16px; font-weight:600;">No cabinet types use this part yet</p>
+</div>
+{% endif %}
+
+{% endblock %}

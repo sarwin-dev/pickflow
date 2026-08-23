@@ -259,6 +259,9 @@ app.register_blueprint(inventory_bp)
 from routes.losses import losses_bp
 app.register_blueprint(losses_bp)
 
+from routes.analytics import analytics_bp
+app.register_blueprint(analytics_bp)
+
 @app.route('/change-password', methods=['GET', 'POST'])
 def change_password():
     if 'user_id' not in session:

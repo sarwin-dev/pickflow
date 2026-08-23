@@ -75,6 +75,7 @@ class WorkOrder(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_simulated = db.Column(db.Boolean, default=False, server_default='0')
     items = db.relationship('OrderItem', backref='order', lazy=True)
     creator = db.relationship('User', backref='orders')
 

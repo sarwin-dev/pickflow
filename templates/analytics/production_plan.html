@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Production Plan - Analytics{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Production Plan</h1>
+    <p>Configure annual production quantities for each cabinet type</p>
+</div>
+
+<!-- Action buttons -->
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem;">
+    <button onclick="simulateProduction()" class="btn-primary"
+            style="background:#059669; border-color:#059669; color:white; font-weight:600;">
+        🎲 Auto-Simulate
+    </button>
+    <button onclick="saveChanges()" class="btn-primary"
+            style="background:#4f46e5; border-color:#4f46e5; color:white; font-weight:600;">
+        💾 Save Changes
+    </button>
+</div>
+
+<div id="message" style="display:none; padding:12px 16px; border-radius:6px; margin-bottom:1rem; font-size:13px; font-weight:600;"></div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Cabinet Type</th>
+                <th style="text-align:center;">Width</th>
+                <th style="text-align:center;">Annual Qty</th>
+                <th style="text-align:center;">{{ months }}-mo Projection</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cabinet in cabinets %}
+            <tr>
+                <td><strong>{{ cabinet.name }}</strong></td>
+                <td style="text-align:center;">{{ cabinet.width }}"</td>
+                <td style="text-align:center;">
+                    <input type="number"
+                           id="cabinet-{{ cabinet.id }}"
+                           value="{{ cabinet.annual_qty or 0 }}"
+                           min="0"
+                           max="999"
+                           style="width:80px; padding:6px; border:1px solid #d1d5db; border-radius:4px;
+                                  text-align:center; font-weight:600;">
+                </td>
+                <td style="text-align:center; color:#059669; font-weight:600;">
+                    {{ cabinet.projected_consumption }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function simulateProduction() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '🔄 Simulating...';
+
+    fetch('/analytics/production-plan/simulate', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showMessage(data.error || 'Error', 'error');
+                btn.disabled = false;
+                btn.textContent = '🎲 Auto-Simulate';
+            }
+        })
+        .catch(e => {
+            showMessage('Network error', 'error');
+            btn.disabled = false;
+            btn.textContent = '🎲 Auto-Simulate';
+        });
+}
+
+function saveChanges() {
+    const data = {};
+    const cabinets = document.querySelectorAll('input[id^="cabinet-"]');
+
+    cabinets.forEach(input => {
+        const cabinet_id = input.id.replace('cabinet-', '');
+        const qty = parseInt(input.value) || 0;
+        data[cabinet_id] = qty;
+    });
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '💾 Saving...';
+
+    fetch('/analytics/production-plan/update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = '💾 Save Changes';
+            if (data.success) {
+                showMessage(`Saved ${data.updated} cabinet types`, 'success');
+            } else {
+                showMessage(data.error || 'Error', 'error');
+            }
+        })
+        .catch(e => {
+            showMessage('Network error', 'error');
+            btn.disabled = false;
+            btn.textContent = '💾 Save Changes';
+        });
+}
+
+function showMessage(text, type) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.style.display = 'block';
+    msg.style.color = type === 'success' ? '#16a34a' : '#dc2626';
+    msg.style.background = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    msg.style.borderLeft = `4px solid ${type === 'success' ? '#22c55e' : '#ef4444'}`;
+
+    setTimeout(() => { msg.style.display = 'none'; }, 4000);
+}
+</script>
+
+{% endblock %}

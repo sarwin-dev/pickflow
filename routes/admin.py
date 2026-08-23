@@ -592,31 +592,6 @@ def demo_reset():
     })
 
 
-@admin_bp.route('/demo/simulate-production', methods=['POST'])
-def demo_simulate_production():
-    check = admin_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-    cabinets = CabinetType.query.all()
-    for cabinet in cabinets:
-        w = cabinet.width or 0
-        if w <= 9:
-            cabinet.annual_qty = 150
-        elif w <= 12:
-            cabinet.annual_qty = 120
-        elif w <= 15:
-            cabinet.annual_qty = 100
-        elif w <= 18:
-            cabinet.annual_qty = 80
-        elif w <= 21:
-            cabinet.annual_qty = 60
-        elif w <= 24:
-            cabinet.annual_qty = 50
-        else:
-            cabinet.annual_qty = 36
-    db.session.commit()
-    return jsonify({'success': True, 'count': len(cabinets)})
-
 
 @admin_bp.route('/demo/generate-order', methods=['POST'])
 def demo_generate_order():
@@ -741,3 +716,141 @@ def demo_clear_orders():
             'success': False,
             'error': str(e),
         }), 500
+
+@admin_bp.route('/demo/simulate-orders', methods=['POST'])
+def demo_simulate_orders():
+    if 'user_id' not in session or session['user_role'] != 'admin':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    import random
+    from datetime import datetime, timedelta
+
+    data = request.get_json()
+    months = int(data.get('months', 1))
+    if months < 1 or months > 12:
+        return jsonify({'error': 'Months must be 1-12'}), 400
+
+    config = WarehouseConfig.query.first()
+    if not config:
+        return jsonify({'error': 'Warehouse not configured'}), 400
+
+    cabinets = CabinetType.query.filter(CabinetType.annual_qty > 0).all()
+    if not cabinets:
+        return jsonify({'error': 'No cabinet types with annual_qty set'}), 400
+
+    colors = Color.query.all()
+    if not colors:
+        return jsonify({'error': 'No colors configured'}), 400
+
+    # Calcula órdenes proyectadas en el período
+    total_units_year = sum(c.annual_qty or 0 for c in cabinets)
+    orders_this_period = max(1, int(total_units_year * (months / 12) / 4))  # ~4 units per order avg
+
+    # Distribuye órdenes en los N meses
+    order_dates = []
+    now = datetime.utcnow()
+    for _ in range(orders_this_period):
+        random_days_back = random.randint(0, max(1, months * 30 - 1))
+        date = now - timedelta(days=random_days_back)
+        order_dates.append(date)
+
+    total_parts_consumed = 0
+    orders_created = 0
+
+    try:
+        for order_date in order_dates:
+            # Genera nombre único para orden simulada
+            order_number = f"SIM-{order_date.strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+            job_name = f"Simulated-{order_date.strftime('%m%d')}-{random.randint(100, 999)}"
+            color = random.choice(colors)
+
+            # Selecciona N cabinet types para esta orden (1-3 por orden)
+            num_cabinets = random.randint(1, min(3, len(cabinets)))
+            selected_cabinets = random.sample(cabinets, num_cabinets)
+
+            order = WorkOrder(
+                order_number=order_number,
+                job_name=job_name,
+                color_id=color.id,
+                status='completed',
+                created_by=session.get('user_id', 1),
+                created_at=order_date,
+                updated_at=order_date,
+                is_simulated=True
+            )
+            db.session.add(order)
+            db.session.flush()
+
+            # Agrega cabinet types como items y consume partes
+            for slot, cabinet in enumerate(selected_cabinets, 1):
+                item = OrderItem(
+                    work_order_id=order.id,
+                    cabinet_type_id=cabinet.id,
+                    slot=slot,
+                    cart=1
+                )
+                db.session.add(item)
+                db.session.flush()
+
+                # Consume partes del inventario
+                for part_template in cabinet.parts:
+                    qty_to_consume = part_template.quantity
+                    total_parts_consumed += qty_to_consume
+
+                    # Resta del inventario overflow
+                    overflow_records = Inventory.query.filter(
+                        Inventory.part_id == part_template.part_id,
+                        Inventory.is_active == False,
+                        Inventory.quantity > 0
+                    ).order_by(Inventory.id).all()
+
+                    for record in overflow_records:
+                        if qty_to_consume <= 0:
+                            break
+                        consume = min(qty_to_consume, record.quantity)
+                        record.quantity -= consume
+                        qty_to_consume -= consume
+
+            orders_created += 1
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'orders_created': orders_created,
+            'total_parts_consumed': total_parts_consumed
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/demo/clear-simulated-orders', methods=['POST'])
+def demo_clear_simulated_orders():
+    if 'user_id' not in session or session['user_role'] != 'admin':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    try:
+        # Busca órdenes simuladas
+        simulated = WorkOrder.query.filter_by(is_simulated=True).all()
+        count = len(simulated)
+
+        for order in simulated:
+            # Elimina picks de los items
+            PickItem.query.filter(
+                PickItem.order_item_id.in_(
+                    db.session.query(OrderItem.id).filter_by(work_order_id=order.id)
+                )
+            ).delete()
+            # Elimina items
+            OrderItem.query.filter_by(work_order_id=order.id).delete()
+            # Elimina orden
+            db.session.delete(order)
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'orders_deleted': count
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

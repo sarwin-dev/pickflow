@@ -130,6 +130,17 @@
     </a>
     {% endif %}
 
+    <!-- analytics -->
+    {% if session['user_role'] in ['admin', 'supervisor'] %}
+    <a href="/analytics" class="module-card analytics">
+        <div class="module-icon">📊</div>
+        <div class="module-info">
+            <h3>Analytics</h3>
+            <p>Production plans & consumption</p>
+        </div>
+    </a>
+    {% endif %}
+
     <!-- supervision -->
     {% if session['user_role'] in ['admin', 'supervisor'] %}
     <a href="/supervision" class="module-card supervision">
