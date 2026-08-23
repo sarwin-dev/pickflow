@@ -95,6 +95,7 @@ def pick_order(order_id):
                     'loc': int(part.active_location) if part.active_location else 99,
                     'slots': [],
                     'any_pick_item_id': None,
+                    'is_on_hold': part.is_on_hold,
                 }
 
             pick_item = PickItem.query.join(OrderItem).filter(
