@@ -170,15 +170,19 @@
     <div style="background:white; margin:0 auto; padding:20px; max-width:600px; min-height:100vh;
          display:flex; flex-direction:column;">
         <!-- Header del modal -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #e5e7eb; padding-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
             <h2 style="margin:0; font-size:18px; font-weight:700;">Free Locations</h2>
             <button onclick="closeFreeLocationsModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">×</button>
         </div>
 
-        <!-- Container de aisles -->
-        <div id="aisles-container" style="flex:1; overflow-y:auto;">
-            <!-- Se llena con JavaScript -->
-        </div>
+        <!-- Pantalla 1: Aisles -->
+        <div id="screen-aisles" style="display:block; flex:1; overflow-y:auto; padding:0;"></div>
+
+        <!-- Pantalla 2: Bays -->
+        <div id="screen-bays" style="display:none; flex:1; overflow-y:auto; padding:0;"></div>
+
+        <!-- Pantalla 3: Shelves -->
+        <div id="screen-shelves" style="display:none; flex:1; overflow-y:auto; padding:0;"></div>
     </div>
 </div>
 
@@ -302,18 +306,21 @@ if (window.innerWidth <= 640) {
     document.querySelector('.recent-entries-panel').removeAttribute('open');
 }
 
-// ========== Panel de Ubicaciones Libres ==========
+// ========== Panel de Ubicaciones Libres - 3 Screen Navigation ==========
 
 const freeLocationsBtn = document.getElementById('free-locations-btn');
 const freeLocationsModal = document.getElementById('free-locations-modal');
 const freeCountSpan = document.getElementById('free-count');
-const aislesContainer = document.getElementById('aisles-container');
+
+// Almacena datos globales para navegación sin recargar
+window.freeLocationsData = null;
 
 // Carga ubicaciones libres al iniciar la página
 loadFreeLocations();
 
 freeLocationsBtn.addEventListener('click', () => {
     freeLocationsModal.style.display = 'block';
+    showAislesScreen();
 });
 
 function closeFreeLocationsModal() {
@@ -338,143 +345,137 @@ async function loadFreeLocations() {
         }
 
         freeCountSpan.textContent = data.total_free;
-        renderAisles(data.aisles);
+        window.freeLocationsData = data;
     } catch (e) {
         freeCountSpan.textContent = '?';
         console.error('Error loading free locations:', e);
     }
 }
 
-function renderAisles(aisles) {
-    aislesContainer.innerHTML = '';
+// Pantalla 1: Lista de Aisles
+function showAislesScreen() {
+    const screen = document.getElementById('screen-aisles');
+    screen.innerHTML = '';
 
-    aisles.forEach(aisle => {
-        const aisleFree = Math.max(0, aisle.free);  // Parche visual: nunca mostrar negativos
-        const aisleTotalPositions = aisle.total;
-        const aisle_occupied = aisle.occupied;
+    if (!window.freeLocationsData || !window.freeLocationsData.aisles) return;
 
-        // Barra de progreso
-        const percentFree = aisleTotalPositions > 0 ? (aisleFree / aisleTotalPositions) * 100 : 0;
+    // Filtrar aisles con free > 0
+    const filteredAisles = window.freeLocationsData.aisles.filter(a => a.free > 0);
 
-        // Tarjeta del aisle
-        const aisle_card = document.createElement('div');
-        aisle_card.style.cssText = 'background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:12px 14px; margin-bottom:10px; cursor:pointer;';
+    if (filteredAisles.length === 0) {
+        screen.innerHTML = '<div style="padding:20px; text-align:center; color:#9ca3af;">No free locations available</div>';
+        return;
+    }
 
-        const aisle_header = document.createElement('div');
-        aisle_header.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;';
+    filteredAisles.forEach(aisle => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e5e7eb; cursor:pointer;';
+        row.addEventListener('click', () => showBaysScreen(aisle));
+        row.addEventListener('mouseover', () => row.style.background = '#f9fafb');
+        row.addEventListener('mouseout', () => row.style.background = 'white');
 
-        const aisle_title = document.createElement('div');
-        aisle_title.style.cssText = 'font-weight:600; color:#1f2937;';
-        aisle_title.textContent = `Aisle ${String(aisle.aisle).padStart(2, '0')}`;
-
-        const aisle_expand = document.createElement('span');
-        aisle_expand.style.cssText = 'font-size:12px; color:#9ca3af;';
-        aisle_expand.textContent = '▼';
-
-        aisle_header.appendChild(aisle_title);
-        aisle_header.appendChild(aisle_expand);
-
-        // Progress bar
-        const progress_container = document.createElement('div');
-        progress_container.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:8px;';
-
-        const progress_bar = document.createElement('div');
-        progress_bar.style.cssText = 'flex:1; height:8px; background:#d1d5db; border-radius:4px; overflow:hidden;';
-
-        const progress_fill = document.createElement('div');
-        progress_fill.style.cssText = `width:${percentFree}%; height:100%; background:#059669; transition:width 0.3s;`;
-        progress_bar.appendChild(progress_fill);
-
-        const progress_text = document.createElement('div');
-        progress_text.style.cssText = 'font-size:13px; font-weight:600; color:#059669; white-space:nowrap;';
-        progress_text.textContent = `${aisleFree} free`;
-
-        progress_container.appendChild(progress_bar);
-        progress_container.appendChild(progress_text);
-
-        // Container de bays (inicialmente oculto)
-        const bays_container = document.createElement('div');
-        bays_container.style.cssText = 'display:none; margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb;';
-
-        renderBays(aisle.bays, bays_container, aisle.aisle);
-
-        // Event listener para expandir/colapsar
-        aisle_card.addEventListener('click', () => {
-            const isVisible = bays_container.style.display !== 'none';
-            bays_container.style.display = isVisible ? 'none' : 'grid';
-            aisle_expand.textContent = isVisible ? '▼' : '▲';
-        });
-
-        aisle_card.appendChild(aisle_header);
-        aisle_card.appendChild(progress_container);
-        aisle_card.appendChild(bays_container);
-
-        aislesContainer.appendChild(aisle_card);
+        row.innerHTML = `
+            <span style="font-weight:600; font-size:16px; color:#1f2937;">Aisle ${String(aisle.aisle).padStart(2, '0')}</span>
+            <div style="display:flex; gap:16px; align-items:center;">
+                <span style="color:#059669; font-weight:600; font-size:16px;">${aisle.free} free</span>
+                <span style="color:#9ca3af; font-size:20px;">→</span>
+            </div>
+        `;
+        screen.appendChild(row);
     });
+
+    // Mostrar pantalla 1, ocultar otras
+    document.getElementById('screen-aisles').style.display = 'block';
+    document.getElementById('screen-bays').style.display = 'none';
+    document.getElementById('screen-shelves').style.display = 'none';
 }
 
-function renderBays(bays, container, aisle_id) {
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(120px, 1fr))';
-    container.style.gap = '8px';
+// Pantalla 2: Lista de Bays dentro de un aisle
+function showBaysScreen(selectedAisle) {
+    const screen = document.getElementById('screen-bays');
+    screen.innerHTML = '';
 
-    bays.forEach(bay => {
-        const bayCard = document.createElement('div');
-        bayCard.style.cssText = 'background:white; border:1px solid #e5e7eb; border-radius:6px; padding:8px; text-align:center; font-size:12px; cursor:pointer;';
-        bayCard.addEventListener('mouseover', () => bayCard.style.background = '#f9fafb');
-        bayCard.addEventListener('mouseout', () => bayCard.style.background = 'white');
+    // Header con volver
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:16px 20px; border-bottom:2px solid #e5e7eb; background:#f9fafb; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; flex-shrink:0;';
+    header.addEventListener('click', () => showAislesScreen());
+    header.addEventListener('mouseover', () => header.style.background = '#f3f4f6');
+    header.addEventListener('mouseout', () => header.style.background = '#f9fafb');
+    header.innerHTML = `<span style="color:#059669;">←</span> Aisle ${String(selectedAisle.aisle).padStart(2, '0')}`;
+    screen.appendChild(header);
 
-        const bayLabel = document.createElement('div');
-        bayLabel.style.cssText = 'font-weight:600; color:#374151; margin-bottom:4px;';
-        bayLabel.textContent = `Bay ${String(bay.bay).padStart(2, '0')}`;
+    // Filtrar bays con free > 0
+    const filteredBays = selectedAisle.bays.filter(b => b.free > 0);
 
-        const bayFree = document.createElement('div');
-        bayFree.style.cssText = 'color:#059669; font-weight:600;';
-        bayFree.textContent = `${Math.max(0, bay.free)} free`;  // Parche visual: nunca mostrar negativos
+    if (filteredBays.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:20px; text-align:center; color:#9ca3af;';
+        empty.textContent = 'No free bays in this aisle';
+        screen.appendChild(empty);
+    } else {
+        filteredBays.forEach(bay => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e5e7eb; cursor:pointer;';
+            row.addEventListener('click', () => showShelvesScreen(bay, selectedAisle));
+            row.addEventListener('mouseover', () => row.style.background = '#f9fafb');
+            row.addEventListener('mouseout', () => row.style.background = 'white');
 
-        bayCard.appendChild(bayLabel);
-        bayCard.appendChild(bayFree);
-
-        // Container de shelves (inicialmente oculto)
-        const shelvesContainer = document.createElement('div');
-        shelvesContainer.id = `shelves-${aisle_id}-${bay.bay}`;
-        shelvesContainer.style.cssText = 'display:none; margin-top:12px; padding-top:12px; border-top:1px solid #e5e7eb; grid-column:1/-1;';
-
-        renderShelves(bay.shelves, shelvesContainer);
-
-        // Event listener para expandir/colapsar shelves
-        bayCard.addEventListener('click', () => {
-            const isVisible = shelvesContainer.style.display !== 'none';
-            shelvesContainer.style.display = isVisible ? 'none' : 'block';
+            row.innerHTML = `
+                <span style="font-weight:600; font-size:16px; color:#1f2937;">Bay ${String(bay.bay).padStart(2, '0')}</span>
+                <div style="display:flex; gap:16px; align-items:center;">
+                    <span style="color:#059669; font-weight:600; font-size:16px;">${bay.free} free</span>
+                    <span style="color:#9ca3af; font-size:20px;">→</span>
+                </div>
+            `;
+            screen.appendChild(row);
         });
+    }
 
-        container.appendChild(bayCard);
-        container.appendChild(shelvesContainer);
-    });
+    // Mostrar pantalla 2, ocultar otras
+    document.getElementById('screen-aisles').style.display = 'none';
+    document.getElementById('screen-bays').style.display = 'block';
+    document.getElementById('screen-shelves').style.display = 'none';
 }
 
-function renderShelves(shelves, container) {
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(100px, 1fr))';
-    container.style.gap = '8px';
+// Pantalla 3: Lista de Shelves dentro de un bay
+function showShelvesScreen(selectedBay, selectedAisle) {
+    const screen = document.getElementById('screen-shelves');
+    screen.innerHTML = '';
 
-    shelves.forEach(shelf => {
-        const shelfCard = document.createElement('div');
-        shelfCard.style.cssText = 'background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; padding:6px; text-align:center; font-size:11px;';
+    // Header con volver
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:16px 20px; border-bottom:2px solid #e5e7eb; background:#f9fafb; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; flex-shrink:0;';
+    header.addEventListener('click', () => showBaysScreen(selectedAisle));
+    header.addEventListener('mouseover', () => header.style.background = '#f3f4f6');
+    header.addEventListener('mouseout', () => header.style.background = '#f9fafb');
+    header.innerHTML = `<span style="color:#059669;">←</span> Bay ${String(selectedBay.bay).padStart(2, '0')}`;
+    screen.appendChild(header);
 
-        const shelfLabel = document.createElement('div');
-        shelfLabel.style.cssText = 'font-weight:600; color:#374151; margin-bottom:2px;';
-        shelfLabel.textContent = `Shelf ${String(shelf.shelf).padStart(2, '0')}`;
+    // Filtrar shelves con free > 0
+    const filteredShelves = selectedBay.shelves.filter(s => s.free > 0);
 
-        const shelfFree = document.createElement('div');
-        shelfFree.style.cssText = 'color:#059669; font-weight:600; font-size:10px;';
-        shelfFree.textContent = `${Math.max(0, shelf.free)} free`;
+    if (filteredShelves.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:20px; text-align:center; color:#9ca3af;';
+        empty.textContent = 'No free shelves in this bay';
+        screen.appendChild(empty);
+    } else {
+        filteredShelves.forEach(shelf => {
+            const row = document.createElement('div');
+            row.style.cssText = 'padding:16px 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;';
 
-        shelfCard.appendChild(shelfLabel);
-        shelfCard.appendChild(shelfFree);
+            row.innerHTML = `
+                <span style="font-weight:600; font-size:16px; color:#1f2937;">Shelf ${String(shelf.shelf).padStart(2, '0')}</span>
+                <span style="color:#059669; font-weight:600; font-size:16px;">${shelf.free} free</span>
+            `;
+            screen.appendChild(row);
+        });
+    }
 
-        container.appendChild(shelfCard);
-    });
+    // Mostrar pantalla 3, ocultar otras
+    document.getElementById('screen-aisles').style.display = 'none';
+    document.getElementById('screen-bays').style.display = 'none';
+    document.getElementById('screen-shelves').style.display = 'block';
 }
 
 
