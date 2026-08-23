@@ -38,7 +38,7 @@
 <div class="form-card">
     <h3 style="margin-bottom:1rem; font-size:16px;">Register New Box</h3>
 
-    <form method="POST" action="/receiving/receive">
+    <form method="POST" action="/receiving/receive" onsubmit="return validatePartSelection()">
 
         <div class="form-group">
             <label>Part</label>
@@ -262,6 +262,16 @@ document.addEventListener('click', function (e) {
 function toggleLocation() {
     const type = document.getElementById('receiving_type').value;
     document.getElementById('location-fields').style.display = type === 'direct' ? 'none' : 'block';
+}
+
+// Validación: el usuario debe seleccionar una parte de la lista, no escribir libremente
+function validatePartSelection() {
+    const partIdInput = document.getElementById('part-id');
+    if (!partIdInput.value) {
+        alert('Please select a part from the autocomplete list.');
+        return false;
+    }
+    return true;
 }
 
 // en movil, colapsa Recent Entries al cargar para que el form tenga protagonismo

@@ -38,26 +38,13 @@ def receive():
     check = warehouse_required()
     if check:
         return check
-    
-    # acepta part_id (seleccion del autocomplete) o part_name (texto libre)
-    part_id = request.form.get('part_id')
-    part_name_raw = request.form.get('part_name', '').strip()
 
-    if not part_id and not part_name_raw:
-        return redirect(url_for('receiving.index'))
+    # Requiere part_id (seleccionado del autocomplete — no acepta part_name)
+    part_id = request.form.get('part_id')
 
     if not part_id:
-        # formatea el nombre: separa letras de numeros, title case
-        formatted = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', part_name_raw)
-        formatted = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', formatted)
-        part_name = ' '.join(formatted.split()).title()
-        # busca la parte o la crea si no existe
-        part = Part.query.filter(Part.name.ilike(part_name)).first()
-        if not part:
-            part = Part(name=part_name)
-            db.session.add(part)
-            db.session.flush()
-        part_id = part.id
+        flash('Part not found. Please go to Admin → Parts to register it first.', 'error')
+        return redirect(url_for('receiving.index'))
 
     config = WarehouseConfig.query.first()
     quantity = int(request.form['quantity'])
@@ -116,7 +103,7 @@ def receive():
             )
             return redirect(url_for('receiving.index'))
 
-        # verifica que la ubicacion no este ocupada por una parte diferente
+        # Verifica que la ubicación no esté ocupada por una parte diferente
         conflict = Inventory.query.filter(
             Inventory.aisle == aisle,
             Inventory.bay == bay,
@@ -126,9 +113,8 @@ def receive():
         ).first()
         if conflict:
             flash(
-                f'Location A{int(aisle):02d}.B{int(bay):02d}.S{int(shelf):02d} '
-                f'is already occupied by "{conflict.part.name}". '
-                f'Choose a different location or pull down the existing box first.',
+                f'This location is already in use by "{conflict.part.name}" '
+                f'({conflict.quantity} units). Please choose a different location.',
                 'error'
             )
             return redirect(url_for('receiving.index'))
