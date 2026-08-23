@@ -718,8 +718,8 @@ def demo_generate_order():
 
 @admin_bp.route('/demo/clear-orders', methods=['POST'])
 def demo_clear_orders():
-    check = admin_required()
-    if check:
+    # Verifica permisos (sin usar admin_required que usa redirect)
+    if 'user_id' not in session or session['user_role'] != 'admin':
         return jsonify({'error': 'unauthorized'}), 403
 
     try:
