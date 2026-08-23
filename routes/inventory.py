@@ -253,27 +253,6 @@ def delete_record(record_id):
     return redirect(back)
 
 
-@inventory_bp.route('/depleted/<int:record_id>', methods=['POST'])
-def depleted(record_id):
-    check = inventory_required()
-    if check:
-        return check
-    record = Inventory.query.get_or_404(record_id)
-    part_id = record.part_id
-    # marca como vacío (quantity = 0) en lugar de borrar, para mostrar ubicación desactivada
-    record.quantity = 0
-    record.updated_at = datetime.utcnow()
-    db.session.commit()
-    if request.headers.get('HX-Request'):
-        part = Part.query.get(part_id)
-        item = build_part_item(part)
-        return render_template('inventory/partials/part_card.html', item=item,
-                               search='', filter_mode='')
-    flash('Active location marked as depleted. Manager will refill from overflow.', 'success')
-    back = request.form.get('next', url_for('inventory.index'))
-    return redirect(back)
-
-
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
 def set_min(part_id):
     check = supervisor_required()

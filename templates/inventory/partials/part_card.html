@@ -70,18 +70,7 @@
                 <td style="white-space:nowrap;">
                     <button type="button" class="btn-secondary" style="font-size:11px; padding:4px 10px;"
                             onclick="toggleEdit({{ record.id }})">Edit</button>
-                    {% if record.is_active %}
-                        {% if record.quantity > 0 %}
-                        <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#d97706; border-color:#fde68a;"
-                                hx-post="/inventory/depleted/{{ record.id }}"
-                                hx-target="#part-card-{{ item.part.id }}"
-                                hx-swap="outerHTML"
-                                hx-confirm="Mark this location as depleted? Pickers will not be able to pick from here.">Depleted</button>
-                        {% else %}
-                        <button class="btn-secondary" disabled style="font-size:11px; padding:4px 10px; color:#9ca3af; border-color:#e5e7eb; cursor:not-allowed;"
-                                title="Location is empty - refill from overflow">Empty</button>
-                        {% endif %}
-                    {% else %}
+                    {% if not record.is_active %}
                     <button class="btn-secondary" style="font-size:11px; padding:4px 10px; color:#dc2626; border-color:#fca5a5;"
                             hx-post="/receiving/pulldown/{{ record.id }}"
                             hx-target="#part-card-{{ item.part.id }}"
@@ -184,26 +173,7 @@
             <!-- boton de accion: ancho completo -->
             {% if session['user_role'] in ['admin', 'supervisor', 'warehouse'] %}
             <div style="border-top:1px solid #e5e7eb; display:flex; gap:0;">
-                {% if record.is_active %}
-                    {% if record.quantity > 0 %}
-                    <button class="btn-secondary"
-                            style="flex:1; border:none; border-radius:0; padding:8px 12px;
-                                   font-size:13px; font-weight:600; color:#d97706; background:#fffbeb;"
-                            hx-post="/inventory/depleted/{{ record.id }}"
-                            hx-target="#part-card-{{ item.part.id }}"
-                            hx-swap="outerHTML"
-                            hx-confirm="Mark this location as depleted? Pickers will not be able to pick from here.">
-                        Mark Depleted
-                    </button>
-                    {% else %}
-                    <button class="btn-secondary" disabled
-                            style="flex:1; border:none; border-radius:0; padding:8px 12px;
-                                   font-size:13px; font-weight:600; color:#9ca3af; background:#e5e7eb; cursor:not-allowed;"
-                            title="Location is empty - refill from overflow">
-                        Empty (Refill from Overflow)
-                    </button>
-                    {% endif %}
-                {% else %}
+                {% if not record.is_active %}
                 <button class="btn-secondary"
                         style="flex:1; border:none; border-radius:0; padding:8px 12px;
                                font-size:13px; font-weight:700; color:white;
