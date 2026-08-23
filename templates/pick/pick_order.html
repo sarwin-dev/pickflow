@@ -41,7 +41,44 @@
     </div>
 </div>
 
-<!-- selector de carrito -->
+<!-- panel fijo con botones principales -->
+<div class="pick-fixed-panel" style="background:white; border:1px solid #e5e7eb; border-radius:12px;
+            padding:16px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div style="flex:1; min-width:250px;">
+        <div style="font-size:12px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+            Progress
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="flex:1;">
+                <div style="font-size:13px; color:#374151; margin-bottom:4px;">
+                    <span id="picked-count-fixed">0</span> / <span id="total-count-fixed">0</span> picked
+                </div>
+                <div style="width:100%; height:10px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+                    <div id="progress-bar-fixed" style="height:100%; background:#059669; width:0%; transition:width 0.3s;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button"
+                onclick="markAllMissing()"
+                style="padding:10px 18px; border-radius:8px; border:1px solid #ef4444;
+                       background:#fee2e2; color:#dc2626; font-weight:600; cursor:pointer;
+                       font-size:13px; white-space:nowrap;">
+            Mark Missing (All)
+        </button>
+        <button id="btn-complete-order"
+                onclick="completeOrder({{ order.id }})"
+                style="padding:10px 18px; border-radius:8px; border:1px solid #f59e0b;
+                       background:#fffbeb; color:#92400e; font-weight:600;
+                       font-size:13px; white-space:nowrap; cursor:not-allowed;"
+                disabled>
+            Complete Order
+        </button>
+    </div>
+</div>
+
+<!-- selector de carrito y filtros -->
 <div class="pick-controls" style="display:flex; gap:10px; margin-bottom:1rem; align-items:center;">
     <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Cart:</label>
     <select onchange="filterCart(this.value)"
@@ -50,15 +87,6 @@
         <option value="1">Cart A</option>
         <option value="2">Cart B</option>
     </select>
-    <div style="margin-left:auto;">
-        <button id="btn-complete-order"
-                onclick="completeOrder({{ order.id }})"
-                class="btn-secondary"
-                style="border-color:#d1d5db; color:#9ca3af; background:#f9fafb; font-weight:600; cursor:not-allowed;"
-                disabled>
-            Complete Order
-        </button>
-    </div>
 </div>
 
 <!-- filtro por aisle -->
@@ -100,15 +128,6 @@
                     Cart {{ 'A' if group.cart == 1 else 'B' }}
                 </span>
                 <span style="font-size:13px; color:#6b7280;">QTY: {{ group.slots|length }}</span>
-                {% if group.any_pick_item_id %}
-                <button type="button"
-                        onclick="depleteGroup(this, {{ group.any_pick_item_id }})"
-                        style="font-size:11px; padding:3px 10px; border-radius:6px;
-                               border:1px solid #fca5a5; background:#fff5f5; color:#dc2626;
-                               cursor:pointer; font-weight:600; white-space:nowrap;">
-                    Depleted
-                </button>
-                {% endif %}
             </div>
         </div>
 
@@ -214,14 +233,11 @@
         if (btn.dataset.state === 'missing') missing++;
     });
 
-    document.getElementById('total-count').textContent = total;
+    // inicializa el panel fijo con los conteos
+    document.getElementById('total-count-fixed').textContent = total;
     updateProgress();
 
-    // si la orden ya esta completa al cargar la pagina
-    if (total > 0 && picked === total) {
-        document.getElementById('pick-list').style.display = 'none';
-        document.getElementById('order-complete').style.display = 'block';
-    }
+    // nota: ya NO cierra automáticamente al cargar. El picker debe presionar "Complete Order" manualmente
 
     // aplica el estilo visual de cada estado al boton y su etiqueta
     // label puede ser null si el elemento no existe en el DOM, se verifica antes de tocarlo
@@ -284,13 +300,7 @@
                     missing = data.missing;
                     total = data.total;
                     updateProgress();
-
-                    if (picked === total) {
-                        setTimeout(() => {
-                            document.getElementById('pick-list').style.display = 'none';
-                            document.getElementById('order-complete').style.display = 'block';
-                        }, 500);
-                    }
+                    // nota: NO cierra automáticamente. El picker controla cuándo completar la orden
                 } else {
                     applyState(this, label, currentState);
                 }
@@ -301,65 +311,34 @@
         });
     });
 
-    async function depleteGroup(btn, pickItemId) {
-        if (!confirm('Mark this part as depleted? Unpicked slots will be marked as missing.')) return;
-        btn.disabled = true;
-        btn.textContent = '...';
-        try {
-            const response = await fetch(`/pick/toggle/${pickItemId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'deplete' })
-            });
-            const data = await response.json();
-            if (data.success) {
-                btn.textContent = 'Depleted ✓';
-                btn.style.background = '#fee2e2';
-                btn.style.borderColor = '#ef4444';
+    async function markAllMissing() {
+        if (!confirm('Mark all unpicked items as missing?')) return;
 
-                // marca visualmente como missing todas las casillas pendientes del grupo
-                const group = btn.closest('.pick-group');
-                group.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
-                    const lbl = document.getElementById('label-' + b.dataset.id);
-                    applyState(b, lbl, 'missing');
-                });
+        // marca visualmente TODAS las casillas pending como missing
+        document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
+            const lbl = document.getElementById('label-' + b.dataset.id);
+            applyState(b, lbl, 'missing');
+        });
 
-                // actualiza conteos y revisa si la orden cierra
-                picked = data.picked;
-                missing = data.missing;
-                total = data.total;
-                updateProgress();
+        // actualiza conteos y activa el botón Complete Order
+        missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
+        updateProgress();
 
-                // siempre activa el botón Complete Order después de un Depleted
-                // el picker puede haber agotado esa ubicación y necesita poder cerrar la orden
-                const completeBtn = document.getElementById('btn-complete-order');
-                if (completeBtn) {
-                    completeBtn.disabled = false;
-                    completeBtn.style.borderColor = '#f59e0b';
-                    completeBtn.style.color = '#92400e';
-                    completeBtn.style.background = '#fffbeb';
-                    completeBtn.style.cursor = 'pointer';
-                }
-
-                if (picked + missing === total) {
-                    setTimeout(() => {
-                        document.getElementById('pick-list').style.display = 'none';
-                        document.getElementById('order-complete').style.display = 'block';
-                    }, 600);
-                }
-            } else {
-                btn.disabled = false;
-                btn.textContent = 'Depleted';
-            }
-        } catch (e) {
-            btn.disabled = false;
-            btn.textContent = 'Depleted';
-            console.error('Error:', e);
+        // activa el botón Complete Order para que el picker pueda cerrar la orden manualmente
+        const completeBtn = document.getElementById('btn-complete-order');
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.style.borderColor = '#f59e0b';
+            completeBtn.style.color = '#92400e';
+            completeBtn.style.background = '#fffbeb';
+            completeBtn.style.cursor = 'pointer';
         }
+
+        // nota: NO cierra automáticamente. El picker decide cuándo completar la orden
     }
 
     async function completeOrder(orderId) {
-        if (!confirm('Complete this order? All unpicked parts will be marked as missing.')) return;
+        if (!confirm('Complete this order?')) return;
         try {
             const response = await fetch(`/pick/${orderId}/complete`, {
                 method: 'POST',
@@ -367,7 +346,7 @@
             });
             const data = await response.json();
             if (data.success) {
-                // marca visualmente todos los pendientes como missing
+                // marca visualmente todos los pendientes como missing antes de cerrar
                 document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
                     const lbl = document.getElementById('label-' + b.dataset.id);
                     applyState(b, lbl, 'missing');
@@ -383,26 +362,28 @@
     }
 
     function updateProgress() {
-        document.getElementById('picked-count').textContent = picked;
-        document.getElementById('total-count').textContent = total;
+        // actualiza el panel fijo con los conteos
+        document.getElementById('picked-count-fixed').textContent = picked;
+        document.getElementById('total-count-fixed').textContent = total;
         const pct = total > 0 ? Math.round(picked / total * 100) : 0;
-        document.getElementById('progress-bar').style.width = pct + '%';
-        document.getElementById('progress-bar').style.background = '#059669';
+        document.getElementById('progress-bar-fixed').style.width = pct + '%';
 
+        // actualiza estado del botón Complete Order
+        // solo está activo si se completaron todos los items (picked + missing === total)
         const completeBtn = document.getElementById('btn-complete-order');
         if (completeBtn) {
-            const inactive = (picked + missing) < total;
-            completeBtn.disabled = inactive;
-            if (inactive) {
-                completeBtn.style.borderColor = '#d1d5db';
-                completeBtn.style.color = '#9ca3af';
-                completeBtn.style.background = '#f9fafb';
-                completeBtn.style.cursor = 'not-allowed';
-            } else {
+            const canComplete = (picked + missing) === total;
+            completeBtn.disabled = !canComplete;
+            if (canComplete) {
                 completeBtn.style.borderColor = '#f59e0b';
                 completeBtn.style.color = '#92400e';
                 completeBtn.style.background = '#fffbeb';
                 completeBtn.style.cursor = 'pointer';
+            } else {
+                completeBtn.style.borderColor = '#d1d5db';
+                completeBtn.style.color = '#9ca3af';
+                completeBtn.style.background = '#f9fafb';
+                completeBtn.style.cursor = 'not-allowed';
             }
         }
     }
