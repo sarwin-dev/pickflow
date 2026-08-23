@@ -28,7 +28,8 @@ def build_part_item(part):
     else:
         status = 'ok'
     in_list = ShoppingListItem.query.filter_by(part_id=part.id).first() is not None
-    needs_pulldown = active_total == 0 and overflow_total > 0
+    # needs_pulldown es True si: está marcada on_hold (picker pidió) Y hay overflow disponible
+    needs_pulldown = part.is_on_hold and overflow_total > 0
     active_record = next((r for r in records if r.is_active and r.quantity > 0), None)
     return {
         'part': part, 'records': records,
