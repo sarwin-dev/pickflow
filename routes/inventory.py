@@ -82,17 +82,13 @@ def index():
 
     shopping_count = ShoppingListItem.query.count()
 
-    # partes en espera de pulldown (pickers las marcaron como missing)
-    on_hold_parts = Part.query.filter_by(is_on_hold=True).all()
-
     pending_loc_edit = session.get('pending_loc_edit')
     return render_template('inventory/index.html',
                            part_results=part_results,
                            search=search,
                            filter_mode=filter_mode,
                            shopping_count=shopping_count,
-                           pending_loc_edit=pending_loc_edit,
-                           on_hold_parts=on_hold_parts)
+                           pending_loc_edit=pending_loc_edit)
 
 @inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
 def update_location(record_id):
@@ -478,53 +474,3 @@ def analytics():
 
     return render_template('inventory/analytics.html', rows=rows, months=MONTHS,
                            critical_count=critical_count)
-
-
-# WAREHOUSE STAFF PULLDOWN WORKFLOW
-# Cuando un picker marca missing, la parte va on_hold
-# Erick (warehouse staff) ver á esto en el dashboard e irá a hacer pulldown
-# Una vez que completa el pulldown, marca la parte como disponible nuevamente
-
-@inventory_bp.route('/pulldown/<int:part_id>', methods=['POST'])
-def mark_pulldown_complete(part_id):
-    check = inventory_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
-
-    # solo warehouse staff (Erick) puede hacer pulldown
-    if session['user_role'] not in ['admin', 'warehouse', 'supervisor']:
-        return jsonify({'error': 'forbidden'}), 403
-
-    part = Part.query.get(part_id)
-    if not part:
-        return jsonify({'error': 'not found'}), 404
-
-    if not part.is_on_hold:
-        return jsonify({'error': 'part not on hold'}), 400
-
-    # Erick está aquí = ya hizo el pulldown (movió stock de overflow a active)
-    # desactiva el lock para que otros pickers la vuelvan a intentar
-    part.is_on_hold = False
-    db.session.commit()
-
-    return jsonify({'success': True, 'part_id': part_id})
-
-
-@inventory_bp.route('/on-hold-parts', methods=['GET'])
-def on_hold_parts():
-    """API que devuelve todas las partes on_hold (para el dashboard y notificaciones)"""
-    check = inventory_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
-
-    parts = Part.query.filter_by(is_on_hold=True).all()
-    parts_data = [{
-        'id': p.id,
-        'name': p.name,
-        'location': f"A{p.active_aisle:02d}.B{p.active_bay:02d}.S{p.active_shelf:02d}" if p.active_aisle else "NO_LOC"
-    } for p in parts]
-
-    return jsonify({
-        'count': len(parts),
-        'parts': parts_data
-    })

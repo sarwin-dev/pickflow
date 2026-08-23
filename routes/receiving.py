@@ -211,6 +211,9 @@ def pulldown(record_id):
         record.location   = part.active_location
         record.is_active  = True
         record.updated_at = datetime.utcnow()
+        # si la parte estaba en espera (on_hold), desactivar esa flag
+        if part.is_on_hold:
+            part.is_on_hold = False
         db.session.commit()
         if request.headers.get('HX-Request'):
             item = build_part_item(part)
