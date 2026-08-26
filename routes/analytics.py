@@ -2,16 +2,9 @@ from flask import Blueprint, render_template, session, redirect, url_for, jsonif
 from extensions import db
 from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig
 from sqlalchemy import func
+from routes.auth import supervisor_required
 
 analytics_bp = Blueprint('analytics', __name__, url_prefix='/analytics')
-
-
-def supervisor_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 
 @analytics_bp.route('/')
