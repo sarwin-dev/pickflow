@@ -3,15 +3,9 @@ from extensions import db
 from models import WorkOrder, OrderItem, PickItem
 from datetime import date as date_type
 from sqlalchemy import nullslast
+from routes.auth import supervisor_required
 
 supervision_bp = Blueprint('supervision', __name__, url_prefix='/supervision')
-
-def supervisor_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 @supervision_bp.route('/')
 def index():
