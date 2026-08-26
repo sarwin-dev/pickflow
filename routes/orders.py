@@ -5,15 +5,9 @@ from datetime import datetime, date
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from routes.auth import order_entry_required
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/orders')
-
-def order_entry_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'order_entry', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 @orders_bp.route('/')
 def index():
