@@ -5,6 +5,7 @@ from extensions import db
 from models import Part, Inventory, ShoppingListItem, WarehouseConfig, CabinetType, PartTemplate
 from datetime import datetime
 from sqlalchemy import cast, Integer, nullslast
+from routes.auth import inventory_required, supervisor_required
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 
@@ -38,20 +39,6 @@ def build_part_item(part):
         'needs_pulldown': needs_pulldown,
         'active_record_id': active_record.id if active_record else None,
     }
-
-def inventory_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor', 'warehouse']:
-        return redirect(url_for('dashboard'))
-    return None
-
-def supervisor_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 @inventory_bp.route('/')
 def index():
