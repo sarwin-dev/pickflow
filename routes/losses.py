@@ -4,15 +4,9 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import Loss, Part
 from datetime import datetime
+from routes.auth import losses_required
 
 losses_bp = Blueprint('losses', __name__, url_prefix='/losses')
-
-def losses_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor', 'warehouse']:
-        return redirect(url_for('dashboard'))
-    return None
 
 @losses_bp.route('/')
 def index():
