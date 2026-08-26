@@ -5,15 +5,9 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from werkzeug.security import generate_password_hash
 from extensions import db
 from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem
+from routes.auth import admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
-
-def admin_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] != 'admin':
-        return redirect(url_for('dashboard'))
-    return None
 
 @admin_bp.route('/')
 def index():
