@@ -6,15 +6,9 @@ from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
 from routes.inventory import build_part_item
 from sqlalchemy import cast, Integer, or_
+from routes.auth import warehouse_required
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
-
-def warehouse_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'warehouse', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 @receiving_bp.route('/')
 def index():
