@@ -2,15 +2,9 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate
 from datetime import datetime
+from routes.auth import picker_required
 
 pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
-
-def picker_required():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'warehouse', 'supervisor']:
-        return redirect(url_for('dashboard'))
-    return None
 
 # lista de ordenes disponibles para pick
 @pick_bp.route('/')
