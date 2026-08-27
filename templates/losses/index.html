@@ -30,19 +30,26 @@
             </div>
 
             <div class="form-group">
-                <label>Reason</label>
-                <select name="reason">
-                    <option value="">— Select reason —</option>
-                    <option value="Damaged during assembly">Damaged during assembly</option>
-                    <option value="Defective unit from manufacturer">Defective from manufacturer</option>
-                    <option value="Damaged during transport">Damaged during transport</option>
-                    <option value="Other">Other</option>
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="">— Select category —</option>
+                    <option value="damage">Damaged during process</option>
+                    <option value="defect">Defective from manufacturer</option>
+                    <option value="lost">Lost/missing</option>
+                    <option value="expired">Expired/unusable</option>
                 </select>
             </div>
 
             <div class="form-group">
+                <label>Additional reason <span style="font-weight:400; color:#999;">(optional)</span></label>
+                <textarea name="reason" rows="3" placeholder="Add any relevant details..."
+                    style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                           font-size:14px; resize:vertical; font-family:inherit;"></textarea>
+            </div>
+
+            <div class="form-group">
                 <label>Comments <span style="font-weight:400; color:#999;">(optional)</span></label>
-                <textarea name="comments" rows="3" placeholder="Add any relevant details about the damage..."
+                <textarea name="comments" rows="2" placeholder="Additional notes..."
                     style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
                            font-size:14px; resize:vertical; font-family:inherit;"></textarea>
             </div>
@@ -55,6 +62,87 @@
 
     <!-- historial de losses -->
     <div>
+        <!-- filtros -->
+        <div style="margin-bottom:1.5rem;">
+            <div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+                <a href="/losses?period=today{% if category %}&category={{ category }}{% endif %}"
+                   class="btn-filter {% if period == 'today' %}active{% endif %}"
+                   style="padding:8px 14px; border-radius:6px; font-size:13px; text-decoration:none;
+                           {% if period == 'today' %}background:#1e1b4b; color:white;{% else %}background:#f3f4f6; color:#333;{% endif %}">
+                    Today
+                </a>
+                <a href="/losses?period=week{% if category %}&category={{ category }}{% endif %}"
+                   class="btn-filter {% if period == 'week' %}active{% endif %}"
+                   style="padding:8px 14px; border-radius:6px; font-size:13px; text-decoration:none;
+                           {% if period == 'week' %}background:#1e1b4b; color:white;{% else %}background:#f3f4f6; color:#333;{% endif %}">
+                    This Week
+                </a>
+                <a href="/losses?period=month{% if category %}&category={{ category }}{% endif %}"
+                   class="btn-filter {% if period == 'month' %}active{% endif %}"
+                   style="padding:8px 14px; border-radius:6px; font-size:13px; text-decoration:none;
+                           {% if period == 'month' %}background:#1e1b4b; color:white;{% else %}background:#f3f4f6; color:#333;{% endif %}">
+                    This Month
+                </a>
+                <a href="/losses?period=all"
+                   class="btn-filter {% if period == 'all' %}active{% endif %}"
+                   style="padding:8px 14px; border-radius:6px; font-size:13px; text-decoration:none;
+                           {% if period == 'all' %}background:#1e1b4b; color:white;{% else %}background:#f3f4f6; color:#333;{% endif %}">
+                    All
+                </a>
+            </div>
+            <div>
+                <select id="category-filter" style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                                                     font-size:13px; background:white; cursor:pointer;">
+                    <option value="">All Categories</option>
+                    <option value="damage" {% if category == 'damage' %}selected{% endif %}>Damaged during process</option>
+                    <option value="defect" {% if category == 'defect' %}selected{% endif %}>Defective from manufacturer</option>
+                    <option value="lost" {% if category == 'lost' %}selected{% endif %}>Lost/missing</option>
+                    <option value="expired" {% if category == 'expired' %}selected{% endif %}>Expired/unusable</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- resumen cards -->
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:1.5rem;">
+            {% set categories = [
+                ('damage', 'Damaged', summary_by_category.damage),
+                ('defect', 'Defective', summary_by_category.defect),
+                ('lost', 'Lost', summary_by_category.lost),
+                ('expired', 'Expired', summary_by_category.expired)
+            ] %}
+            {% for cat_key, cat_label, cat_total in categories %}
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px;
+                        text-align:center;">
+                <div style="font-size:11px; color:#666; text-transform:uppercase; margin-bottom:6px;">
+                    {{ cat_label }}
+                </div>
+                <div style="font-size:24px; font-weight:700; color:#dc2626;">
+                    {{ cat_total }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- top 5 partes -->
+        {% if top_parts %}
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px;
+                    margin-bottom:1.5rem;">
+            <h4 style="margin:0 0 10px 0; font-size:13px; font-weight:600; text-transform:uppercase; color:#666;">
+                Top Losses by Part
+            </h4>
+            <ul style="list-style:none; padding:0; margin:0;">
+                {% for item in top_parts %}
+                <li style="padding:8px 0; border-bottom:1px solid #e5e7eb; font-size:13px; display:flex;
+                           justify-content:space-between; align-items:center;">
+                    <span>{{ item.name }}</span>
+                    <span style="font-weight:600; color:#dc2626;">{{ item.quantity }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- historial -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
             <h3 style="font-size:16px; margin:0;">Loss History (last 100)</h3>
             {% if session['user_role'] in ['admin', 'supervisor'] %}
@@ -71,7 +159,8 @@
                     <tr>
                         <th>Part</th>
                         <th style="text-align:center;">Qty</th>
-                        <th>Reason</th>
+                        <th>Category</th>
+                        <th>Details</th>
                         <th>Reported By</th>
                         <th>Date</th>
                         {% if session['user_role'] in ['admin', 'supervisor'] %}
@@ -87,7 +176,12 @@
                             -{{ loss.quantity }}
                         </td>
                         <td style="font-size:13px; color:#555;">
-                            {{ loss.reason or '—' }}
+                            {{ loss.category.capitalize() if loss.category else '—' }}
+                        </td>
+                        <td style="font-size:13px; color:#555;">
+                            {% if loss.reason %}
+                            {{ loss.reason }}
+                            {% endif %}
                             {% if loss.comments %}
                             <div style="font-size:12px; color:#999; margin-top:2px;">{{ loss.comments }}</div>
                             {% endif %}
@@ -129,6 +223,7 @@
     const searchInput = document.getElementById('part-search');
     const partIdInput = document.getElementById('part-id');
     const suggestions = document.getElementById('suggestions');
+    const categoryFilter = document.getElementById('category-filter');
 
     function formatInput(str) {
         let result = str.replace(/([a-zA-Z])(\d)/g, '$1 $2')
@@ -162,6 +257,12 @@
 
     document.addEventListener('click', function (e) {
         if (!searchInput.contains(e.target)) suggestions.style.display = 'none';
+    });
+
+    categoryFilter.addEventListener('change', function () {
+        const period = new URLSearchParams(window.location.search).get('period') || 'all';
+        const url = '/losses?period=' + period + (this.value ? '&category=' + this.value : '');
+        window.location.href = url;
     });
 </script>
 
