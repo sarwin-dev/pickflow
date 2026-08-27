@@ -187,6 +187,27 @@ def pdf():
     return send_file(buffer, mimetype='application/pdf',
                      as_attachment=True, download_name=filename)
 
+@losses_bp.route('/edit/<int:loss_id>', methods=['GET', 'POST'])
+def edit(loss_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if session['user_role'] not in ['admin', 'supervisor']:
+        return redirect(url_for('dashboard'))
+
+    loss = Loss.query.get(loss_id)
+    if not loss:
+        return redirect(url_for('losses.index'))
+
+    if request.method == 'POST':
+        loss.quantity = int(request.form.get('quantity', loss.quantity))
+        loss.category = request.form.get('category', '').strip() or None
+        loss.reason = request.form.get('reason', '').strip() or None
+        loss.comments = request.form.get('comments', '').strip() or None
+        db.session.commit()
+        return redirect(url_for('losses.index'))
+
+    return render_template('losses/edit.html', loss=loss)
+
 @losses_bp.route('/delete/<int:loss_id>')
 def delete(loss_id):
     if 'user_id' not in session:

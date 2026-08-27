@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Edit Loss - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Edit Loss Record</h1>
+    <p>Update loss details</p>
+</div>
+
+<div style="max-width:600px; margin:0 auto;">
+    <div class="form-card">
+        <form method="POST" action="/losses/edit/{{ loss.id }}">
+
+            <div class="form-group">
+                <label>Part</label>
+                <div style="padding:10px 12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px;
+                            font-size:14px; color:#333;">
+                    <strong>{{ loss.part.name if loss.part else '—' }}</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Quantity lost</label>
+                <input type="number" name="quantity" min="1" value="{{ loss.quantity }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="">— Select category —</option>
+                    <option value="damage" {% if loss.category == 'damage' %}selected{% endif %}>Damaged during process</option>
+                    <option value="defect" {% if loss.category == 'defect' %}selected{% endif %}>Defective from manufacturer</option>
+                    <option value="lost" {% if loss.category == 'lost' %}selected{% endif %}>Lost/missing</option>
+                    <option value="expired" {% if loss.category == 'expired' %}selected{% endif %}>Unusable/other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Additional reason <span style="font-weight:400; color:#999;">(optional)</span></label>
+                <textarea name="reason" rows="3" placeholder="Add any relevant details..."
+                    style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                           font-size:14px; resize:vertical; font-family:inherit;">{{ loss.reason or '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Comments <span style="font-weight:400; color:#999;">(optional)</span></label>
+                <textarea name="comments" rows="2" placeholder="Additional notes..."
+                    style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                           font-size:14px; resize:vertical; font-family:inherit;">{{ loss.comments or '' }}</textarea>
+            </div>
+
+            <div style="display:flex; gap:12px;">
+                <button type="submit" class="btn-primary" style="flex:1;">
+                    Save Changes
+                </button>
+                <a href="/losses" class="btn-secondary" style="flex:1; text-align:center; text-decoration:none; padding:10px 16px;
+                                                               background:#f3f4f6; color:#333; border-radius:6px; border:none;
+                                                               cursor:pointer; font-size:14px;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

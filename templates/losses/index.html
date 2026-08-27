@@ -36,7 +36,7 @@
                     <option value="damage">Damaged during process</option>
                     <option value="defect">Defective from manufacturer</option>
                     <option value="lost">Lost/missing</option>
-                    <option value="expired">Expired/unusable</option>
+                    <option value="expired">Unusable/other</option>
                 </select>
             </div>
 
@@ -97,7 +97,7 @@
                     <option value="damage" {% if category == 'damage' %}selected{% endif %}>Damaged during process</option>
                     <option value="defect" {% if category == 'defect' %}selected{% endif %}>Defective from manufacturer</option>
                     <option value="lost" {% if category == 'lost' %}selected{% endif %}>Lost/missing</option>
-                    <option value="expired" {% if category == 'expired' %}selected{% endif %}>Expired/unusable</option>
+                    <option value="expired" {% if category == 'expired' %}selected{% endif %}>Unusable/other</option>
                 </select>
             </div>
         </div>
@@ -193,9 +193,13 @@
                             {{ loss.reported_at.strftime('%m/%d/%Y %I:%M %p') }}
                         </td>
                         {% if session['user_role'] in ['admin', 'supervisor'] %}
-                        <td>
+                        <td style="display:flex; gap:6px;">
+                            <a href="/losses/edit/{{ loss.id }}" class="btn-secondary"
+                               style="font-size:11px; padding:4px 8px; background:#1e1b4b; color:white; border-radius:4px; text-decoration:none;">
+                                Edit
+                            </a>
                             <a href="/losses/delete/{{ loss.id }}" class="btn-delete"
-                               style="font-size:11px;"
+                               style="font-size:11px; padding:4px 8px;"
                                onclick="return confirm('Delete this loss record?')">
                                 Delete
                             </a>
