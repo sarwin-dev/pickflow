@@ -7,6 +7,37 @@
     <p>Monitor all orders and their pick progress</p>
 </div>
 
+<!-- panel de métricas -->
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:1.5rem;">
+    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px;
+                text-align:center;">
+        <div style="font-size:11px; color:#666; text-transform:uppercase; margin-bottom:6px;">
+            Active Orders
+        </div>
+        <div style="font-size:24px; font-weight:700; color:#1e1b4b;">
+            {{ total_active }}
+        </div>
+    </div>
+    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px;
+                text-align:center;">
+        <div style="font-size:11px; color:#666; text-transform:uppercase; margin-bottom:6px;">
+            Completed Today
+        </div>
+        <div style="font-size:24px; font-weight:700; color:#16a34a;">
+            {{ completed_today }}
+        </div>
+    </div>
+    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px;
+                text-align:center;">
+        <div style="font-size:11px; color:#666; text-transform:uppercase; margin-bottom:6px;">
+            Missing Items
+        </div>
+        <div style="font-size:24px; font-weight:700; color:{% if total_missing > 0 %}#dc2626{% else %}#1e1b4b{% endif %};">
+            {{ total_missing }}
+        </div>
+    </div>
+</div>
+
 <!-- filtros por status -->
 <div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
     <a href="/supervision/?status=all"
@@ -133,5 +164,7 @@
     {% endif %}
 </div>
 {% endif %}
+
+<script>setTimeout(() => location.reload(), 60000);</script>
 
 {% endblock %}
