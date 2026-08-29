@@ -38,17 +38,41 @@
     </div>
 </div>
 
-<!-- filtros por status -->
-<div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
-    <a href="/supervision/?status=all"
+<!-- filtros por status y fecha -->
+<div style="display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+    <a href="/supervision/?status=all{% if date_filter %}&date={{ date_filter }}{% endif %}"
        class="btn-filter{% if status_filter == 'all' %} active{% endif %}">All</a>
-    <a href="/supervision/?status=pending"
+    <a href="/supervision/?status=pending{% if date_filter %}&date={{ date_filter }}{% endif %}"
        class="btn-filter{% if status_filter == 'pending' %} active{% endif %}">Pending</a>
-    <a href="/supervision/?status=in_progress"
+    <a href="/supervision/?status=in_progress{% if date_filter %}&date={{ date_filter }}{% endif %}"
        class="btn-filter{% if status_filter == 'in_progress' %} active{% endif %}">In Progress</a>
-    <a href="/supervision/?status=completed"
+    <a href="/supervision/?status=completed{% if date_filter %}&date={{ date_filter }}{% endif %}"
        class="btn-filter{% if status_filter == 'completed' %} active{% endif %}">Completed</a>
+
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <input type="date" id="date-filter" value="{{ date_filter }}"
+               style="padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px;
+                      font-size:13px; background:white; cursor:pointer;">
+        {% if date_filter %}
+        <a href="/supervision/?status={{ status_filter }}" class="btn-delete"
+           style="font-size:12px; padding:6px 10px;">
+            ✕ Clear date
+        </a>
+        {% endif %}
+    </div>
 </div>
+
+<script>
+    document.getElementById('date-filter').addEventListener('change', function (e) {
+        const date = e.target.value;
+        const status = new URLSearchParams(window.location.search).get('status') || 'all';
+        if (date) {
+            window.location.href = '/supervision/?status=' + status + '&date=' + date;
+        } else {
+            window.location.href = '/supervision/?status=' + status;
+        }
+    });
+</script>
 
 {% if date_groups %}
 

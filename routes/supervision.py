@@ -14,6 +14,14 @@ def index():
         return check
 
     status_filter = request.args.get('status', 'all')
+    date_filter = request.args.get('date', '')
+
+    date_filter_obj = None
+    if date_filter:
+        try:
+            date_filter_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            pass
 
     total_active = WorkOrder.query.filter(
         or_(WorkOrder.status == 'pending', WorkOrder.status == 'in_progress')
@@ -37,6 +45,9 @@ def index():
     query = WorkOrder.query
     if status_filter in ['pending', 'in_progress', 'completed']:
         query = query.filter_by(status=status_filter)
+
+    if date_filter_obj:
+        query = query.filter(WorkOrder.scheduled_date == date_filter_obj)
 
     orders = query.order_by(
         nullslast(WorkOrder.scheduled_date.asc()),
@@ -72,6 +83,7 @@ def index():
     return render_template('supervision/index.html',
                            date_groups=date_groups,
                            status_filter=status_filter,
+                           date_filter=date_filter,
                            total_active=total_active,
                            completed_today=completed_today,
                            total_missing=total_missing)
