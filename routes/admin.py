@@ -813,10 +813,10 @@ def demo_clear_simulated_orders():
 @admin_bp.route('/setup-wizard', methods=['POST'])
 @admin_required
 def setup_wizard():
-    data = request.get_json()
+    data = request.get_json() or {}
+    name = (data.get('company_name') or '').strip() or None
 
     try:
-        name = data.get('company_name', '').strip() or None
         total_aisles = int(data.get('total_aisles', 6))
         total_bays = int(data.get('total_bays', 35))
         total_shelves = int(data.get('total_shelves', 6))
