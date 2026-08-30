@@ -5,15 +5,13 @@ from datetime import datetime, date
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from routes.auth import order_entry_required
+from routes.auth import order_entry_required, admin_required
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/orders')
 
 @orders_bp.route('/')
+@order_entry_required
 def index():
-    check = order_entry_required()
-    if check:
-        return check
     search = request.args.get('search', '').strip()
     status_filter = request.args.get('status', '')
     query = WorkOrder.query
@@ -33,10 +31,8 @@ def index():
                            search=search, status_filter=status_filter)
 
 @orders_bp.route('/create', methods=['GET', 'POST'])
+@order_entry_required
 def create():
-    check = order_entry_required()
-    if check:
-        return check
     cabinets = CabinetType.query.order_by(CabinetType.code).all()
     from models import WarehouseConfig, Color
     config = WarehouseConfig.query.first()
@@ -84,18 +80,14 @@ def create():
     return render_template('orders/create.html', cabinets=cabinets, error=error, config=config, colors=colors)
 
 @orders_bp.route('/<int:order_id>')
+@order_entry_required
 def view(order_id):
-    check = order_entry_required()
-    if check:
-        return check
     order = WorkOrder.query.get(order_id)
     return render_template('orders/view.html', order=order)
 
 @orders_bp.route('/<int:order_id>/edit', methods=['GET', 'POST'])
+@order_entry_required
 def edit(order_id):
-    check = order_entry_required()
-    if check:
-        return check
     order = WorkOrder.query.get(order_id)
     if not order or order.status not in ['pending']:
         from flask import flash
@@ -143,10 +135,8 @@ def edit(order_id):
                            config=config, colors=colors, error=error)
 
 @orders_bp.route('/<int:order_id>/cancel')
+@order_entry_required
 def cancel(order_id):
-    check = order_entry_required()
-    if check:
-        return check
     order = WorkOrder.query.get(order_id)
     if order and order.status == 'pending':
         order.status = 'cancelled'
@@ -154,11 +144,8 @@ def cancel(order_id):
     return redirect(url_for('orders.index'))
 
 @orders_bp.route('/<int:order_id>/delete')
+@admin_required
 def delete(order_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] != 'admin':
-        return redirect(url_for('dashboard'))
     order = WorkOrder.query.get(order_id)
     if order:
         for item in order.items:
