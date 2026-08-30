@@ -5,7 +5,7 @@ from extensions import db
 from models import Part, Inventory, ShoppingListItem, WarehouseConfig, CabinetType, PartTemplate
 from datetime import datetime
 from sqlalchemy import cast, Integer, nullslast
-from routes.auth import inventory_required, supervisor_required
+from routes.auth import warehouse_supervisor_required, supervisor_required
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 
@@ -42,7 +42,7 @@ def build_part_item(part):
 
 @inventory_bp.route('/')
 def index():
-    check = inventory_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
 
@@ -81,7 +81,7 @@ def index():
 
 @inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
 def update_location(record_id):
-    check = inventory_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
 
@@ -225,7 +225,7 @@ def clear_pending_edit():
 
 @inventory_bp.route('/delete-record/<int:record_id>', methods=['POST'])
 def delete_record(record_id):
-    check = inventory_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
     record = Inventory.query.get_or_404(record_id)
