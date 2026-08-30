@@ -324,7 +324,6 @@ def free_locations():
         ).count()
 
         free_in_aisle = positions_per_aisle - occupied_in_aisle
-        total_free += free_in_aisle
 
         # Calcula por bay dentro de este aisle
         bays_data = []
@@ -363,6 +362,7 @@ def free_locations():
                 ).count()
 
                 free_in_shelf = positions_per_shelf - occupied_in_shelf
+                total_free += free_in_shelf
 
                 shelves_data.append({
                     'shelf': shelf_num,
