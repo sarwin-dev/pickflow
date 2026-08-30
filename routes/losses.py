@@ -4,17 +4,14 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import Loss, Part
 from datetime import datetime, timedelta
-from routes.auth import warehouse_supervisor_required
+from routes.auth import warehouse_supervisor_required, supervisor_required
 from sqlalchemy import func
 
 losses_bp = Blueprint('losses', __name__, url_prefix='/losses')
 
 @losses_bp.route('/')
+@warehouse_supervisor_required
 def index():
-    check = warehouse_supervisor_required()
-    if check:
-        return check
-
     period = request.args.get('period', 'all')
     category = request.args.get('category', '')
 
@@ -57,11 +54,8 @@ def index():
                            category=category)
 
 @losses_bp.route('/report', methods=['POST'])
+@warehouse_supervisor_required
 def report():
-    check = warehouse_supervisor_required()
-    if check:
-        return check
-
     part_id = request.form.get('part_id')
     part_name_raw = request.form.get('part_name', '').strip()
 
@@ -96,12 +90,8 @@ def report():
     return redirect(url_for('losses.index'))
 
 @losses_bp.route('/pdf')
+@supervisor_required
 def pdf():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
-
     from reportlab.lib.pagesizes import letter
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
@@ -188,12 +178,8 @@ def pdf():
                      as_attachment=True, download_name=filename)
 
 @losses_bp.route('/edit/<int:loss_id>', methods=['GET', 'POST'])
+@supervisor_required
 def edit(loss_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
-
     loss = Loss.query.get(loss_id)
     if not loss:
         return redirect(url_for('losses.index'))
@@ -209,11 +195,8 @@ def edit(loss_id):
     return render_template('losses/edit.html', loss=loss)
 
 @losses_bp.route('/delete/<int:loss_id>')
+@supervisor_required
 def delete(loss_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
     loss = Loss.query.get(loss_id)
     if loss:
         db.session.delete(loss)
