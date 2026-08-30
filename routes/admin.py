@@ -390,6 +390,7 @@ def demo_clear_all():
                        colors, warehouse_config
         RESTART IDENTITY CASCADE
     """))
+    db.session.execute(db.text("DELETE FROM users WHERE id != :admin_id"), {"admin_id": session['user_id']})
     db.session.commit()
     return jsonify({'ok': True})
 
