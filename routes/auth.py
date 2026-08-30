@@ -31,7 +31,7 @@ def supervisor_required():
 
 
 def inventory_required():
-    """Admin, supervisor, and warehouse roles"""
+    """DEPRECATED: Use warehouse_supervisor_required() instead. Admin, supervisor, and warehouse roles"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
     if session['user_role'] not in ['admin', 'supervisor', 'warehouse']:
@@ -58,7 +58,7 @@ def picker_required():
 
 
 def warehouse_required():
-    """Admin, warehouse, and supervisor roles (for receiving operations)"""
+    """DEPRECATED: Use warehouse_supervisor_required() instead. Admin, warehouse, and supervisor roles (for receiving operations)"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
     if session['user_role'] not in ['admin', 'warehouse', 'supervisor']:
@@ -67,9 +67,26 @@ def warehouse_required():
 
 
 def losses_required():
-    """Admin, supervisor, and warehouse roles (for loss reporting)"""
+    """DEPRECATED: Use warehouse_supervisor_required() instead. Admin, supervisor, and warehouse roles (for loss reporting)"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
     if session['user_role'] not in ['admin', 'supervisor', 'warehouse']:
         return redirect(url_for('dashboard'))
     return None
+
+
+def warehouse_supervisor_required():
+    """Admin, warehouse, and supervisor roles (central permission check)"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if session['user_role'] not in ['admin', 'warehouse', 'supervisor']:
+        return redirect(url_for('dashboard'))
+    return None
+
+
+# Compatibility aliases — migration in progress to warehouse_supervisor_required()
+# These redirect old imports to the centralized permission check.
+# Remove after updating all route files to use warehouse_supervisor_required() directly.
+warehouse_required = warehouse_supervisor_required
+inventory_required = warehouse_supervisor_required
+losses_required = warehouse_supervisor_required
