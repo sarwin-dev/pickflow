@@ -6,13 +6,13 @@ from models import Inventory, WarehouseConfig, Part, ReceivingLog
 from datetime import datetime
 from routes.inventory import build_part_item
 from sqlalchemy import cast, Integer, or_
-from routes.auth import warehouse_required
+from routes.auth import warehouse_supervisor_required
 
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
 
 @receiving_bp.route('/')
 def index():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
     config = WarehouseConfig.query.first()
@@ -30,7 +30,7 @@ def index():
 
 @receiving_bp.route('/receive', methods=['POST'])
 def receive():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
 
@@ -151,7 +151,7 @@ def receive():
 
 @receiving_bp.route('/pulldown/<int:record_id>', methods=['POST'])
 def pulldown(record_id):
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
     record = Inventory.query.get(record_id)
@@ -215,7 +215,7 @@ def pulldown(record_id):
 
 @receiving_bp.route('/demo-reset-min', methods=['POST'])
 def demo_reset_min():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
     updated = Inventory.query.filter(Inventory.min_quantity != 100).update({'min_quantity': 100})
@@ -225,7 +225,7 @@ def demo_reset_min():
 
 @receiving_bp.route('/demo-clear', methods=['POST'])
 def demo_clear():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
     deleted = Inventory.query.filter_by(is_active=False).delete()
@@ -235,7 +235,7 @@ def demo_clear():
 
 @receiving_bp.route('/demo-fill', methods=['POST'])
 def demo_fill():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
 
@@ -296,7 +296,7 @@ def demo_fill():
 
 @receiving_bp.route('/free-locations')
 def free_locations():
-    check = warehouse_required()
+    check = warehouse_supervisor_required()
     if check:
         return jsonify({'error': 'unauthorized'}), 403
 
