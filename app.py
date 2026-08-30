@@ -2,9 +2,14 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
 from extensions import db
+from dotenv import load_dotenv
+
+# Carga variables de entorno desde .env.local (desarrollo) o .env (producción)
+load_dotenv('.env.local')
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cabinets_secret_key_2024')
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
 database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:agosto28@localhost/cabinets_db')
 # Railway a veces entrega postgres:// en lugar de postgresql://
