@@ -364,15 +364,15 @@ def generate_pdf(order_id):
                             rightMargin=0.5*inch, leftMargin=0.5*inch,
                             topMargin=0.5*inch, bottomMargin=0.5*inch)
 
-    navy = colors.HexColor('#1e1b4b')
-    light = colors.HexColor('#f9fafb')
-    border = colors.HexColor('#e5e7eb')
-    indigo = colors.HexColor('#eef2ff')
+    header_bg = colors.HexColor('#d1d5db')
+    slot_bg = colors.HexColor('#f9fafb')
+    border = colors.HexColor('#9ca3af')
+    text_black = colors.HexColor('#000000')
     now_str = dt.now().strftime('%m/%d/%Y %I:%M %p')
 
-    title_s  = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=navy, spaceAfter=2)
-    meta_s   = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=colors.HexColor('#6b7280'), spaceAfter=8)
-    cart_s   = ParagraphStyle('c', fontSize=12, fontName='Helvetica-Bold', textColor=navy, spaceAfter=6)
+    title_s  = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=text_black, spaceAfter=2)
+    meta_s   = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=text_black, spaceAfter=8)
+    cart_s   = ParagraphStyle('c', fontSize=12, fontName='Helvetica-Bold', textColor=text_black, spaceAfter=6)
 
     def build_section(cart_label, groups):
         elems = [
@@ -385,12 +385,12 @@ def generate_pdf(order_id):
             data = [[g['location'], f"QTY: {len(g['slots'])}", g['part_name']], [slots_str, '', '']]
             t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
             t.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), navy),
-                ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+                ('BACKGROUND', (0,0), (-1,0), header_bg),
+                ('TEXTCOLOR',  (0,0), (-1,0), text_black),
                 ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
                 ('FONTSIZE',   (0,0), (-1,0), 9),
                 ('PADDING',    (0,0), (-1,0), 5),
-                ('BACKGROUND', (0,1), (-1,1), light),
+                ('BACKGROUND', (0,1), (-1,1), slot_bg),
                 ('FONTNAME',   (0,1), (-1,1), 'Helvetica'),
                 ('FONTSIZE',   (0,1), (-1,1), 9),
                 ('PADDING',    (0,1), (-1,1), 4),
