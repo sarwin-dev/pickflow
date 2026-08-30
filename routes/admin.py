@@ -10,10 +10,8 @@ from routes.auth import admin_required
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/')
+@admin_required
 def index():
-    check = admin_required()
-    if check:
-        return check
     return render_template('admin/index.html')
 
 # ============================================
@@ -21,18 +19,14 @@ def index():
 # ============================================
 
 @admin_bp.route('/users')
+@admin_required
 def users():
-    check = admin_required()
-    if check:
-        return check
     all_users = User.query.all()
     return render_template('admin/users.html', users=all_users)
 
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
+@admin_required
 def create_user():
-    check = admin_required()
-    if check:
-        return check
     error = None
     if request.method == 'POST':
         name = ' '.join(request.form['name'].strip().split()).title()
@@ -55,10 +49,8 @@ def create_user():
     return render_template('admin/create_user.html', error=error)
 
 @admin_bp.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+@admin_required
 def edit_user(user_id):
-    check = admin_required()
-    if check:
-        return check
     user = User.query.get(user_id)
     if session['user_role'] == 'supervisor' and user.role == 'admin':
         return redirect(url_for('admin.users'))
@@ -75,10 +67,8 @@ def edit_user(user_id):
     return render_template('admin/edit_user.html', user=user, error=error)
 
 @admin_bp.route('/users/delete/<int:user_id>')
+@admin_required
 def delete_user(user_id):
-    check = admin_required()
-    if check:
-        return check
     user = User.query.get(user_id)
     if user:
         db.session.delete(user)
@@ -90,10 +80,8 @@ def delete_user(user_id):
 # ============================================
 
 @admin_bp.route('/cabinets')
+@admin_required
 def cabinets():
-    check = admin_required()
-    if check:
-        return check
     from sqlalchemy import case
     all_cabinets = CabinetType.query.order_by(
         CabinetType.color,
@@ -105,10 +93,8 @@ def cabinets():
     return render_template('admin/cabinets.html', cabinets=all_cabinets, color_map=color_map)
 
 @admin_bp.route('/cabinets/create', methods=['GET', 'POST'])
+@admin_required
 def create_cabinet():
-    check = admin_required()
-    if check:
-        return check
     error = None
     if request.method == 'POST':
         cabinet_code = request.form['code'].strip()
@@ -136,10 +122,8 @@ def create_cabinet():
     return render_template('admin/create_cabinet.html', error=error, colors=colors)
 
 @admin_bp.route('/cabinets/edit/<int:cabinet_id>', methods=['GET', 'POST'])
+@admin_required
 def edit_cabinet(cabinet_id):
-    check = admin_required()
-    if check:
-        return check
     cabinet = CabinetType.query.get(cabinet_id)
     if request.method == 'POST':
         cabinet.code = request.form['code'].strip()
@@ -154,10 +138,8 @@ def edit_cabinet(cabinet_id):
     return render_template('admin/edit_cabinet.html', cabinet=cabinet, colors=colors)
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts', methods=['GET', 'POST'])
+@admin_required
 def cabinet_parts(cabinet_id):
-    check = admin_required()
-    if check:
-        return check
     cabinet = CabinetType.query.get(cabinet_id)
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
@@ -199,10 +181,8 @@ def cabinet_parts(cabinet_id):
                            config=config)
 
 @admin_bp.route('/cabinets/delete/<int:cabinet_id>')
+@admin_required
 def delete_cabinet(cabinet_id):
-    check = admin_required()
-    if check:
-        return check
     cabinet = CabinetType.query.get(cabinet_id)
     if cabinet:
         db.session.delete(cabinet)
@@ -210,10 +190,8 @@ def delete_cabinet(cabinet_id):
     return redirect(url_for('admin.cabinets'))
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/annual-qty', methods=['POST'])
+@admin_required
 def set_annual_qty(cabinet_id):
-    check = admin_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
     cabinet = CabinetType.query.get_or_404(cabinet_id)
     try:
         cabinet.annual_qty = max(0, int(request.json.get('annual_qty', 0)))
@@ -224,10 +202,8 @@ def set_annual_qty(cabinet_id):
 
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/edit/<int:part_id>', methods=['POST'])
+@admin_required
 def edit_part(cabinet_id, part_id):
-    check = admin_required()
-    if check:
-        return check
     template = PartTemplate.query.get(part_id)
     if template:
         template.quantity = int(request.form['quantity'])
@@ -242,10 +218,8 @@ def edit_part(cabinet_id, part_id):
     return redirect(url_for('admin.cabinet_parts', cabinet_id=cabinet_id))
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/delete/<int:part_id>')
+@admin_required
 def delete_part(cabinet_id, part_id):
-    check = admin_required()
-    if check:
-        return check
     template = PartTemplate.query.get(part_id)
     if template:
         db.session.delete(template)
@@ -257,10 +231,8 @@ def delete_part(cabinet_id, part_id):
 # ============================================
 
 @admin_bp.route('/warehouse', methods=['GET', 'POST'])
+@admin_required
 def warehouse_config():
-    check = admin_required()
-    if check:
-        return check
     config = WarehouseConfig.query.first()
     if request.method == 'POST':
         config.name = request.form['name']
@@ -289,19 +261,15 @@ def warehouse_config():
 # ============================================
 
 @admin_bp.route('/parts')
+@admin_required
 def parts():
-    check = admin_required()
-    if check:
-        return check
     all_parts = Part.query.order_by(Part.name).all()
     config = WarehouseConfig.query.first()
     return render_template('admin/parts.html', parts=all_parts, config=config)
 
 @admin_bp.route('/parts/create', methods=['GET', 'POST'])
+@admin_required
 def create_part():
-    check = admin_required()
-    if check:
-        return check
     error = None
     if request.method == 'POST':
         raw = request.form['name'].strip()
@@ -337,10 +305,8 @@ def create_part():
     return render_template('admin/create_part.html', error=error, config=config, colors=colors)
 
 @admin_bp.route('/parts/edit/<int:part_id>', methods=['POST'])
+@admin_required
 def edit_part_master(part_id):
-    check = admin_required()
-    if check:
-        return check
     part = Part.query.get(part_id)
     if part:
         aisle = request.form.get('active_aisle') or None
@@ -367,10 +333,8 @@ def edit_part_master(part_id):
     return redirect(url_for('admin.parts'))
 
 @admin_bp.route('/parts/delete/<int:part_id>')
+@admin_required
 def delete_part_master(part_id):
-    check = admin_required()
-    if check:
-        return check
     part = Part.query.get(part_id)
     if part:
         db.session.delete(part)
@@ -382,18 +346,14 @@ def delete_part_master(part_id):
 # ============================================
 
 @admin_bp.route('/colors')
+@admin_required
 def colors():
-    check = admin_required()
-    if check:
-        return check
     all_colors = Color.query.order_by(Color.name).all()
     return render_template('admin/colors.html', colors=all_colors)
 
 @admin_bp.route('/colors/create', methods=['POST'])
+@admin_required
 def create_color():
-    check = admin_required()
-    if check:
-        return check
     name = ' '.join(request.form['name'].strip().split()).title()
     hex_code = request.form.get('hex_code') or None
     existing = Color.query.filter(Color.name.ilike(name)).first()
@@ -404,10 +364,8 @@ def create_color():
     return redirect(url_for('admin.colors'))
 
 @admin_bp.route('/colors/delete/<int:color_id>')
+@admin_required
 def delete_color(color_id):
-    check = admin_required()
-    if check:
-        return check
     color = Color.query.get(color_id)
     if color:
         db.session.delete(color)
@@ -415,20 +373,16 @@ def delete_color(color_id):
     return redirect(url_for('admin.colors'))
 
 @admin_bp.route('/demo')
+@admin_required
 def demo():
-    check = admin_required()
-    if check:
-        return check
     seed_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo_seed.json')
     has_seed = os.path.exists(seed_path)
     return render_template('admin/demo.html', has_seed=has_seed)
 
 
 @admin_bp.route('/demo/clear-all', methods=['POST'])
+@admin_required
 def demo_clear_all():
-    check = admin_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
     db.session.execute(db.text("""
         TRUNCATE TABLE pick_items, order_items, work_orders,
                        shopping_list, losses, inventory,
@@ -441,11 +395,8 @@ def demo_clear_all():
 
 
 @admin_bp.route('/demo/reset', methods=['POST'])
+@admin_required
 def demo_reset():
-    check = admin_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     seed_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo_seed.json')
     if not os.path.exists(seed_path):
         return jsonify({'error': 'demo_seed.json not found. Run export_demo_seed.py first.'}), 400
@@ -588,11 +539,8 @@ def demo_reset():
 
 
 @admin_bp.route('/demo/generate-order', methods=['POST'])
+@admin_required
 def demo_generate_order():
-    check = admin_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     import random
 
     # Word pools for generating subdivision-style job names (Southern US style)
