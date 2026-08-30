@@ -752,6 +752,18 @@ def demo_simulate_orders():
     orders_created = 0
 
     try:
+        # Limpia órdenes simuladas previas
+        simulated_orders = WorkOrder.query.filter_by(is_simulated=True).all()
+        for order in simulated_orders:
+            # Borra PickItems primero
+            for item in order.items:
+                PickItem.query.filter_by(order_item_id=item.id).delete()
+            # Borra OrderItems
+            OrderItem.query.filter_by(work_order_id=order.id).delete()
+        # Borra WorkOrders
+        WorkOrder.query.filter_by(is_simulated=True).delete()
+        db.session.flush()
+
         for order_date in order_dates:
             # Genera nombre único para orden simulada
             order_number = f"SIM-{order_date.strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
