@@ -8,11 +8,8 @@ analytics_bp = Blueprint('analytics', __name__, url_prefix='/analytics')
 
 
 @analytics_bp.route('/')
+@supervisor_required
 def index():
-    check = supervisor_required()
-    if check:
-        return check
-
     # Resumen rápido para dashboard
     total_parts = Part.query.count()
     total_cabinets = CabinetType.query.count()
@@ -48,11 +45,8 @@ def index():
 
 
 @analytics_bp.route('/parts')
+@supervisor_required
 def parts_analytics():
-    check = supervisor_required()
-    if check:
-        return check
-
     # Selector de período: 1, 3, 4, 6, 12 meses (por defecto 4)
     months = request.args.get('months', 4, type=int)
     if months not in [1, 3, 4, 6, 12]:
@@ -112,11 +106,8 @@ def parts_analytics():
 
 
 @analytics_bp.route('/parts/<int:part_id>')
+@supervisor_required
 def part_detail(part_id):
-    check = supervisor_required()
-    if check:
-        return check
-
     part = Part.query.get_or_404(part_id)
     months = 4
 
@@ -150,11 +141,8 @@ def part_detail(part_id):
 
 
 @analytics_bp.route('/production-plan')
+@supervisor_required
 def production_plan():
-    check = supervisor_required()
-    if check:
-        return check
-
     cabinets = CabinetType.query.order_by(CabinetType.name).all()
     months = 4
 
@@ -172,11 +160,8 @@ def production_plan():
 
 
 @analytics_bp.route('/production-plan/update', methods=['POST'])
+@supervisor_required
 def update_annual_qty():
-    check = supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400
@@ -197,12 +182,9 @@ def update_annual_qty():
 
 
 @analytics_bp.route('/production-plan/simulate', methods=['POST'])
+@supervisor_required
 def simulate_production_plan():
     """Autocompletar annual_qty basado en tamaño del gabinete"""
-    check = supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     cabinets = CabinetType.query.all()
     for cabinet in cabinets:
         w = cabinet.width or 0
