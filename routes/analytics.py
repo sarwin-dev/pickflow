@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db
-from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig
+from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig, WorkOrder, OrderItem
 from sqlalchemy import func
 from routes.auth import supervisor_required
 
@@ -205,3 +205,56 @@ def simulate_production_plan():
 
     db.session.commit()
     return jsonify({'success': True, 'count': len(cabinets)})
+
+
+@analytics_bp.route('/production-plan/calculate-from-history', methods=['POST'])
+@supervisor_required
+def calculate_from_history():
+    from datetime import datetime, timedelta
+
+    now = datetime.utcnow()
+    twelve_months_ago = now - timedelta(days=365)
+
+    # Busca órdenes completadas (no simuladas) de últimos 12 meses
+    completed_orders = WorkOrder.query.filter(
+        WorkOrder.status == 'completed',
+        WorkOrder.is_simulated == False,
+        WorkOrder.created_at >= twelve_months_ago
+    ).all()
+
+    if not completed_orders:
+        return jsonify({'success': True, 'orders_processed': 0, 'cabinets_updated': 0, 'message': 'No completed orders found in history'})
+
+    # Calcula la antigüedad del historial en meses
+    if completed_orders:
+        oldest_order = min(o.created_at for o in completed_orders)
+        history_days = (now - oldest_order).days
+        history_months = max(history_days / 30.0, 1)  # mínimo 1 mes
+    else:
+        history_months = 1
+
+    # Cuenta OrderItem por cabinet_type_id
+    cabinet_counts = {}
+    for order in completed_orders:
+        for item in order.items:
+            cabinet_id = item.cabinet_type_id
+            cabinet_counts[cabinet_id] = cabinet_counts.get(cabinet_id, 0) + 1
+
+    # Anualiza y actualiza CabinetType
+    updated_count = 0
+    for cabinet_id, count in cabinet_counts.items():
+        cabinet = CabinetType.query.get(cabinet_id)
+        if cabinet:
+            annualized_qty = int((count / history_months) * 12)
+            cabinet.annual_qty = annualized_qty
+            updated_count += 1
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'orders_processed': len(completed_orders),
+        'cabinets_updated': updated_count,
+        'history_months': round(history_months, 1),
+        'message': f'Calculated annual quantities from {len(completed_orders)} orders over {round(history_months, 1)} months'
+    })
