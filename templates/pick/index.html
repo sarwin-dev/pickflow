@@ -100,10 +100,6 @@
                        style="font-size:12px; padding:4px 10px; background:#4CAF50; color:white; border-radius:3px;">
                         PDF
                     </a>
-                    {% if session['user_role'] in ['admin', 'supervisor'] %}
-                    <a href="/pick/reset/{{ order.id }}" class="btn-delete" style="font-size:12px;"
-                       onclick="return confirm('Reset this order to pending? All pick progress will be lost.')">Reset</a>
-                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -167,11 +163,6 @@
                style="padding:12px 16px; background:#4CAF50; color:white; border-radius:6px; font-size:14px;">
                 PDF
             </a>
-            {% if session['user_role'] in ['admin', 'supervisor'] %}
-            <a href="/pick/reset/{{ order.id }}" class="btn-delete"
-               style="padding:12px 14px; font-size:14px;"
-               onclick="return confirm('Reset this order to pending?')">Reset</a>
-            {% endif %}
         </div>
     </div>
     {% endfor %}

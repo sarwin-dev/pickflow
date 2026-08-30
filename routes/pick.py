@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate
 from datetime import datetime
-from routes.auth import picker_required
+from routes.auth import picker_required, supervisor_required
 
 pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
 
@@ -294,11 +294,9 @@ def complete_order(order_id):
 # resetea una orden a pending - solo supervisor y admin
 @pick_bp.route('/reset/<int:order_id>')
 def reset_order(order_id):
-    check = picker_required()
+    check = supervisor_required()
     if check:
         return check
-    if session['user_role'] not in ['admin', 'supervisor']:
-        return redirect(url_for('dashboard'))
     order = WorkOrder.query.get(order_id)
     if order:
         # resetea todos los pick items
@@ -310,7 +308,7 @@ def reset_order(order_id):
                 pick.picked_at = None
         order.status = 'pending'
         db.session.commit()
-    return redirect(url_for('pick.index'))
+    return redirect(url_for('supervision.index'))
 
 # genera el pdf de la pick list
 @pick_bp.route('/<int:order_id>/pdf')
