@@ -480,8 +480,10 @@ function showBaysShelvesGrid(selectedAisle) {
             const cell = document.createElement('div');
             cell.style.cssText = 'aspect-ratio:1; border:2px solid #d1d5db; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px;';
 
-            const occupied = bay.shelves.find(s => String(s.shelf) === String(shelf.shelf))?.occupied || 0;
-            const isFree = occupied === 0;
+            const shelfData = bay.shelves.find(s => String(s.shelf) === String(shelf.shelf));
+            const occupied = shelfData?.occupied || 0;
+            const total = shelfData?.total || 1;
+            const isFree = occupied < total;
 
             if (isFree) {
                 cell.style.background = 'white';
