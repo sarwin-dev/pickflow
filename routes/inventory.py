@@ -41,11 +41,8 @@ def build_part_item(part):
     }
 
 @inventory_bp.route('/')
+@warehouse_supervisor_required
 def index():
-    check = warehouse_supervisor_required()
-    if check:
-        return check
-
     search = request.args.get('search', '').strip()
     filter_mode = request.args.get('filter', '')
     part_results = []
@@ -80,11 +77,8 @@ def index():
                            pending_loc_edit=pending_loc_edit)
 
 @inventory_bp.route('/update-location/<int:record_id>', methods=['POST'])
+@warehouse_supervisor_required
 def update_location(record_id):
-    check = warehouse_supervisor_required()
-    if check:
-        return check
-
     record = Inventory.query.get_or_404(record_id)
     config = WarehouseConfig.query.first()
 
@@ -158,11 +152,8 @@ def update_location(record_id):
 
 
 @inventory_bp.route('/swap', methods=['POST'])
+@supervisor_required
 def swap_locations():
-    check = supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
-
     data = request.get_json()
     record_a = Inventory.query.get(data.get('record_a_id'))
     record_b = Inventory.query.get(data.get('record_b_id'))
@@ -224,10 +215,8 @@ def clear_pending_edit():
 
 
 @inventory_bp.route('/delete-record/<int:record_id>', methods=['POST'])
+@warehouse_supervisor_required
 def delete_record(record_id):
-    check = warehouse_supervisor_required()
-    if check:
-        return check
     record = Inventory.query.get_or_404(record_id)
     back = request.form.get('back', url_for('inventory.index'))
     # si era la caja activa, limpia la ubicacion maestra
@@ -242,10 +231,8 @@ def delete_record(record_id):
 
 
 @inventory_bp.route('/set-min/<int:part_id>', methods=['POST'])
+@supervisor_required
 def set_min(part_id):
-    check = supervisor_required()
-    if check:
-        return check
     min_qty = int(request.form.get('min_qty', 0))
     records = Inventory.query.filter_by(part_id=part_id).all()
     for record in records:
@@ -260,10 +247,8 @@ def set_min(part_id):
 # ============================================
 
 @inventory_bp.route('/shopping/add/<int:part_id>', methods=['POST'])
+@supervisor_required
 def shopping_add(part_id):
-    check = supervisor_required()
-    if check:
-        return check
     existing = ShoppingListItem.query.filter_by(part_id=part_id).first()
     if not existing:
         quantity = int(request.form.get('quantity_needed', 1))
@@ -281,18 +266,14 @@ def shopping_add(part_id):
     return redirect(request.referrer or url_for('inventory.index', filter='low'))
 
 @inventory_bp.route('/shopping/')
+@supervisor_required
 def shopping_list():
-    check = supervisor_required()
-    if check:
-        return check
     items = ShoppingListItem.query.order_by(ShoppingListItem.added_at.desc()).all()
     return render_template('inventory/shopping_list.html', items=items)
 
 @inventory_bp.route('/shopping/update/<int:item_id>', methods=['POST'])
+@supervisor_required
 def shopping_update(item_id):
-    check = supervisor_required()
-    if check:
-        return check
     item = ShoppingListItem.query.get(item_id)
     if item:
         item.quantity_needed = int(request.form.get('quantity_needed', 1))
@@ -301,10 +282,8 @@ def shopping_update(item_id):
     return redirect(url_for('inventory.shopping_list'))
 
 @inventory_bp.route('/shopping/remove/<int:item_id>')
+@supervisor_required
 def shopping_remove(item_id):
-    check = supervisor_required()
-    if check:
-        return check
     item = ShoppingListItem.query.get(item_id)
     if item:
         db.session.delete(item)
@@ -312,20 +291,15 @@ def shopping_remove(item_id):
     return redirect(url_for('inventory.shopping_list'))
 
 @inventory_bp.route('/shopping/clear')
+@supervisor_required
 def shopping_clear():
-    check = supervisor_required()
-    if check:
-        return check
     ShoppingListItem.query.delete()
     db.session.commit()
     return redirect(url_for('inventory.shopping_list'))
 
 @inventory_bp.route('/shopping/pdf')
+@supervisor_required
 def shopping_pdf():
-    check = supervisor_required()
-    if check:
-        return check
-
     import io
     from reportlab.lib.pagesizes import letter
     from reportlab.lib import colors
