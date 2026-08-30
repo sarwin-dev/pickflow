@@ -8,11 +8,8 @@ from routes.auth import supervisor_required
 supervision_bp = Blueprint('supervision', __name__, url_prefix='/supervision')
 
 @supervision_bp.route('/')
+@supervisor_required
 def index():
-    check = supervisor_required()
-    if check:
-        return check
-
     status_filter = request.args.get('status', 'all')
     date_filter = request.args.get('date', '')
 
