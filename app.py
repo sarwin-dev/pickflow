@@ -114,10 +114,14 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    from models import WorkOrder, Inventory, Part
+    from models import WorkOrder, Inventory, Part, WarehouseConfig
     from datetime import date
     role = session['user_role']
     stats = {}
+
+    # Verificar si el wizard debe mostrarse (solo admin y warehouse config vacío)
+    warehouse_config = WarehouseConfig.query.first()
+    show_wizard = role == 'admin' and (not warehouse_config or not warehouse_config.total_aisles)
 
     # Partes que los pickers han marcado como missing (esperando pulldown de Erick)
     on_hold_count = Part.query.filter_by(is_on_hold=True).count()
@@ -163,7 +167,7 @@ def dashboard():
         ).count()
         stats['pending'] = WorkOrder.query.filter_by(status='pending').count()
 
-    return render_template('dashboard.html', stats=stats)
+    return render_template('dashboard.html', stats=stats, show_wizard=show_wizard)
 
 @app.route('/logout')
 def logout():

@@ -165,4 +165,131 @@
 
 </div>
 
+<!-- Getting Started Wizard Modal -->
+{% if show_wizard %}
+<div id="wizard-overlay" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9998; display:flex; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.3); width:90%; max-width:520px; z-index:9999; position:relative;">
+
+        <!-- PASO 1 -->
+        <div id="wizard-step-1" style="padding:40px;">
+            <h2 style="margin:0 0 8px 0; font-size:24px; font-weight:700; color:#1e1b4b;">Welcome to Pickflow 👋</h2>
+            <p style="margin:0 0 24px 0; font-size:14px; color:#6b7280;">Let's set up your warehouse before you get started.</p>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Company Name (optional)</label>
+                <input type="text" id="wizard-company" placeholder="e.g. Oak Valley Cabinets"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Total Aisles *</label>
+                <input type="number" id="wizard-aisles" value="6" min="1"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Total Bays *</label>
+                <input type="number" id="wizard-bays" value="35" min="1"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Total Shelves *</label>
+                <input type="number" id="wizard-shelves" value="6" min="1"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Active Shelves for Picking *</label>
+                <input type="number" id="wizard-active-shelves" value="2" min="1"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                <div style="font-size:12px; color:#6b7280; margin-top:4px;">Must be less than total shelves</div>
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#1e1b4b; margin-bottom:6px;">Locations per Shelf *</label>
+                <input type="number" id="wizard-locations" value="4" min="0"
+                       style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                <div style="font-size:12px; color:#6b7280; margin-top:4px;">Use 0 if not applicable</div>
+            </div>
+
+            <button onclick="wizardNext()" style="width:100%; padding:10px; background:#1e1b4b; color:white; border:none; border-radius:6px; font-weight:600; font-size:14px; cursor:pointer;">
+                Next →
+            </button>
+        </div>
+
+        <!-- PASO 2 -->
+        <div id="wizard-step-2" style="padding:40px; display:none;">
+            <div style="position:absolute; top:16px; right:16px;">
+                <button onclick="location.reload()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280;">✕</button>
+            </div>
+
+            <h2 style="margin:0 0 8px 0; font-size:24px; font-weight:700; color:#1e1b4b;">You're almost ready! 🎉</h2>
+            <p style="margin:0 0 24px 0; font-size:14px; color:#6b7280;">Complete these steps to start using Pickflow:</p>
+
+            <ol style="margin:0 0 28px 0; padding-left:20px;">
+                <li style="margin-bottom:12px; font-size:13px; color:#374151;">⚙ <strong>Admin → Colors</strong> — Add your cabinet colors</li>
+                <li style="margin-bottom:12px; font-size:13px; color:#374151;">⚙ <strong>Admin → Parts</strong> — Register all your parts</li>
+                <li style="margin-bottom:12px; font-size:13px; color:#374151;">⚙ <strong>Admin → Cabinet Types</strong> — Define your cabinet models and assign parts</li>
+                <li style="margin-bottom:12px; font-size:13px; color:#374151;">⚙ <strong>Admin → Users</strong> — Create your team accounts</li>
+                <li style="font-size:13px; color:#374151;">📋 <strong>Order Entry</strong> — You're ready to create your first order!</li>
+            </ol>
+
+            <button onclick="location.reload()" style="width:100%; padding:10px; background:#1e1b4b; color:white; border:none; border-radius:6px; font-weight:600; font-size:14px; cursor:pointer;">
+                Let's Go →
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function wizardNext() {
+    const company = document.getElementById('wizard-company').value.trim();
+    const aisles = parseInt(document.getElementById('wizard-aisles').value);
+    const bays = parseInt(document.getElementById('wizard-bays').value);
+    const shelves = parseInt(document.getElementById('wizard-shelves').value);
+    const activeShelves = parseInt(document.getElementById('wizard-active-shelves').value);
+    const locations = parseInt(document.getElementById('wizard-locations').value);
+
+    if (!aisles || !bays || !shelves || !activeShelves) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    if (activeShelves >= shelves) {
+        alert('Active shelves must be less than total shelves');
+        return;
+    }
+
+    const data = {
+        company_name: company || null,
+        total_aisles: aisles,
+        total_bays: bays,
+        total_shelves: shelves,
+        active_shelves: activeShelves,
+        total_locations: locations
+    };
+
+    fetch('/admin/setup-wizard', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('wizard-step-1').style.display = 'none';
+            document.getElementById('wizard-step-2').style.display = 'block';
+        } else {
+            alert('Error: ' + (data.error || 'Setup failed'));
+        }
+    })
+    .catch(e => {
+        alert('Network error');
+        console.error(e);
+    });
+}
+</script>
+{% endif %}
+
 {% endblock %}

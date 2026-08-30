@@ -808,3 +808,43 @@ def demo_clear_simulated_orders():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/setup-wizard', methods=['POST'])
+@admin_required
+def setup_wizard():
+    data = request.get_json()
+
+    try:
+        name = data.get('company_name', '').strip() or None
+        total_aisles = int(data.get('total_aisles', 6))
+        total_bays = int(data.get('total_bays', 35))
+        total_shelves = int(data.get('total_shelves', 6))
+        active_shelves = int(data.get('active_shelves', 2))
+        total_locations = int(data.get('total_locations', 4))
+
+        warehouse_config = WarehouseConfig.query.first()
+
+        if warehouse_config:
+            warehouse_config.name = name
+            warehouse_config.total_aisles = total_aisles
+            warehouse_config.total_bays = total_bays
+            warehouse_config.total_shelves = total_shelves
+            warehouse_config.active_shelves = active_shelves
+            warehouse_config.total_locations = total_locations
+        else:
+            warehouse_config = WarehouseConfig(
+                name=name,
+                total_aisles=total_aisles,
+                total_bays=total_bays,
+                total_shelves=total_shelves,
+                active_shelves=active_shelves,
+                total_locations=total_locations
+            )
+            db.session.add(warehouse_config)
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
