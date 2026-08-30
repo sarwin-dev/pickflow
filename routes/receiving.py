@@ -11,10 +11,8 @@ from routes.auth import warehouse_supervisor_required
 receiving_bp = Blueprint('receiving', __name__, url_prefix='/receiving')
 
 @receiving_bp.route('/')
+@warehouse_supervisor_required
 def index():
-    check = warehouse_supervisor_required()
-    if check:
-        return check
     config = WarehouseConfig.query.first()
     if not config:
         flash('Warehouse is not configured yet. Load demo data or set up the warehouse first.', 'error')
@@ -29,11 +27,8 @@ def index():
                            records=records)
 
 @receiving_bp.route('/receive', methods=['POST'])
+@warehouse_supervisor_required
 def receive():
-    check = warehouse_supervisor_required()
-    if check:
-        return check
-
     # Requiere part_id (seleccionado del autocomplete — no acepta part_name)
     part_id = request.form.get('part_id')
 
@@ -150,10 +145,8 @@ def receive():
     return redirect(url_for('receiving.index'))
 
 @receiving_bp.route('/pulldown/<int:record_id>', methods=['POST'])
+@warehouse_supervisor_required
 def pulldown(record_id):
-    check = warehouse_supervisor_required()
-    if check:
-        return check
     record = Inventory.query.get(record_id)
     if not record:
         next_url = request.form.get('next') or url_for('receiving.index')
@@ -214,31 +207,24 @@ def pulldown(record_id):
 
 
 @receiving_bp.route('/demo-reset-min', methods=['POST'])
+@warehouse_supervisor_required
 def demo_reset_min():
-    check = warehouse_supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
     updated = Inventory.query.filter(Inventory.min_quantity != 100).update({'min_quantity': 100})
     db.session.commit()
     return jsonify({'updated': updated})
 
 
 @receiving_bp.route('/demo-clear', methods=['POST'])
+@warehouse_supervisor_required
 def demo_clear():
-    check = warehouse_supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
     deleted = Inventory.query.filter_by(is_active=False).delete()
     db.session.commit()
     return jsonify({'deleted': deleted})
 
 
 @receiving_bp.route('/demo-fill', methods=['POST'])
+@warehouse_supervisor_required
 def demo_fill():
-    check = warehouse_supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     config = WarehouseConfig.query.first()
     if not config:
         return jsonify({'error': 'No warehouse config'}), 400
@@ -295,11 +281,8 @@ def demo_fill():
 
 
 @receiving_bp.route('/free-locations')
+@warehouse_supervisor_required
 def free_locations():
-    check = warehouse_supervisor_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 403
-
     config = WarehouseConfig.query.first()
     if not config:
         return jsonify({'error': 'Warehouse not configured'}), 400
