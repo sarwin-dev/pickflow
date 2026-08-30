@@ -306,25 +306,27 @@ if (window.innerWidth <= 640) {
     document.querySelector('.recent-entries-panel').removeAttribute('open');
 }
 
-// ========== Panel de Ubicaciones Libres - 3 Screen Navigation ==========
+// ========== Panel de Ubicaciones Libres - Free Locations Modal ==========
 
 const freeLocationsBtn = document.getElementById('free-locations-btn');
 const freeLocationsModal = document.getElementById('free-locations-modal');
 const freeCountSpan = document.getElementById('free-count');
 
-// Almacena datos globales para navegación sin recargar
+// Almacena datos globales y estado de navegación
 window.freeLocationsData = null;
+window.selectedLocation = null;
 
 // Carga ubicaciones libres al iniciar la página
 loadFreeLocations();
 
 freeLocationsBtn.addEventListener('click', () => {
     freeLocationsModal.style.display = 'block';
-    showAislesScreen();
+    loadFreeLocationsAndShowAisles();
 });
 
 function closeFreeLocationsModal() {
     freeLocationsModal.style.display = 'none';
+    window.selectedLocation = null;
 }
 
 // Cierra modal al hacer click fuera
@@ -338,12 +340,10 @@ async function loadFreeLocations() {
     try {
         const response = await fetch('/receiving/free-locations');
         const data = await response.json();
-
         if (data.error) {
             freeCountSpan.textContent = '?';
             return;
         }
-
         freeCountSpan.textContent = data.total_free;
         window.freeLocationsData = data;
     } catch (e) {
@@ -352,14 +352,33 @@ async function loadFreeLocations() {
     }
 }
 
-// Pantalla 1: Lista de Aisles
+async function loadFreeLocationsAndShowAisles() {
+    const screen = document.getElementById('screen-aisles');
+    screen.innerHTML = '<div style="padding:20px; text-align:center; color:#9ca3af;"><div style="font-size:14px;">⟳ Loading...</div></div>';
+
+    try {
+        const response = await fetch('/receiving/free-locations');
+        const data = await response.json();
+        if (data.error) {
+            screen.innerHTML = '<div style="padding:20px; text-align:center; color:#dc2626;">Error loading locations</div>';
+            return;
+        }
+        window.freeLocationsData = data;
+        freeCountSpan.textContent = data.total_free;
+        showAislesScreen();
+    } catch (e) {
+        screen.innerHTML = '<div style="padding:20px; text-align:center; color:#dc2626;">Error loading locations</div>';
+        console.error('Error loading free locations:', e);
+    }
+}
+
+// Pantalla 1: Aisles con barras de progreso estilo disco
 function showAislesScreen() {
     const screen = document.getElementById('screen-aisles');
     screen.innerHTML = '';
 
     if (!window.freeLocationsData || !window.freeLocationsData.aisles) return;
 
-    // Filtrar aisles con free > 0
     const filteredAisles = window.freeLocationsData.aisles.filter(a => a.free > 0);
 
     if (filteredAisles.length === 0) {
@@ -368,114 +387,162 @@ function showAislesScreen() {
     }
 
     filteredAisles.forEach(aisle => {
+        const occupiedPct = Math.round((aisle.occupied / aisle.total) * 100);
+        let barColor = '#16a34a';
+        if (occupiedPct >= 90) barColor = '#dc2626';
+        else if (occupiedPct >= 60) barColor = '#f59e0b';
+
         const row = document.createElement('div');
-        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e5e7eb; cursor:pointer;';
-        row.addEventListener('click', () => showBaysScreen(aisle));
+        row.style.cssText = 'display:flex; align-items:center; gap:16px; padding:16px 20px; border-bottom:1px solid #e5e7eb; cursor:pointer;';
+        row.addEventListener('click', () => showBaysShelvesGrid(aisle));
         row.addEventListener('mouseover', () => row.style.background = '#f9fafb');
         row.addEventListener('mouseout', () => row.style.background = 'white');
 
         row.innerHTML = `
-            <span style="font-weight:600; font-size:16px; color:#1f2937;">Aisle ${String(aisle.aisle).padStart(2, '0')}</span>
-            <div style="display:flex; gap:16px; align-items:center;">
-                <span style="color:#059669; font-weight:600; font-size:16px;">${aisle.free} free</span>
-                <span style="color:#9ca3af; font-size:20px;">→</span>
+            <div style="min-width:80px; font-weight:600; font-size:14px;">Aisle ${String(aisle.aisle).padStart(2, '0')}</div>
+            <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                <div style="flex:1; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
+                    <div style="width:${occupiedPct}%; height:100%; background:${barColor}; border-radius:3px;"></div>
+                </div>
+                <div style="min-width:40px; text-align:right; font-size:12px; color:#666; font-weight:600;">${occupiedPct}%</div>
             </div>
         `;
         screen.appendChild(row);
     });
 
-    // Mostrar pantalla 1, ocultar otras
     document.getElementById('screen-aisles').style.display = 'block';
     document.getElementById('screen-bays').style.display = 'none';
-    document.getElementById('screen-shelves').style.display = 'none';
 }
 
-// Pantalla 2: Lista de Bays dentro de un aisle
-function showBaysScreen(selectedAisle) {
+// Pantalla 2: Grilla de Bays × Shelves
+function showBaysShelvesGrid(selectedAisle) {
     const screen = document.getElementById('screen-bays');
     screen.innerHTML = '';
 
-    // Header con volver
+    // Header
     const header = document.createElement('div');
-    header.style.cssText = 'padding:16px 20px; border-bottom:2px solid #e5e7eb; background:#f9fafb; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; flex-shrink:0;';
-    header.addEventListener('click', () => showAislesScreen());
-    header.addEventListener('mouseover', () => header.style.background = '#f3f4f6');
-    header.addEventListener('mouseout', () => header.style.background = '#f9fafb');
-    header.innerHTML = `<span style="color:#059669;">←</span> Aisle ${String(selectedAisle.aisle).padStart(2, '0')}`;
+    header.style.cssText = 'padding:16px 20px; border-bottom:2px solid #e5e7eb; background:#f9fafb; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;';
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← Back';
+    backBtn.style.cssText = 'background:none; border:none; cursor:pointer; font-weight:600; font-size:14px; color:#1e1b4b;';
+    backBtn.addEventListener('click', () => showAislesScreen());
+    header.appendChild(backBtn);
+
+    const location = document.createElement('div');
+    location.id = 'location-display';
+    location.style.cssText = 'flex:1; text-align:center; font-weight:600; font-size:15px; color:#1e1b4b;';
+    location.textContent = `Aisle ${String(selectedAisle.aisle).padStart(2, '0')}`;
+    header.appendChild(location);
+
+    const spacer = document.createElement('div');
+    spacer.style.cssText = 'min-width:60px;';
+    header.appendChild(spacer);
     screen.appendChild(header);
 
-    // Filtrar bays con free > 0
-    const filteredBays = selectedAisle.bays.filter(b => b.free > 0);
+    // Grid
+    const gridContainer = document.createElement('div');
+    gridContainer.style.cssText = 'padding:20px; overflow:auto; flex:1;';
 
-    if (filteredBays.length === 0) {
-        const empty = document.createElement('div');
-        empty.style.cssText = 'padding:20px; text-align:center; color:#9ca3af;';
-        empty.textContent = 'No free bays in this aisle';
-        screen.appendChild(empty);
-    } else {
-        filteredBays.forEach(bay => {
-            const row = document.createElement('div');
-            row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e5e7eb; cursor:pointer;';
-            row.addEventListener('click', () => showShelvesScreen(bay, selectedAisle));
-            row.addEventListener('mouseover', () => row.style.background = '#f9fafb');
-            row.addEventListener('mouseout', () => row.style.background = 'white');
+    const bays = selectedAisle.bays;
+    const shelves = (bays.length > 0 && bays[0].shelves) ? bays[0].shelves : [];
 
-            row.innerHTML = `
-                <span style="font-weight:600; font-size:16px; color:#1f2937;">Bay ${String(bay.bay).padStart(2, '0')}</span>
-                <div style="display:flex; gap:16px; align-items:center;">
-                    <span style="color:#059669; font-weight:600; font-size:16px;">${bay.free} free</span>
-                    <span style="color:#9ca3af; font-size:20px;">→</span>
-                </div>
-            `;
-            screen.appendChild(row);
-        });
+    if (bays.length === 0 || shelves.length === 0) {
+        gridContainer.innerHTML = '<div style="text-align:center; color:#9ca3af;">No data available</div>';
+        screen.appendChild(gridContainer);
+        document.getElementById('screen-aisles').style.display = 'none';
+        document.getElementById('screen-bays').style.display = 'block';
+        return;
     }
 
-    // Mostrar pantalla 2, ocultar otras
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid; grid-template-columns:60px ' + bays.map(() => '1fr').join(' ') + '; gap:8px;';
+
+    // Headers: Bay numbers
+    const cornerHeader = document.createElement('div');
+    grid.appendChild(cornerHeader);
+    bays.forEach(bay => {
+        const header = document.createElement('div');
+        header.style.cssText = 'text-align:center; font-weight:600; font-size:12px; color:#666;';
+        header.textContent = `B${String(bay.bay).padStart(2, '0')}`;
+        grid.appendChild(header);
+    });
+
+    // Rows: Shelves (descending order)
+    const shelvesDesc = [...shelves].reverse();
+    shelvesDesc.forEach(shelf => {
+        const shelfLabel = document.createElement('div');
+        shelfLabel.style.cssText = 'text-align:right; font-weight:600; font-size:12px; color:#666; padding-right:8px;';
+        shelfLabel.textContent = `S${String(shelf.shelf).padStart(2, '0')}`;
+        grid.appendChild(shelfLabel);
+
+        bays.forEach(bay => {
+            const cell = document.createElement('div');
+            cell.style.cssText = 'aspect-ratio:1; border:2px solid #d1d5db; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px;';
+
+            const occupied = bay.shelves.find(s => s.shelf === shelf.shelf)?.occupied || 0;
+            const isFree = occupied === 0;
+
+            if (isFree) {
+                cell.style.background = 'white';
+                cell.style.cursor = 'pointer';
+                cell.addEventListener('click', () => {
+                    window.selectedLocation = { aisle: selectedAisle.aisle, bay: bay.bay, shelf: shelf.shelf };
+                    document.getElementById('location-display').textContent = `A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}`;
+                    document.querySelectorAll('#screen-bays [data-cell]').forEach(c => c.style.boxShadow = 'none');
+                    cell.style.boxShadow = '0 0 0 3px #3b82f6, 0 0 12px #93c5fd';
+                });
+                cell.addEventListener('mouseover', () => {
+                    if (!cell.style.boxShadow) cell.style.background = '#f9fafb';
+                });
+                cell.addEventListener('mouseout', () => {
+                    if (!cell.style.boxShadow) cell.style.background = 'white';
+                });
+            } else {
+                cell.style.background = '#fee2e2';
+                cell.textContent = '✕';
+                cell.style.color = '#dc2626';
+                cell.style.cursor = 'default';
+            }
+            cell.setAttribute('data-cell', '1');
+            grid.appendChild(cell);
+        });
+    });
+
+    gridContainer.appendChild(grid);
+    screen.appendChild(gridContainer);
+
+    // Button
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding:16px 20px; border-top:1px solid #e5e7eb; text-align:center; flex-shrink:0;';
+    const useBtn = document.createElement('button');
+    useBtn.textContent = 'Use this location';
+    useBtn.style.cssText = 'background:#1e1b4b; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600; font-size:14px;';
+    useBtn.disabled = true;
+    useBtn.style.opacity = '0.5';
+    useBtn.addEventListener('click', () => {
+        if (window.selectedLocation) {
+            document.querySelector('[name="aisle"]').value = window.selectedLocation.aisle;
+            document.querySelector('[name="bay"]').value = window.selectedLocation.bay;
+            document.querySelector('[name="shelf"]').value = window.selectedLocation.shelf;
+            closeFreeLocationsModal();
+        }
+    });
+    footer.appendChild(useBtn);
+
+    // Habilitar botón cuando hay selección
+    const checkBtn = setInterval(() => {
+        if (window.selectedLocation) {
+            useBtn.disabled = false;
+            useBtn.style.opacity = '1';
+            clearInterval(checkBtn);
+        }
+    }, 100);
+
+    screen.appendChild(footer);
+
     document.getElementById('screen-aisles').style.display = 'none';
     document.getElementById('screen-bays').style.display = 'block';
-    document.getElementById('screen-shelves').style.display = 'none';
-}
-
-// Pantalla 3: Lista de Shelves dentro de un bay
-function showShelvesScreen(selectedBay, selectedAisle) {
-    const screen = document.getElementById('screen-shelves');
-    screen.innerHTML = '';
-
-    // Header con volver
-    const header = document.createElement('div');
-    header.style.cssText = 'padding:16px 20px; border-bottom:2px solid #e5e7eb; background:#f9fafb; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:8px; flex-shrink:0;';
-    header.addEventListener('click', () => showBaysScreen(selectedAisle));
-    header.addEventListener('mouseover', () => header.style.background = '#f3f4f6');
-    header.addEventListener('mouseout', () => header.style.background = '#f9fafb');
-    header.innerHTML = `<span style="color:#059669;">←</span> Bay ${String(selectedBay.bay).padStart(2, '0')}`;
-    screen.appendChild(header);
-
-    // Filtrar shelves con free > 0
-    const filteredShelves = selectedBay.shelves.filter(s => s.free > 0);
-
-    if (filteredShelves.length === 0) {
-        const empty = document.createElement('div');
-        empty.style.cssText = 'padding:20px; text-align:center; color:#9ca3af;';
-        empty.textContent = 'No free shelves in this bay';
-        screen.appendChild(empty);
-    } else {
-        filteredShelves.forEach(shelf => {
-            const row = document.createElement('div');
-            row.style.cssText = 'padding:16px 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;';
-
-            row.innerHTML = `
-                <span style="font-weight:600; font-size:16px; color:#1f2937;">Shelf ${String(shelf.shelf).padStart(2, '0')}</span>
-                <span style="color:#059669; font-weight:600; font-size:16px;">${shelf.free} free</span>
-            `;
-            screen.appendChild(row);
-        });
-    }
-
-    // Mostrar pantalla 3, ocultar otras
-    document.getElementById('screen-aisles').style.display = 'none';
-    document.getElementById('screen-bays').style.display = 'none';
-    document.getElementById('screen-shelves').style.display = 'block';
 }
 
 
