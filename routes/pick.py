@@ -8,10 +8,8 @@ pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
 
 # lista de ordenes disponibles para pick
 @pick_bp.route('/')
+@picker_required
 def index():
-    check = picker_required()
-    if check:
-        return check
     from sqlalchemy import nullslast
     from datetime import date as date_type
     orders = WorkOrder.query.filter(
@@ -41,10 +39,8 @@ def index():
 
 # genera y muestra la pick list de una orden
 @pick_bp.route('/<int:order_id>')
+@picker_required
 def pick_order(order_id):
-    check = picker_required()
-    if check:
-        return check
     order = WorkOrder.query.get(order_id)
     if not order:
         return redirect(url_for('pick.index'))
@@ -118,11 +114,8 @@ def pick_order(order_id):
                            groups=sorted_groups)
 
 @pick_bp.route('/toggle/<int:pick_item_id>', methods=['POST'])
+@picker_required
 def toggle(pick_item_id):
-    check = picker_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
-
     pick_item = PickItem.query.get(pick_item_id)
     action = request.json.get('action', 'pick')
 
@@ -212,11 +205,8 @@ def toggle(pick_item_id):
 # marca todos los pending de una orden como missing + activa is_on_hold en las partes
 # esto es para cuando el picker no encuentra stock en el active shelf
 @pick_bp.route('/<int:order_id>/mark-missing-all', methods=['POST'])
+@picker_required
 def mark_missing_all(order_id):
-    check = picker_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
-
     order = WorkOrder.query.get(order_id)
     if not order:
         return jsonify({'error': 'not found'}), 404
@@ -269,10 +259,8 @@ def mark_missing_all(order_id):
 
 # cierra la orden marcando todo lo pendiente como missing
 @pick_bp.route('/<int:order_id>/complete', methods=['POST'])
+@picker_required
 def complete_order(order_id):
-    check = picker_required()
-    if check:
-        return jsonify({'error': 'unauthorized'}), 401
     order = WorkOrder.query.get(order_id)
     if not order:
         return jsonify({'error': 'not found'}), 404
@@ -293,10 +281,8 @@ def complete_order(order_id):
 
 # resetea una orden a pending - solo supervisor y admin
 @pick_bp.route('/reset/<int:order_id>')
+@supervisor_required
 def reset_order(order_id):
-    check = supervisor_required()
-    if check:
-        return check
     order = WorkOrder.query.get(order_id)
     if order:
         # resetea todos los pick items
@@ -312,11 +298,8 @@ def reset_order(order_id):
 
 # genera el pdf de la pick list
 @pick_bp.route('/<int:order_id>/pdf')
+@picker_required
 def generate_pdf(order_id):
-    check = picker_required()
-    if check:
-        return check
-
     import io
     from reportlab.lib.pagesizes import letter
     from reportlab.lib import colors
