@@ -4,14 +4,14 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from extensions import db
 from models import Loss, Part
 from datetime import datetime, timedelta
-from routes.auth import losses_required
+from routes.auth import warehouse_supervisor_required
 from sqlalchemy import func
 
 losses_bp = Blueprint('losses', __name__, url_prefix='/losses')
 
 @losses_bp.route('/')
 def index():
-    check = losses_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
 
@@ -58,7 +58,7 @@ def index():
 
 @losses_bp.route('/report', methods=['POST'])
 def report():
-    check = losses_required()
+    check = warehouse_supervisor_required()
     if check:
         return check
 
