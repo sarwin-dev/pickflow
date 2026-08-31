@@ -71,7 +71,7 @@ def index():
             'total': total,
             'picked': picked,
             'missing': missing,
-            'percent': int((picked + missing) / total * 100) if total > 0 else 0
+            'percent': int(picked / total * 100) if total > 0 else 0
         }
         grouped.setdefault(order.scheduled_date, []).append(stat)
 
