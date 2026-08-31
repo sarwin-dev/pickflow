@@ -655,7 +655,7 @@ def demo_simulate_orders():
 
     try:
         # Limpia órdenes simuladas previas
-        simulated_orders = WorkOrder.query.filter_by(is_simulated=True).all()
+        simulated_orders = WorkOrder.query.filter(WorkOrder.order_number.like('SIM-%')).all()
         for order in simulated_orders:
             # Borra PickItems primero
             for item in order.items:
@@ -663,7 +663,7 @@ def demo_simulate_orders():
             # Borra OrderItems
             OrderItem.query.filter_by(work_order_id=order.id).delete()
         # Borra WorkOrders
-        WorkOrder.query.filter_by(is_simulated=True).delete()
+        WorkOrder.query.filter(WorkOrder.order_number.like('SIM-%')).delete()
         db.session.flush()
 
         for order_date in order_dates:
@@ -684,7 +684,7 @@ def demo_simulate_orders():
                 created_by=session.get('user_id', 1),
                 created_at=order_date,
                 updated_at=order_date,
-                is_simulated=True
+                is_simulated=False
             )
             db.session.add(order)
             db.session.flush()
@@ -739,7 +739,7 @@ def demo_clear_simulated_orders():
 
     try:
         # Busca órdenes simuladas
-        simulated = WorkOrder.query.filter_by(is_simulated=True).all()
+        simulated = WorkOrder.query.filter(WorkOrder.order_number.like('SIM-%')).all()
         count = len(simulated)
 
         for order in simulated:
