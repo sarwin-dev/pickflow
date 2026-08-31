@@ -47,98 +47,84 @@ def index():
 @analytics_bp.route('/parts')
 @supervisor_required
 def parts_analytics():
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
-    # Selector de período: 1, 3, 6, 12 meses (por defecto 4)
-    months = request.args.get('months', 4, type=int)
-    if months not in [1, 3, 4, 6, 12]:
-        months = 4
+    period_months = request.args.get('period_months', 1, type=int)
+    period_months = max(1, min(24, period_months))
 
-    # Selector de historial: 1, 3, 6, 12 meses (por defecto 3)
-    history_months = request.args.get('history', 3, type=int)
-    if history_months not in [1, 3, 6, 12]:
-        history_months = 3
+    def calcular_proyeccion():
+        completed_orders = WorkOrder.query.filter(
+            WorkOrder.status == 'completed',
+            WorkOrder.is_simulated == False
+        ).all()
 
-    # Intenta obtener historial real de órdenes completadas
-    now = datetime.utcnow()
-    history_start = now - timedelta(days=history_months * 30)
-    completed_orders = WorkOrder.query.filter(
-        WorkOrder.status == 'completed',
-        WorkOrder.is_simulated == False,
-        WorkOrder.created_at >= history_start
-    ).all()
+        consumption_real = {}
+        history_months_count = 0
+        fuente = 'estimate'
 
-    has_history = len(completed_orders) > 0
-    consumption = {}
+        if completed_orders:
+            fuente = 'history'
+            oldest_order = min(o.created_at for o in completed_orders)
+            newest_order = max(o.created_at for o in completed_orders)
+            history_days = (newest_order - oldest_order).days
+            history_months_count = max(history_days / 30.0, 1)
 
-    if has_history:
-        # Calcula historial_actual_days y consumo real desde órdenes completadas
-        oldest_order = min(o.created_at for o in completed_orders)
-        history_actual_days = (now - oldest_order).days
-        history_actual_months = max(history_actual_days / 30.0, 1)
+            for order in completed_orders:
+                for item in order.items:
+                    for part_template in item.cabinet.parts:
+                        consumption_real[part_template.part_id] = consumption_real.get(
+                            part_template.part_id, 0
+                        ) + part_template.quantity
 
-        # Cuenta OrderItem por part_id desde órdenes completadas
-        for order in completed_orders:
-            for item in order.items:
-                for part_template in item.cabinet.parts:
-                    consumption[part_template.part_id] = consumption.get(part_template.part_id, 0) + part_template.quantity
+            for part_id in consumption_real:
+                monthly_avg = consumption_real[part_id] / history_months_count
+                consumption_real[part_id] = monthly_avg
+        else:
+            history_months_count = 0
+            for cabinet in CabinetType.query.filter(CabinetType.annual_qty > 0).all():
+                for tmpl in cabinet.parts:
+                    monthly_avg = (cabinet.annual_qty / 12) * tmpl.quantity
+                    consumption_real[tmpl.part_id] = consumption_real.get(tmpl.part_id, 0) + monthly_avg
 
-        # Proyecta a months basado en consumo real
-        for part_id in consumption:
-            monthly_avg_real = consumption[part_id] / history_actual_months
-            consumption[part_id] = monthly_avg_real * months
-    else:
-        # Fallback a annual_qty
-        for cabinet in CabinetType.query.all():
-            if not cabinet.annual_qty:
+        overflow = dict(
+            db.session.query(Inventory.part_id, func.sum(Inventory.quantity))
+            .filter(Inventory.is_active == False)
+            .group_by(Inventory.part_id)
+            .all()
+        )
+
+        rows = []
+        part_ids = list(consumption_real.keys())
+        parts = {p.id: p for p in Part.query.filter(Part.id.in_(part_ids)).all()}
+
+        for part_id, monthly_avg in consumption_real.items():
+            part = parts.get(part_id)
+            if not part:
                 continue
-            for tmpl in cabinet.parts:
-                projected = cabinet.annual_qty * (months / 12) * tmpl.quantity
-                consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
+            proyeccion = monthly_avg * period_months
+            stock = overflow.get(part_id, 0)
+            cantidad_a_pedir = max(0, int(proyeccion - stock))
 
-    if not consumption:
-        return render_template('analytics/parts.html', rows=[], months=months,
-                             history_months=history_months, has_history=has_history)
+            rows.append({
+                'part': part,
+                'consumo_mensual': round(monthly_avg, 1),
+                'proyeccion': round(proyeccion),
+                'stock': stock,
+                'cantidad_a_pedir': cantidad_a_pedir,
+            })
 
-    # Stock actual en overflow
-    overflow = dict(
-        db.session.query(Inventory.part_id, func.sum(Inventory.quantity))
-        .filter(Inventory.is_active == False)
-        .group_by(Inventory.part_id)
-        .all()
-    )
+        rows.sort(key=lambda r: r['proyeccion'], reverse=True)
+        for i, row in enumerate(rows, 1):
+            row['rank'] = i
 
-    # Construye filas
-    rows = []
-    part_ids = list(consumption.keys())
-    parts = {p.id: p for p in Part.query.filter(Part.id.in_(part_ids)).all()}
+        critical_count = sum(1 for r in rows if r['stock'] < r['consumo_mensual'])
 
-    for part_id, consumed in consumption.items():
-        part = parts.get(part_id)
-        if not part:
-            continue
-        monthly_avg = consumed / months
-        stock = overflow.get(part_id, 0)
-        months_remaining = (stock / monthly_avg) if monthly_avg > 0 else None
-        rows.append({
-            'part': part,
-            'consumed': round(consumed),
-            'monthly_avg': round(monthly_avg, 1),
-            'stock': stock,
-            'months_remaining': round(months_remaining, 1) if months_remaining is not None else None,
-        })
+        return rows, fuente, history_months_count, critical_count
 
-    rows.sort(key=lambda r: r['consumed'], reverse=True)
-    for i, row in enumerate(rows, 1):
-        row['rank'] = i
+    rows, fuente, history_months_count, critical_count = calcular_proyeccion()
 
-    critical_count = sum(
-        1 for r in rows
-        if r['months_remaining'] is not None and r['months_remaining'] < 1
-    )
-
-    return render_template('analytics/parts.html', rows=rows, months=months,
-                          history_months=history_months, has_history=has_history,
+    return render_template('analytics/parts.html', rows=rows, period_months=period_months,
+                          fuente=fuente, history_months=history_months_count,
                           critical_count=critical_count)
 
 

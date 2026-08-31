@@ -2,92 +2,36 @@
 {% block title %}Parts Analytics - PickFlow{% endblock %}
 {% block content %}
 
-<style>
-.tooltip-container:hover .tooltip-text {
-    display: block !important;
-}
-</style>
-
 <div class="dashboard-header">
     <div>
         <h1>Parts Consumption Analytics</h1>
-        <p>Projected {{ months }}-month consumption based on production plan — ranked highest to lowest</p>
+        <p>Projected {{ period_months }}-month consumption and order quantities</p>
     </div>
 </div>
 
-<!-- Period Selectors -->
+<!-- Period Input -->
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+    <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Project for (months):</label>
+    <input type="number" id="period-input" value="{{ period_months }}" min="1" max="24"
+           style="width:70px; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
+                  font-size:13px; font-weight:600;">
+    <button onclick="updatePeriod()" style="padding:8px 16px; background:#1e1b4b; color:white;
+           border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">
+        Update
+    </button>
+</div>
+
+<!-- Source Badge -->
 <div style="margin-bottom:1.5rem;">
-    <!-- Row 1: Projection -->
-    <div style="margin-bottom:1rem;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Projection</label>
-            <div style="position:relative; display:inline-block; cursor:help;" class="tooltip-container">
-                <span style="font-size:11px; font-weight:700; color:#6b7280; width:16px; height:16px;
-                           display:inline-flex; align-items:center; justify-content:center;
-                           background:#f3f4f6; border-radius:50%;">?</span>
-                <div class="tooltip-text" style="display:none; position:absolute; bottom:120%; left:-100px; width:280px;
-                           background:#1e1b4b; color:white; padding:10px 12px; border-radius:6px;
-                           font-size:12px; line-height:1.4; z-index:1000; white-space:normal;
-                           box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-                    How far ahead do you want to forecast? Example: Select 3 mo to see how many parts you'll need over the next 3 months.
-                    <div style="position:absolute; bottom:-4px; left:50%; transform:translateX(-50%); width:0; height:0;
-                              border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #1e1b4b;"></div>
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="/analytics/parts?months=1&history={{ history_months }}" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if months == 1 %}background:#059669; color:white; border-color:#059669;{% endif %}">1 mo</a>
-            <a href="/analytics/parts?months=3&history={{ history_months }}" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if months == 3 %}background:#059669; color:white; border-color:#059669;{% endif %}">3 mo</a>
-            <a href="/analytics/parts?months=6&history={{ history_months }}" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if months == 6 %}background:#059669; color:white; border-color:#059669;{% endif %}">6 mo</a>
-            <a href="/analytics/parts?months=12&history={{ history_months }}" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if months == 12 %}background:#059669; color:white; border-color:#059669;{% endif %}">12 mo</a>
-        </div>
-    </div>
-
-    <!-- Row 2: Based on -->
-    <div style="margin-bottom:1rem;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Based on</label>
-            <div style="position:relative; display:inline-block; cursor:help;" class="tooltip-container">
-                <span style="font-size:11px; font-weight:700; color:#6b7280; width:16px; height:16px;
-                           display:inline-flex; align-items:center; justify-content:center;
-                           background:#f3f4f6; border-radius:50%;">?</span>
-                <div class="tooltip-text" style="display:none; position:absolute; bottom:120%; left:-120px; width:300px;
-                           background:#1e1b4b; color:white; padding:10px 12px; border-radius:6px;
-                           font-size:12px; line-height:1.4; z-index:1000; white-space:normal;
-                           box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-                    How many past months of real completed orders to use as your consumption baseline. More months = more stable estimate. Fewer months = more reactive to recent changes. Example: Select 6 mo to average the last 6 months of production.
-                    <div style="position:absolute; bottom:-4px; left:50%; transform:translateX(-50%); width:0; height:0;
-                              border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #1e1b4b;"></div>
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="/analytics/parts?months={{ months }}&history=1" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if history_months == 1 %}background:#059669; color:white; border-color:#059669;{% endif %}">1 mo</a>
-            <a href="/analytics/parts?months={{ months }}&history=3" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if history_months == 3 %}background:#059669; color:white; border-color:#059669;{% endif %}">3 mo</a>
-            <a href="/analytics/parts?months={{ months }}&history=6" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if history_months == 6 %}background:#059669; color:white; border-color:#059669;{% endif %}">6 mo</a>
-            <a href="/analytics/parts?months={{ months }}&history=12" class="btn-secondary" style="padding:8px 14px; font-size:13px;
-                {% if history_months == 12 %}background:#059669; color:white; border-color:#059669;{% endif %}">12 mo</a>
-        </div>
-    </div>
-
-    <!-- Status note -->
-    <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">
-        ⚠ If not enough order history exists, projections fall back to the annual quantities set in Production Plan.
-    </div>
-    {% if has_history %}
-    <div style="font-size:12px; color:#16a34a; font-weight:600;">
-        ✓ Using real order history as baseline.
+    {% if fuente == 'history' %}
+    <div style="display:inline-block; padding:6px 12px; background:#dcfce7; border:1px solid #86efac;
+               border-radius:6px; font-size:12px; color:#16a34a; font-weight:600;">
+        ✓ Based on {{ history_months | int }} month{{ 's' if history_months != 1 else '' }} of real order history
     </div>
     {% else %}
-    <div style="font-size:12px; color:#ea580c; font-weight:600;">
-        ⚠ Not enough completed orders. Using Production Plan quantities as baseline.
+    <div style="display:inline-block; padding:6px 12px; background:#fef3c7; border:1px solid #fde047;
+               border-radius:6px; font-size:12px; color:#ca8a04; font-weight:600;">
+        ⚠ Estimate based on Production Plan (no completed orders found)
     </div>
     {% endif %}
 </div>
@@ -109,32 +53,13 @@
         <div style="font-size:22px; font-weight:700; color:#1e1b4b;">{{ rows | length }}</div>
     </div>
     <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 18px;">
-        <div style="font-size:11px; color:#16a34a; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Total {{ months }}-mo units</div>
-        <div style="font-size:22px; font-weight:700; color:#15803d;">{{ rows | sum(attribute='consumed') | int | string }}</div>
+        <div style="font-size:11px; color:#16a34a; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Total {{ period_months }}-mo units</div>
+        <div style="font-size:22px; font-weight:700; color:#15803d;">{{ rows | sum(attribute='proyeccion') | int | string }}</div>
     </div>
     <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 18px;">
-        <div style="font-size:11px; color:#ea580c; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Critical (&lt; 1 mo stock)</div>
-        <div style="font-size:22px; font-weight:700; color:#c2410c;">{{ critical_count }}</div>
+        <div style="font-size:11px; color:#ea580c; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">To order</div>
+        <div style="font-size:22px; font-weight:700; color:#c2410c;">{{ rows | sum(attribute='cantidad_a_pedir') | int | string }}</div>
     </div>
-</div>
-
-<!-- Legend -->
-<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; font-size:12px; color:#6b7280;">
-    <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444;"></span> Critical &lt;1 mo
-    </span>
-    <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f97316;"></span> Low 1–2 mo
-    </span>
-    <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#eab308;"></span> Watch 2–3 mo
-    </span>
-    <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> OK &gt;3 mo
-    </span>
-    <span style="display:flex; align-items:center; gap:4px;">
-        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#d1d5db;"></span> No overflow
-    </span>
 </div>
 
 <div class="table-container">
@@ -143,51 +68,44 @@
             <tr>
                 <th style="width:44px; text-align:center;">#</th>
                 <th>Part Name</th>
-                <th style="text-align:center;">{{ months }}-mo Projection</th>
                 <th style="text-align:center;">Monthly Avg</th>
+                <th style="text-align:center;">{{ period_months }}-mo Projection</th>
                 <th style="text-align:center;">Overflow Stock</th>
-                <th style="text-align:center;">Months Remaining</th>
+                <th style="text-align:center;">To Order</th>
             </tr>
         </thead>
         <tbody>
             {% for row in rows %}
-            {% if row.months_remaining is none %}
-                {% set dot_color = '#d1d5db' %}
-                {% set mo_text = 'No stock' %}
-                {% set mo_style = 'color:#9ca3af;' %}
-            {% elif row.months_remaining < 1 %}
-                {% set dot_color = '#ef4444' %}
-                {% set mo_text = row.months_remaining | string + ' mo' %}
-                {% set mo_style = 'color:#dc2626; font-weight:700;' %}
-            {% elif row.months_remaining < 2 %}
-                {% set dot_color = '#f97316' %}
-                {% set mo_text = row.months_remaining | string + ' mo' %}
-                {% set mo_style = 'color:#ea580c; font-weight:600;' %}
-            {% elif row.months_remaining < 3 %}
-                {% set dot_color = '#eab308' %}
-                {% set mo_text = row.months_remaining | string + ' mo' %}
-                {% set mo_style = 'color:#ca8a04;' %}
-            {% else %}
-                {% set dot_color = '#22c55e' %}
-                {% set mo_text = row.months_remaining | string + ' mo' %}
-                {% set mo_style = 'color:#16a34a;' %}
-            {% endif %}
             <tr style="cursor:pointer;" onclick="location.href='/analytics/parts/{{ row.part.id }}';">
                 <td style="text-align:center; color:#9ca3af; font-size:12px;">{{ row.rank }}</td>
-                <td>
-                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%;
-                                 background:{{ dot_color }}; margin-right:6px; flex-shrink:0;"></span>
-                    <strong>{{ row.part.name }}</strong>
-                </td>
-                <td style="text-align:center; font-weight:600;">{{ row.consumed }}</td>
-                <td style="text-align:center; color:#6b7280;">{{ row.monthly_avg }}</td>
+                <td><strong>{{ row.part.name }}</strong></td>
+                <td style="text-align:center; color:#6b7280;">{{ row.consumo_mensual }}</td>
+                <td style="text-align:center; font-weight:600;">{{ row.proyeccion }}</td>
                 <td style="text-align:center;">{{ row.stock }}</td>
-                <td style="text-align:center; {{ mo_style }}">{{ mo_text }}</td>
+                <td style="text-align:center; font-weight:600; color:{% if row.cantidad_a_pedir > 0 %}#2563eb{% else %}#9ca3af{% endif %};">
+                    {% if row.cantidad_a_pedir > 0 %}{{ row.cantidad_a_pedir }}{% else %}—{% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 {% endif %}
+
+<script>
+function updatePeriod() {
+    const value = parseInt(document.getElementById('period-input').value);
+    if (value >= 1 && value <= 24) {
+        window.location.href = '/analytics/parts?period_months=' + value;
+    } else {
+        alert('Please enter a value between 1 and 24');
+    }
+}
+document.getElementById('period-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        updatePeriod();
+    }
+});
+</script>
 
 {% endblock %}
