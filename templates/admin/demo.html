@@ -9,6 +9,19 @@
 
 <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; max-width:900px;">
 
+    <!-- Production Plan -->
+    <div style="background:white; border:2px solid #86efac; border-radius:10px; padding:20px;">
+        <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Production Plan</div>
+        <div style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+            Set annual production quantities per cabinet type before simulating orders. Configure manually or use Auto-Simulate.
+        </div>
+        <a href="/admin/demo/production-plan" style="text-decoration:none;">
+            <button class="btn-primary" style="width:100%; background:#059669; border-color:#059669; color:white; font-weight:600;">
+                Configure →
+            </button>
+        </a>
+    </div>
+
     <!-- Load Demo State -->
     <div style="background:{% if has_seed %}#f0fdf4{% else %}#fef2f2{% endif %}; border:2px solid {% if has_seed %}#86efac{% else %}#fecaca{% endif %}; border-radius:10px; padding:20px;">
         <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Load Demo State</div>

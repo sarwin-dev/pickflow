@@ -90,7 +90,8 @@
             'supervision': 'Supervision',
             'losses': 'Losses',
             'dashboard': 'Dashboard',
-            'demo': 'Demo Tools'
+            'demo': 'Demo Tools',
+            'analytics': 'Analytics'
         };
 
         // construye los items del breadcrumb
@@ -139,6 +140,10 @@
             if (path === '/admin/colors')              return '/admin';
             if (path === '/admin/demo')                return '/admin';
             if (path === '/admin')                     return '/dashboard';
+            if (path === '/admin/demo/production-plan') return '/admin/demo';
+            if (/^\/analytics\/parts\/\d+/.test(path)) return '/analytics/parts';
+            if (path === '/analytics/parts')           return '/analytics';
+            if (path === '/analytics')                 return '/dashboard';
             return null;
         }
 

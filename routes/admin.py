@@ -764,6 +764,40 @@ def demo_clear_simulated_orders():
         return jsonify({'error': str(e)}), 500
 
 
+@admin_bp.route('/demo/production-plan')
+@admin_required
+def production_plan():
+    cabinets = CabinetType.query.order_by(CabinetType.name).all()
+    months = 4
+    for cabinet in cabinets:
+        if cabinet.annual_qty:
+            total_parts = sum(t.quantity for t in cabinet.parts)
+            cabinet.projected_consumption = round(cabinet.annual_qty * (months / 12) * total_parts)
+        else:
+            cabinet.projected_consumption = 0
+    return render_template('admin/production_plan.html', cabinets=cabinets, months=months)
+
+
+@admin_bp.route('/demo/production-plan/update', methods=['POST'])
+@admin_required
+def update_annual_qty():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    updated = 0
+    for cabinet_id_str, qty in data.items():
+        try:
+            cabinet_id = int(cabinet_id_str)
+            cabinet = CabinetType.query.get(cabinet_id)
+            if cabinet:
+                cabinet.annual_qty = max(0, int(qty))
+                updated += 1
+        except (ValueError, TypeError):
+            continue
+    db.session.commit()
+    return jsonify({'success': True, 'updated': updated})
+
+
 @admin_bp.route('/setup-wizard', methods=['POST'])
 @admin_required
 def setup_wizard():
