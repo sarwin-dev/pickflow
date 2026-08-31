@@ -164,6 +164,12 @@
                         style="font-size:12px; padding:4px 10px;">
                         View Pick
                     </a>
+                    {% if session['user_role'] in ['admin', 'supervisor'] and order.status not in ['completed', 'cancelled'] %}
+                    <button onclick="completeOrder({{ order.id }}, '{{ order.order_number }}')" class="btn-secondary"
+                        style="font-size:12px; padding:4px 10px; background:#16a34a; border-color:#16a34a; color:white; cursor:pointer;">
+                        Complete
+                    </button>
+                    {% endif %}
                     {% if session['user_role'] in ['admin', 'supervisor'] and order.status != 'pending' %}
                     <a href="/pick/reset/{{ order.id }}" class="btn-delete"
                         style="font-size:12px;"
@@ -189,6 +195,26 @@
 </div>
 {% endif %}
 
-<script>setTimeout(() => location.reload(), 60000);</script>
+<script>
+function completeOrder(orderId, orderNumber) {
+    if (!confirm(`Complete order ${orderNumber}? This will mark it as finished.`)) {
+        return;
+    }
+    fetch(`/pick/${orderId}/complete`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to complete order'));
+            }
+        })
+        .catch(e => {
+            alert('Network error');
+            console.error(e);
+        });
+}
+setTimeout(() => location.reload(), 60000);
+</script>
 
 {% endblock %}
