@@ -10,11 +10,11 @@
 <!-- Action buttons -->
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem;">
     <button onclick="saveChanges()" class="btn-primary"
-            style="background:#4f46e5; border-color:#4f46e5; color:white; font-weight:600;">
+            style="width:auto; background:#4f46e5; border-color:#4f46e5; color:white; font-weight:600;">
         💾 Save Changes
     </button>
     <button id="btn-auto-simulate" onclick="autoSimulatePlan()" class="btn-primary"
-            style="background:#059669; border-color:#059669; color:white; font-weight:600;">
+            style="width:auto; background:#059669; border-color:#059669; color:white; font-weight:600;">
         🎲 Auto-Simulate
     </button>
 </div>
@@ -108,7 +108,7 @@ function autoSimulatePlan() {
     btn.disabled = true;
     btn.textContent = '🔄 Simulating...';
 
-    fetch('/analytics/production-plan/simulate', { method: 'POST' })
+    fetch('/admin/demo/production-plan/simulate', { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             btn.disabled = false;

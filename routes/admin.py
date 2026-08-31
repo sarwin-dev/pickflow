@@ -798,6 +798,30 @@ def update_annual_qty():
     return jsonify({'success': True, 'updated': updated})
 
 
+@admin_bp.route('/demo/production-plan/simulate', methods=['POST'])
+@admin_required
+def simulate_production_plan():
+    cabinets = CabinetType.query.all()
+    for cabinet in cabinets:
+        w = cabinet.width or 0
+        if w <= 9:
+            cabinet.annual_qty = 150
+        elif w <= 12:
+            cabinet.annual_qty = 120
+        elif w <= 15:
+            cabinet.annual_qty = 100
+        elif w <= 18:
+            cabinet.annual_qty = 80
+        elif w <= 21:
+            cabinet.annual_qty = 60
+        elif w <= 24:
+            cabinet.annual_qty = 50
+        else:
+            cabinet.annual_qty = 36
+    db.session.commit()
+    return jsonify({'success': True, 'count': len(cabinets)})
+
+
 @admin_bp.route('/setup-wizard', methods=['POST'])
 @admin_required
 def setup_wizard():
