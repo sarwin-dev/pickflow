@@ -58,7 +58,8 @@ def edit_user(user_id):
     if request.method == 'POST':
         user.name = ' '.join(request.form['name'].strip().split()).title()
         user.email = request.form['email']
-        user.role = request.form['role']
+        if user.role != 'admin':
+            user.role = request.form['role']
         new_password = request.form.get('password')
         if new_password:
             user.password = generate_password_hash(new_password)
