@@ -28,7 +28,6 @@
                 <th>Cabinet Type</th>
                 <th style="text-align:center;">Width</th>
                 <th style="text-align:center;">Annual Qty</th>
-                <th style="text-align:center;">{{ months }}-mo Projection</th>
             </tr>
         </thead>
         <tbody>
@@ -44,9 +43,6 @@
                            max="999"
                            style="width:80px; padding:6px; border:1px solid #d1d5db; border-radius:4px;
                                   text-align:center; font-weight:600;">
-                </td>
-                <td style="text-align:center; color:#059669; font-weight:600;">
-                    {{ cabinet.projected_consumption }}
                 </td>
             </tr>
             {% endfor %}
