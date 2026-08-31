@@ -326,6 +326,25 @@ def reset_order(order_id):
                 pick.is_missing = False
                 pick.picked_by = None
                 pick.picked_at = None
+
+        # recolecta part_template_id de los picks y desactiva is_on_hold
+        part_template_ids = set()
+        for item in order.items:
+            for pick in item.picks:
+                if pick.part_template_id:
+                    part_template_ids.add(pick.part_template_id)
+
+        part_ids = set()
+        for template_id in part_template_ids:
+            template = PartTemplate.query.get(template_id)
+            if template and template.part_id:
+                part_ids.add(template.part_id)
+
+        for part_id in part_ids:
+            part = Part.query.get(part_id)
+            if part:
+                part.is_on_hold = False
+
         order.status = 'pending'
         db.session.commit()
     return redirect(url_for('supervision.index'))
