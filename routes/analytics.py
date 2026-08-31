@@ -47,22 +47,58 @@ def index():
 @analytics_bp.route('/parts')
 @supervisor_required
 def parts_analytics():
-    # Selector de período: 1, 3, 4, 6, 12 meses (por defecto 4)
+    from datetime import datetime, timedelta
+
+    # Selector de período: 1, 3, 6, 12 meses (por defecto 4)
     months = request.args.get('months', 4, type=int)
     if months not in [1, 3, 4, 6, 12]:
         months = 4
 
-    # Calcula consumo proyectado por parte
+    # Selector de historial: 1, 3, 6, 12 meses (por defecto 3)
+    history_months = request.args.get('history', 3, type=int)
+    if history_months not in [1, 3, 6, 12]:
+        history_months = 3
+
+    # Intenta obtener historial real de órdenes completadas
+    now = datetime.utcnow()
+    history_start = now - timedelta(days=history_months * 30)
+    completed_orders = WorkOrder.query.filter(
+        WorkOrder.status == 'completed',
+        WorkOrder.is_simulated == False,
+        WorkOrder.created_at >= history_start
+    ).all()
+
+    has_history = len(completed_orders) > 0
     consumption = {}
-    for cabinet in CabinetType.query.all():
-        if not cabinet.annual_qty:
-            continue
-        for tmpl in cabinet.parts:
-            projected = cabinet.annual_qty * (months / 12) * tmpl.quantity
-            consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
+
+    if has_history:
+        # Calcula historial_actual_days y consumo real desde órdenes completadas
+        oldest_order = min(o.created_at for o in completed_orders)
+        history_actual_days = (now - oldest_order).days
+        history_actual_months = max(history_actual_days / 30.0, 1)
+
+        # Cuenta OrderItem por part_id desde órdenes completadas
+        for order in completed_orders:
+            for item in order.items:
+                for part_template in item.cabinet.parts:
+                    consumption[part_template.part_id] = consumption.get(part_template.part_id, 0) + part_template.quantity
+
+        # Proyecta a months basado en consumo real
+        for part_id in consumption:
+            monthly_avg_real = consumption[part_id] / history_actual_months
+            consumption[part_id] = monthly_avg_real * months
+    else:
+        # Fallback a annual_qty
+        for cabinet in CabinetType.query.all():
+            if not cabinet.annual_qty:
+                continue
+            for tmpl in cabinet.parts:
+                projected = cabinet.annual_qty * (months / 12) * tmpl.quantity
+                consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
 
     if not consumption:
-        return render_template('analytics/parts.html', rows=[], months=months)
+        return render_template('analytics/parts.html', rows=[], months=months,
+                             history_months=history_months, has_history=has_history)
 
     # Stock actual en overflow
     overflow = dict(
@@ -102,6 +138,7 @@ def parts_analytics():
     )
 
     return render_template('analytics/parts.html', rows=rows, months=months,
+                          history_months=history_months, has_history=has_history,
                           critical_count=critical_count)
 
 
