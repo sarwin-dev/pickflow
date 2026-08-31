@@ -200,7 +200,7 @@ function completeOrder(orderId, orderNumber) {
     if (!confirm(`Complete order ${orderNumber}? This will mark it as finished.`)) {
         return;
     }
-    fetch(`/pick/${orderId}/complete`, { method: 'POST' })
+    fetch(`/pick/${orderId}/complete-all`, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.success) {

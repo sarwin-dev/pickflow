@@ -279,6 +279,40 @@ def complete_order(order_id):
     return jsonify({'success': True})
 
 
+@pick_bp.route('/<int:order_id>/complete-all', methods=['POST'])
+@supervisor_required
+def complete_all(order_id):
+    order = WorkOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'not found'}), 404
+
+    for item in order.items:
+        existing_picks = PickItem.query.filter_by(order_item_id=item.id).all()
+        if not existing_picks:
+            for part in item.cabinet.parts:
+                db.session.add(PickItem(
+                    order_item_id=item.id,
+                    part_template_id=part.id,
+                    is_picked=False,
+                    is_missing=False
+                ))
+
+    db.session.flush()
+
+    all_picks = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order.id
+    ).all()
+    for pick in all_picks:
+        pick.is_picked = True
+        pick.is_missing = False
+        pick.picked_by = session['user_id']
+        pick.picked_at = datetime.utcnow()
+
+    order.status = 'completed'
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 # resetea una orden a pending - solo supervisor y admin
 @pick_bp.route('/reset/<int:order_id>')
 @supervisor_required
