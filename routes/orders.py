@@ -6,6 +6,7 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from routes.auth import order_entry_required, admin_required
+from sqlalchemy import case, nullslast
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/orders')
 
@@ -25,8 +26,11 @@ def index():
         )
     if status_filter:
         query = query.filter_by(status=status_filter)
-    from sqlalchemy import nullslast
-    orders = query.order_by(nullslast(WorkOrder.scheduled_date.asc()), WorkOrder.created_at.asc()).all()
+    orders = query.order_by(
+        case((WorkOrder.order_number.like('SIM-%'), 1), else_=0),
+        nullslast(WorkOrder.scheduled_date.asc()),
+        WorkOrder.created_at.asc()
+    ).all()
     return render_template('orders/index.html', orders=orders,
                            search=search, status_filter=status_filter)
 
