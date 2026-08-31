@@ -19,7 +19,6 @@ class CabinetType(db.Model):
     height = db.Column(db.Integer, nullable=True)
     color = db.Column(db.String(50), nullable=True)
     is_custom = db.Column(db.Boolean, default=False)
-    annual_qty = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     parts = db.relationship('PartTemplate', backref='cabinet', lazy=True, cascade='all, delete-orphan')
 
 # tabla maestra de partes - cada parte existe una sola vez
@@ -141,6 +140,14 @@ class Loss(db.Model):
     reported_at = db.Column(db.DateTime, default=datetime.utcnow)
     part = db.relationship('Part', backref='losses')
     reporter = db.relationship('User', backref='losses')
+
+class ProductionPlan(db.Model):
+    __tablename__ = 'production_plan'
+    id = db.Column(db.Integer, primary_key=True)
+    cabinet_type_id = db.Column(db.Integer, db.ForeignKey('cabinet_types.id'), nullable=False, unique=True)
+    annual_qty = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    cabinet = db.relationship('CabinetType', backref='production_plan', uselist=False)
 
 class WarehouseConfig(db.Model):
     __tablename__ = 'warehouse_config'

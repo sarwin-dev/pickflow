@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem, ProductionPlan
 from routes.auth import admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -189,18 +189,6 @@ def delete_cabinet(cabinet_id):
         db.session.delete(cabinet)
         db.session.commit()
     return redirect(url_for('admin.cabinets'))
-
-@admin_bp.route('/cabinets/<int:cabinet_id>/annual-qty', methods=['POST'])
-@admin_required
-def set_annual_qty(cabinet_id):
-    cabinet = CabinetType.query.get_or_404(cabinet_id)
-    try:
-        cabinet.annual_qty = max(0, int(request.json.get('annual_qty', 0)))
-        db.session.commit()
-        return jsonify({'success': True, 'annual_qty': cabinet.annual_qty})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
 
 @admin_bp.route('/cabinets/<int:cabinet_id>/parts/edit/<int:part_id>', methods=['POST'])
 @admin_required
@@ -770,9 +758,10 @@ def production_plan():
     cabinets = CabinetType.query.order_by(CabinetType.name).all()
     months = 4
     for cabinet in cabinets:
-        if cabinet.annual_qty:
+        annual_qty = cabinet.production_plan.annual_qty if cabinet.production_plan else 0
+        if annual_qty:
             total_parts = sum(t.quantity for t in cabinet.parts)
-            cabinet.projected_consumption = round(cabinet.annual_qty * (months / 12) * total_parts)
+            cabinet.projected_consumption = round(annual_qty * (months / 12) * total_parts)
         else:
             cabinet.projected_consumption = 0
     return render_template('admin/production_plan.html', cabinets=cabinets, months=months)
@@ -788,10 +777,12 @@ def update_annual_qty():
     for cabinet_id_str, qty in data.items():
         try:
             cabinet_id = int(cabinet_id_str)
-            cabinet = CabinetType.query.get(cabinet_id)
-            if cabinet:
-                cabinet.annual_qty = max(0, int(qty))
-                updated += 1
+            plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet_id).first()
+            if not plan:
+                plan = ProductionPlan(cabinet_type_id=cabinet_id)
+                db.session.add(plan)
+            plan.annual_qty = max(0, int(qty))
+            updated += 1
         except (ValueError, TypeError):
             continue
     db.session.commit()
@@ -805,19 +796,24 @@ def simulate_production_plan():
     for cabinet in cabinets:
         w = cabinet.width or 0
         if w <= 9:
-            cabinet.annual_qty = 150
+            qty = 150
         elif w <= 12:
-            cabinet.annual_qty = 120
+            qty = 120
         elif w <= 15:
-            cabinet.annual_qty = 100
+            qty = 100
         elif w <= 18:
-            cabinet.annual_qty = 80
+            qty = 80
         elif w <= 21:
-            cabinet.annual_qty = 60
+            qty = 60
         elif w <= 24:
-            cabinet.annual_qty = 50
+            qty = 50
         else:
-            cabinet.annual_qty = 36
+            qty = 36
+        plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet.id).first()
+        if not plan:
+            plan = ProductionPlan(cabinet_type_id=cabinet.id)
+            db.session.add(plan)
+        plan.annual_qty = qty
     db.session.commit()
     return jsonify({'success': True, 'count': len(cabinets)})
 

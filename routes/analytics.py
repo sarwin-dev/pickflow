@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db
-from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig, WorkOrder, OrderItem
+from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig, WorkOrder, OrderItem, ProductionPlan
 from sqlalchemy import func
 from routes.auth import supervisor_required
 
@@ -17,9 +17,11 @@ def index():
     # Contar partes críticas (< 1 mes stock)
     MONTHS = 4
     consumption = {}
-    for cabinet in CabinetType.query.filter(CabinetType.annual_qty > 0).all():
+    plans = db.session.query(ProductionPlan).filter(ProductionPlan.annual_qty > 0).all()
+    for plan in plans:
+        cabinet = plan.cabinet
         for tmpl in cabinet.parts:
-            projected = cabinet.annual_qty * (MONTHS / 12) * tmpl.quantity
+            projected = plan.annual_qty * (MONTHS / 12) * tmpl.quantity
             consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
 
     from sqlalchemy import func
@@ -94,9 +96,11 @@ def parts_analytics():
                 monthly_avg = consumption_real[part_id] / history_months
                 consumption_real[part_id] = monthly_avg
         else:
-            for cabinet in CabinetType.query.filter(CabinetType.annual_qty > 0).all():
+            plans = db.session.query(ProductionPlan).filter(ProductionPlan.annual_qty > 0).all()
+            for plan in plans:
+                cabinet = plan.cabinet
                 for tmpl in cabinet.parts:
-                    monthly_avg = (cabinet.annual_qty / 12) * tmpl.quantity
+                    monthly_avg = (plan.annual_qty / 12) * tmpl.quantity
                     consumption_real[tmpl.part_id] = consumption_real.get(tmpl.part_id, 0) + monthly_avg
 
         overflow = dict(
@@ -153,8 +157,10 @@ def part_detail(part_id):
     cabinet_data = []
     for tmpl in templates:
         cabinet = CabinetType.query.get(tmpl.cabinet_type_id)
-        if cabinet and cabinet.annual_qty:
-            projected = cabinet.annual_qty * (months / 12) * tmpl.quantity
+        plan = ProductionPlan.query.filter_by(cabinet_type_id=tmpl.cabinet_type_id).first()
+        annual_qty = plan.annual_qty if plan else 0
+        if cabinet and annual_qty:
+            projected = annual_qty * (months / 12) * tmpl.quantity
             cabinet_data.append({
                 'cabinet': cabinet,
                 'qty_per_unit': tmpl.quantity,
