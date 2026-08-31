@@ -758,7 +758,8 @@ def production_plan():
     cabinets = CabinetType.query.order_by(CabinetType.name).all()
     months = 4
     for cabinet in cabinets:
-        annual_qty = cabinet.production_plan.annual_qty if cabinet.production_plan else 0
+        plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet.id).first()
+        annual_qty = plan.annual_qty if plan else 0
         if annual_qty:
             total_parts = sum(t.quantity for t in cabinet.parts)
             cabinet.projected_consumption = round(annual_qty * (months / 12) * total_parts)
