@@ -9,10 +9,6 @@
 
 <!-- Action buttons -->
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem;">
-    <button onclick="simulateProduction()" class="btn-primary"
-            style="background:#059669; border-color:#059669; color:white; font-weight:600;">
-        🎲 Auto-Simulate
-    </button>
     <button onclick="saveChanges()" class="btn-primary"
             style="background:#4f46e5; border-color:#4f46e5; color:white; font-weight:600;">
         💾 Save Changes
@@ -59,29 +55,6 @@
 </div>
 
 <script>
-function simulateProduction() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = '🔄 Simulating...';
-
-    fetch('/analytics/production-plan/simulate', { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                showMessage(data.error || 'Error', 'error');
-                btn.disabled = false;
-                btn.textContent = '🎲 Auto-Simulate';
-            }
-        })
-        .catch(e => {
-            showMessage('Network error', 'error');
-            btn.disabled = false;
-            btn.textContent = '🎲 Auto-Simulate';
-        });
-}
-
 function saveChanges() {
     const data = {};
     const cabinets = document.querySelectorAll('input[id^="cabinet-"]');

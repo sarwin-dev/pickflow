@@ -59,19 +59,31 @@ def parts_analytics():
         now = datetime.utcnow()
         history_start = now - timedelta(days=history_months * 30)
 
-        completed_orders = WorkOrder.query.filter(
+        real_orders = WorkOrder.query.filter(
             WorkOrder.status == 'completed',
             WorkOrder.is_simulated == False,
             WorkOrder.created_at >= history_start
         ).all()
 
+        simulated_orders = WorkOrder.query.filter(
+            WorkOrder.status == 'completed',
+            WorkOrder.is_simulated == True,
+            WorkOrder.created_at >= history_start
+        ).all()
+
         consumption_real = {}
         fuente = 'estimate'
+        orders_to_use = []
 
-        if completed_orders:
-            fuente = 'history'
+        if real_orders:
+            fuente = 'real'
+            orders_to_use = real_orders
+        elif simulated_orders:
+            fuente = 'simulated'
+            orders_to_use = simulated_orders
 
-            for order in completed_orders:
+        if orders_to_use:
+            for order in orders_to_use:
                 for item in order.items:
                     for part_template in item.cabinet.parts:
                         consumption_real[part_template.part_id] = consumption_real.get(

@@ -31,15 +31,20 @@
 
 <!-- Source Badge -->
 <div style="margin-bottom:1.5rem;">
-    {% if fuente == 'history' %}
+    {% if fuente == 'real' %}
     <div style="display:inline-block; padding:6px 12px; background:#dcfce7; border:1px solid #86efac;
                border-radius:6px; font-size:12px; color:#16a34a; font-weight:600;">
-        ✓ Based on last {{ history_months }} month{{ 's' if history_months != 1 else '' }} of real order history
+        ✓ Based on real order history (last {{ history_months }} month{{ 's' if history_months != 1 else '' }})
+    </div>
+    {% elif fuente == 'simulated' %}
+    <div style="display:inline-block; padding:6px 12px; background:#e0f2fe; border:1px solid #93c5fd;
+               border-radius:6px; font-size:12px; color:#1d4ed8; font-weight:600;">
+        ~ Based on simulated orders (last {{ history_months }} month{{ 's' if history_months != 1 else '' }})
     </div>
     {% else %}
     <div style="display:inline-block; padding:6px 12px; background:#fef3c7; border:1px solid #fde047;
                border-radius:6px; font-size:12px; color:#ca8a04; font-weight:600;">
-        ⚠ Estimate based on Production Plan (no completed orders found)
+        ⚠ Estimate based on Production Plan (no orders found)
     </div>
     {% endif %}
 </div>
