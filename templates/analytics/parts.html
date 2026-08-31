@@ -9,12 +9,20 @@
     </div>
 </div>
 
-<!-- Period Input -->
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-    <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Project for (months):</label>
-    <input type="number" id="period-input" value="{{ period_months }}" min="1" max="24"
-           style="width:70px; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
-                  font-size:13px; font-weight:600;">
+<!-- Period and History Inputs -->
+<div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:1.5rem;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Project for (months):</label>
+        <input type="number" id="period-input" value="{{ period_months }}" min="1" max="24"
+               style="width:70px; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
+                      font-size:13px; font-weight:600;">
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-size:13px; font-weight:600; color:#1e1b4b;">Based on last (months):</label>
+        <input type="number" id="history-input" value="{{ history_months }}" min="1" max="24"
+               style="width:70px; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
+                      font-size:13px; font-weight:600;">
+    </div>
     <button onclick="updatePeriod()" style="padding:8px 16px; background:#1e1b4b; color:white;
            border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">
         Update
@@ -26,7 +34,7 @@
     {% if fuente == 'history' %}
     <div style="display:inline-block; padding:6px 12px; background:#dcfce7; border:1px solid #86efac;
                border-radius:6px; font-size:12px; color:#16a34a; font-weight:600;">
-        ✓ Based on {{ history_months | int }} month{{ 's' if history_months != 1 else '' }} of real order history
+        ✓ Based on last {{ history_months }} month{{ 's' if history_months != 1 else '' }} of real order history
     </div>
     {% else %}
     <div style="display:inline-block; padding:6px 12px; background:#fef3c7; border:1px solid #fde047;
@@ -94,14 +102,20 @@
 
 <script>
 function updatePeriod() {
-    const value = parseInt(document.getElementById('period-input').value);
-    if (value >= 1 && value <= 24) {
-        window.location.href = '/analytics/parts?period_months=' + value;
+    const period = parseInt(document.getElementById('period-input').value);
+    const history = parseInt(document.getElementById('history-input').value);
+    if ((period >= 1 && period <= 24) && (history >= 1 && history <= 24)) {
+        window.location.href = '/analytics/parts?period_months=' + period + '&history_months=' + history;
     } else {
-        alert('Please enter a value between 1 and 24');
+        alert('Please enter values between 1 and 24 for both fields');
     }
 }
 document.getElementById('period-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        updatePeriod();
+    }
+});
+document.getElementById('history-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         updatePeriod();
     }

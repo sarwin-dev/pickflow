@@ -47,27 +47,29 @@ def index():
 @analytics_bp.route('/parts')
 @supervisor_required
 def parts_analytics():
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     period_months = request.args.get('period_months', 1, type=int)
     period_months = max(1, min(24, period_months))
 
+    history_months = request.args.get('history_months', 3, type=int)
+    history_months = max(1, min(24, history_months))
+
     def calcular_proyeccion():
+        now = datetime.utcnow()
+        history_start = now - timedelta(days=history_months * 30)
+
         completed_orders = WorkOrder.query.filter(
             WorkOrder.status == 'completed',
-            WorkOrder.is_simulated == False
+            WorkOrder.is_simulated == False,
+            WorkOrder.created_at >= history_start
         ).all()
 
         consumption_real = {}
-        history_months_count = 0
         fuente = 'estimate'
 
         if completed_orders:
             fuente = 'history'
-            oldest_order = min(o.created_at for o in completed_orders)
-            newest_order = max(o.created_at for o in completed_orders)
-            history_days = (newest_order - oldest_order).days
-            history_months_count = max(history_days / 30.0, 1)
 
             for order in completed_orders:
                 for item in order.items:
@@ -77,10 +79,9 @@ def parts_analytics():
                         ) + part_template.quantity
 
             for part_id in consumption_real:
-                monthly_avg = consumption_real[part_id] / history_months_count
+                monthly_avg = consumption_real[part_id] / history_months
                 consumption_real[part_id] = monthly_avg
         else:
-            history_months_count = 0
             for cabinet in CabinetType.query.filter(CabinetType.annual_qty > 0).all():
                 for tmpl in cabinet.parts:
                     monthly_avg = (cabinet.annual_qty / 12) * tmpl.quantity
@@ -119,12 +120,12 @@ def parts_analytics():
 
         critical_count = sum(1 for r in rows if r['stock'] < r['consumo_mensual'])
 
-        return rows, fuente, history_months_count, critical_count
+        return rows, fuente, critical_count
 
-    rows, fuente, history_months_count, critical_count = calcular_proyeccion()
+    rows, fuente, critical_count = calcular_proyeccion()
 
     return render_template('analytics/parts.html', rows=rows, period_months=period_months,
-                          fuente=fuente, history_months=history_months_count,
+                          history_months=history_months, fuente=fuente,
                           critical_count=critical_count)
 
 
