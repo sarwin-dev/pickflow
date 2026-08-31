@@ -793,23 +793,10 @@ def update_annual_qty():
 @admin_bp.route('/demo/production-plan/simulate', methods=['POST'])
 @admin_required
 def simulate_production_plan():
+    import random
     cabinets = CabinetType.query.all()
     for cabinet in cabinets:
-        w = cabinet.width or 0
-        if w <= 9:
-            qty = 150
-        elif w <= 12:
-            qty = 120
-        elif w <= 15:
-            qty = 100
-        elif w <= 18:
-            qty = 80
-        elif w <= 21:
-            qty = 60
-        elif w <= 24:
-            qty = 50
-        else:
-            qty = 36
+        qty = random.randint(60, 120)
         plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet.id).first()
         if not plan:
             plan = ProductionPlan(cabinet_type_id=cabinet.id)
