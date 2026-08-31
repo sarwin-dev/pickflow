@@ -756,16 +756,16 @@ def demo_clear_simulated_orders():
 @admin_required
 def production_plan():
     cabinets = CabinetType.query.order_by(CabinetType.name).all()
+    plans = {p.cabinet_type_id: p.annual_qty for p in ProductionPlan.query.all()}
     months = 4
     for cabinet in cabinets:
-        plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet.id).first()
-        annual_qty = plan.annual_qty if plan else 0
+        annual_qty = plans.get(cabinet.id, 0)
         if annual_qty:
             total_parts = sum(t.quantity for t in cabinet.parts)
             cabinet.projected_consumption = round(annual_qty * (months / 12) * total_parts)
         else:
             cabinet.projected_consumption = 0
-    return render_template('admin/production_plan.html', cabinets=cabinets, months=months)
+    return render_template('admin/production_plan.html', cabinets=cabinets, months=months, plans=plans)
 
 
 @admin_bp.route('/demo/production-plan/update', methods=['POST'])

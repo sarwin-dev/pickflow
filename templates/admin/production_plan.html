@@ -39,7 +39,7 @@
                 <td style="text-align:center;">
                     <input type="number"
                            id="cabinet-{{ cabinet.id }}"
-                           value="{{ cabinet.production_plan.annual_qty if cabinet.production_plan else 0 }}"
+                           value="{{ plans.get(cabinet.id, 0) }}"
                            min="0"
                            max="999"
                            style="width:80px; padding:6px; border:1px solid #d1d5db; border-radius:4px;
