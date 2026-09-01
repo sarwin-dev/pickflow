@@ -638,6 +638,7 @@ body {
 @media (max-width: 768px) {
     .main-content {
         padding: 1.5rem 1rem;
+        overflow-x: hidden;
     }
 
     .table-container {
@@ -724,6 +725,7 @@ body {
     .data-table th,
     .data-table td {
         padding: 8px 4px;
+        white-space: nowrap;
     }
 
     .dashboard-header {
