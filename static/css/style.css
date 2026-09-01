@@ -333,8 +333,6 @@ body {
     border-radius: 12px;
     overflow-x: auto;
     border: 1px solid #e5e7eb;
-    min-height: 70vh;
-    height: auto;
 }
 
 .data-table {
