@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash
 from extensions import db
-from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem, ProductionPlan
+from models import User, CabinetType, PartTemplate, Part, WarehouseConfig, Color, Inventory, ShoppingListItem, Loss, WorkOrder, OrderItem, PickItem
 from routes.auth import admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -618,19 +618,20 @@ def demo_simulate_orders():
     if not config:
         return jsonify({'error': 'Warehouse not configured'}), 400
 
-    cabinets = CabinetType.query.filter(CabinetType.annual_qty > 0).all()
+    cabinets = CabinetType.query.all()
     if not cabinets:
-        return jsonify({'error': 'No cabinet types with annual_qty set'}), 400
+        return jsonify({'error': 'No cabinet types configured'}), 400
 
     colors = Color.query.all()
     if not colors:
         return jsonify({'error': 'No colors configured'}), 400
 
-    # Calcula órdenes proyectadas en el período
-    total_units_year = sum(c.annual_qty or 0 for c in cabinets)
-    orders_this_period = max(1, int(total_units_year * (months / 12) / 4))  # ~4 units per order avg
+    max_slots = config.max_cart_slots if config else 24
+    gabinetes_por_orden = random.randint(round(max_slots * 0.75), max_slots)
+    monthly_cabinets = random.randint(300, 600)
+    ordenes_por_mes = max(1, monthly_cabinets // gabinetes_por_orden)
+    orders_this_period = ordenes_por_mes * months
 
-    # Distribuye órdenes en los N meses
     order_dates = []
     now = datetime.utcnow()
     for _ in range(orders_this_period):
@@ -642,27 +643,21 @@ def demo_simulate_orders():
     orders_created = 0
 
     try:
-        # Limpia órdenes simuladas previas
         simulated_orders = WorkOrder.query.filter(WorkOrder.order_number.like('SIM-%')).all()
         for order in simulated_orders:
-            # Borra PickItems primero
             for item in order.items:
                 PickItem.query.filter_by(order_item_id=item.id).delete()
-            # Borra OrderItems
             OrderItem.query.filter_by(work_order_id=order.id).delete()
-        # Borra WorkOrders
         WorkOrder.query.filter(WorkOrder.order_number.like('SIM-%')).delete()
         db.session.flush()
 
         for order_date in order_dates:
-            # Genera nombre único para orden simulada
             order_number = f"SIM-{order_date.strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
             job_name = f"Simulated-{order_date.strftime('%m%d')}-{random.randint(100, 999)}"
             color = random.choice(colors)
 
-            # Selecciona N cabinet types para esta orden (1-3 por orden)
-            num_cabinets = random.randint(1, min(3, len(cabinets)))
-            selected_cabinets = random.sample(cabinets, num_cabinets)
+            num_cabinets = random.randint(round(gabinetes_por_orden * 0.75), gabinetes_por_orden)
+            selected_cabinets = random.sample(cabinets, min(num_cabinets, len(cabinets)))
 
             order = WorkOrder(
                 order_number=order_number,
@@ -677,7 +672,6 @@ def demo_simulate_orders():
             db.session.add(order)
             db.session.flush()
 
-            # Agrega cabinet types como items y consume partes
             for slot, cabinet in enumerate(selected_cabinets, 1):
                 item = OrderItem(
                     work_order_id=order.id,
@@ -688,12 +682,10 @@ def demo_simulate_orders():
                 db.session.add(item)
                 db.session.flush()
 
-                # Consume partes del inventario
                 for part_template in cabinet.parts:
                     qty_to_consume = part_template.quantity
                     total_parts_consumed += qty_to_consume
 
-                    # Resta del inventario overflow
                     overflow_records = Inventory.query.filter(
                         Inventory.part_id == part_template.part_id,
                         Inventory.is_active == False,
@@ -750,52 +742,6 @@ def demo_clear_simulated_orders():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
-
-@admin_bp.route('/demo/production-plan')
-@admin_required
-def production_plan():
-    cabinets = CabinetType.query.order_by(CabinetType.name).all()
-    plans = {p.cabinet_type_id: p.annual_qty for p in ProductionPlan.query.all()}
-    return render_template('admin/production_plan.html', cabinets=cabinets, plans=plans)
-
-
-@admin_bp.route('/demo/production-plan/update', methods=['POST'])
-@admin_required
-def update_annual_qty():
-    data = request.get_json()
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-    updated = 0
-    for cabinet_id_str, qty in data.items():
-        try:
-            cabinet_id = int(cabinet_id_str)
-            plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet_id).first()
-            if not plan:
-                plan = ProductionPlan(cabinet_type_id=cabinet_id)
-                db.session.add(plan)
-            plan.annual_qty = max(0, int(qty))
-            updated += 1
-        except (ValueError, TypeError):
-            continue
-    db.session.commit()
-    return jsonify({'success': True, 'updated': updated})
-
-
-@admin_bp.route('/demo/production-plan/simulate', methods=['POST'])
-@admin_required
-def simulate_production_plan():
-    import random
-    cabinets = CabinetType.query.all()
-    for cabinet in cabinets:
-        qty = random.randint(60, 120)
-        plan = ProductionPlan.query.filter_by(cabinet_type_id=cabinet.id).first()
-        if not plan:
-            plan = ProductionPlan(cabinet_type_id=cabinet.id)
-            db.session.add(plan)
-        plan.annual_qty = qty
-    db.session.commit()
-    return jsonify({'success': True, 'count': len(cabinets)})
 
 
 @admin_bp.route('/setup-wizard', methods=['POST'])

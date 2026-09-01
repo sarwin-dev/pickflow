@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db
-from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig, WorkOrder, OrderItem, ProductionPlan
+from models import Part, Inventory, CabinetType, PartTemplate, WarehouseConfig, WorkOrder, OrderItem
 from sqlalchemy import func
 from routes.auth import supervisor_required
 
@@ -14,31 +14,7 @@ def index():
     total_parts = Part.query.count()
     total_cabinets = CabinetType.query.count()
 
-    # Contar partes críticas (< 1 mes stock)
-    MONTHS = 4
-    consumption = {}
-    plans = db.session.query(ProductionPlan).filter(ProductionPlan.annual_qty > 0).all()
-    for plan in plans:
-        cabinet = plan.cabinet
-        for tmpl in cabinet.parts:
-            projected = plan.annual_qty * (MONTHS / 12) * tmpl.quantity
-            consumption[tmpl.part_id] = consumption.get(tmpl.part_id, 0) + projected
-
-    from sqlalchemy import func
-    overflow = dict(
-        db.session.query(Inventory.part_id, func.sum(Inventory.quantity))
-        .filter(Inventory.is_active == False)
-        .group_by(Inventory.part_id)
-        .all()
-    )
-
     critical_count = 0
-    for part_id, consumed in consumption.items():
-        monthly_avg = consumed / MONTHS
-        stock = overflow.get(part_id, 0)
-        months_remaining = (stock / monthly_avg) if monthly_avg > 0 else None
-        if months_remaining is not None and months_remaining < 1:
-            critical_count += 1
 
     return render_template('analytics/index.html',
                           total_parts=total_parts,
@@ -96,12 +72,7 @@ def parts_analytics():
                 monthly_avg = consumption_real[part_id] / history_months
                 consumption_real[part_id] = monthly_avg
         else:
-            plans = db.session.query(ProductionPlan).filter(ProductionPlan.annual_qty > 0).all()
-            for plan in plans:
-                cabinet = plan.cabinet
-                for tmpl in cabinet.parts:
-                    monthly_avg = (plan.annual_qty / 12) * tmpl.quantity
-                    consumption_real[tmpl.part_id] = consumption_real.get(tmpl.part_id, 0) + monthly_avg
+            pass
 
         overflow = dict(
             db.session.query(Inventory.part_id, func.sum(Inventory.quantity))
@@ -155,17 +126,6 @@ def part_detail(part_id):
     templates = PartTemplate.query.filter_by(part_id=part_id).all()
 
     cabinet_data = []
-    for tmpl in templates:
-        cabinet = CabinetType.query.get(tmpl.cabinet_type_id)
-        plan = ProductionPlan.query.filter_by(cabinet_type_id=tmpl.cabinet_type_id).first()
-        annual_qty = plan.annual_qty if plan else 0
-        if cabinet and annual_qty:
-            projected = annual_qty * (months / 12) * tmpl.quantity
-            cabinet_data.append({
-                'cabinet': cabinet,
-                'qty_per_unit': tmpl.quantity,
-                'projected': round(projected),
-            })
 
     cabinet_data.sort(key=lambda x: x['projected'], reverse=True)
 

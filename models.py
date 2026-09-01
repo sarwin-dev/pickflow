@@ -141,14 +141,6 @@ class Loss(db.Model):
     part = db.relationship('Part', backref='losses')
     reporter = db.relationship('User', backref='losses')
 
-class ProductionPlan(db.Model):
-    __tablename__ = 'production_plan'
-    id = db.Column(db.Integer, primary_key=True)
-    cabinet_type_id = db.Column(db.Integer, db.ForeignKey('cabinet_types.id'), nullable=False, unique=True)
-    annual_qty = db.Column(db.Integer, nullable=False, default=0, server_default='0')
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    cabinet = db.relationship('CabinetType', backref='production_plan', uselist=False)
-
 class WarehouseConfig(db.Model):
     __tablename__ = 'warehouse_config'
     id = db.Column(db.Integer, primary_key=True)
