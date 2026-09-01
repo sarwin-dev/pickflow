@@ -331,9 +331,9 @@ body {
 .table-container {
     background: white;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
     border: 1px solid #e5e7eb;
-    min-height: 60vh;
+    min-height: 70vh;
     height: auto;
 }
 
