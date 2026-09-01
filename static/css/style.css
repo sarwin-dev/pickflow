@@ -629,3 +629,126 @@ body {
     color: #374151;
     font-weight: 500;
 }
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablets and medium screens (768px and down) */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1.5rem 1rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        min-width: 600px;
+    }
+
+    .modules-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .form-card {
+        width: 100%;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .dashboard-header > div:last-child {
+        width: 100%;
+    }
+
+    .dashboard-header a.btn-create {
+        width: 100%;
+    }
+}
+
+/* Mobile phones (480px and down) */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .module-card {
+        padding: 12px;
+    }
+
+    .module-card h3 {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .module-card p {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .role-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-delete {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .btn-filter {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin: 4px 4px 4px 0;
+    }
+
+    .data-table {
+        min-width: 500px;
+        font-size: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 4px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 1rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 22px;
+    }
+
+    .dashboard-header p {
+        font-size: 12px;
+    }
+
+    .form-card {
+        padding: 16px;
+    }
+
+    .form-card label {
+        font-size: 13px;
+    }
+
+    .form-card input,
+    .form-card select,
+    .form-card textarea {
+        font-size: 14px;
+    }
+}
