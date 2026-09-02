@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
 from extensions import db
-from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate
+from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate, WarehouseConfig
 from datetime import datetime
 from routes.auth import picker_required, supervisor_required
 
