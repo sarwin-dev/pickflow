@@ -76,7 +76,7 @@ def index():
 
         # Loop optimizado sin build_part_item
         for part in parts:
-            records = records_by_part.get(part.id, [])
+            records = [r for r in records_by_part.get(part.id, []) if r.quantity > 0 or r.is_active]
             overflow_total = sum(r.quantity for r in records if not r.is_active and r.quantity > 0)
             active_total = sum(r.quantity for r in records if r.is_active and r.quantity > 0)
             min_qty = records[0].min_quantity if records else 0

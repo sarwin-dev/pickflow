@@ -698,6 +698,8 @@ def demo_simulate_orders():
                         consume = min(qty_to_consume, record.quantity)
                         record.quantity -= consume
                         qty_to_consume -= consume
+                        if record.quantity <= 0:
+                            db.session.delete(record)
 
             orders_created += 1
 
