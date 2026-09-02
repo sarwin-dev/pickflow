@@ -14,12 +14,10 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 4. **Clic en "Load Demo"** - carga datos realistas de ejemplo
    - ⏱️ Espera 10 segundos
    - Verás: "Loaded: X colors, X cabinet types, X parts, X active records"
-5. **Clic en "Simulate Production"** (en Admin → Demo Tools)
-   - Esto establece cantidades anuales realistas
-   - Necesario para que Analytics funcione
-6. **Clic en "Simulate X Months of Orders"** con valor = 3
-   - Genera 3 meses de órdenes completadas
-   - Esto llena el histórico de consumo
+5. **Clic en "Simulate X Months of Orders"** con valor = 3
+   - Genera 3 meses de órdenes completadas con prefijo SIM-
+   - Distribuye órdenes en el pasado con fechas realistas
+   - Esto llena el histórico de consumo para Analytics
    - ⏱️ Espera 5 segundos
 
 **✅ Ahora tienes datos reales para demostrar**
@@ -68,53 +66,44 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
    - Rojo "OUT" = completamente agotada
 5. **Abre el badge rojo** (si hay partes agotadas)
    - "Esto notifica de inmediato qué falta"
+6. **Muestra Shopping List** (botón abajo)
+   - "Aquí agregamos partes a reabastecer"
+   - "Click en PDF para generar lista de compra con el nombre de tu empresa"
 
 **Key message:** "Visibilidad total del inventario en tiempo real"
 
 ---
 
-### Demostración 3: Analytics - El Corazón de la Demo (5 min)
+### Demostración 3: Analytics - Proyecciones Inteligentes (5 min)
 
 **Contexto:** "Aquí es donde la magia sucede - predecimos qué va a faltar"
 
-#### Pantalla A: Parts Analytics
+#### Parts Analytics
 
-1. **Navega a Analytics → (card grande)**
-2. **Muestra el selector de meses** arriba a la derecha
-3. **Explica qué ves:**
-   - "Parts tracked" - cuántas partes diferentes seguimos
-   - "Total X-mo units" - cuántas partes se van a usar en ese período
-   - "Critical" - cuáles van a faltar en menos de 1 mes
+1. **Navega a Analytics**
+2. **Muestra los dos inputs arriba:**
+   - **"Project for (months)"** - cuántos meses a proyectar (1-24)
+   - **"Based on last (months)"** - cuántos meses históricos analizar (1-24)
+   - Explica: "Miramos los últimos 3 meses de órdenes para predecir los próximos 4"
+3. **Explica el badge de fuente:**
+   - **Verde** = "Usando órdenes reales" (órdenes no-simuladas completadas)
+   - **Azul** = "Usando órdenes simuladas" (prefijo SIM-, cuando no hay reales)
+   - **Amarillo** = "Sin historial, usando estimación" (cuando no hay datos)
 4. **Muestra la tabla:**
    - Ranking por consumo (más consumida arriba)
    - Colores: rojo (crítico), naranja (bajo), amarillo (watch), verde (OK)
-5. **Click en una parte** (cualquiera en rojo o naranja)
+5. **Muestra métricas clave:**
+   - "Parts tracked" - cuántas partes diferentes seguimos
+   - "Total X-mo units" - cuántas partes se van a usar en ese período
+   - "Critical" - cuáles van a faltar en menos de 1 mes
+6. **Click en una parte** (cualquiera en rojo o naranja)
    - **Drill-down:** Ve qué tipos de gabinete la usan
-   - Muestra: Cabinet Type, Annual Qty, Proyección
+   - Muestra: Cabinet Type, Width, Per Unit, Projected
 
 **Cambia período:** click en "6 mo" - ve cómo cambian los números
 - "Enero necesitamos 500, pero en 6 meses necesitamos 3000"
 
-#### Pantalla B: Production Plan
-
-1. **Navega a Analytics → Production Plan**
-2. **Muestra la tabla:**
-   - Cabinet Type (nombre del gabinete)
-   - Annual Qty (cuántos fabricamos/año)
-   - 4-mo Projection (cuántos necesitamos en 4 meses)
-3. **Explica el flujo:**
-   - "Si fabricamos 100 gabinetes base por año..."
-   - "...necesitamos 4 paneles laterales cada uno..."
-   - "...en 4 meses necesitamos 1,300 paneles"
-4. **Clic en "Auto-Simulate"**
-   - Llena automáticamente basado en tamaño del gabinete
-   - Realista: gabinetes chicos = más cantidad/año
-5. **Muestra edición manual:**
-   - Cambia un valor (ej: base cabinet 150 → 200)
-   - Click "Save Changes"
-   - Verás "Saved X cabinet types"
-
-**Key message:** "Planeación automática basada en tu producción real"
+**Key message:** "Predicción automática basada en historial real"
 
 ---
 
@@ -125,7 +114,7 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 1. **Navega a Order Entry**
 2. **Clic en "Create New Order"**
 3. **Rellena:**
-   - Order Number: "DEMO-001"
+   - Job Name: "DEMO-001"
    - Color: selecciona cualquiera
    - Cabinets: agrega 2-3 tipos
 4. **Explica slots:** "Cada gabinete es una línea del trabajo"
@@ -149,21 +138,97 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
    - Verde = ya recogidas
    - Gris = esperando
    - Rojo = no hay stock
+6. **Muestra botón "Complete"** (visible para admin/supervisor)
+   - "Este botón marca automáticamente todas las partes como seleccionadas"
+   - "Útil cuando terminas de pick la orden"
+7. **Muestra botón "Print PDF"**
+   - "Genera lista de picking con ubicaciones exactas"
+   - "Incluye el nombre de tu empresa en el header"
 
 **Key message:** "Guía visual para el almacenero, sin confusiones"
 
 ---
 
-### Demostración 6: Demo Tools - Preparación (1 min)
+### Demostración 6: Supervision - Supervisar Estado General (2 min)
 
-**Contexto:** "Herramientas para simular escenarios"
+**Contexto:** "El supervisor ve métricas en tiempo real"
+
+1. **Navega a Supervision**
+2. **Muestra las tres métricas principales:**
+   - **Active Orders** - órdenes en progreso ahora mismo
+   - **Completed Today** - cuántas órdenes se terminaron hoy
+   - **Missing Items** - cuántas partes no tienen stock en órdenes activas
+3. **Explica el filtro:**
+   - "Click en el selector de fecha para ver histórico"
+   - "Se actualiza automáticamente cada 60 segundos"
+4. **Muestra el botón "Complete"** (verde, solo para admin/supervisor)
+   - "Click aquí marca toda la orden como completada"
+   - "Genera automáticamente los picks si no existen"
+
+**Key message:** "Supervisión en tiempo real sin abrir cinco pantallas"
+
+---
+
+### Demostración 7: Losses - Registrar Daños y Pérdidas (1 min)
+
+**Contexto:** "Cuando algo se daña o se pierde, se registra aquí"
+
+1. **Navega a Losses**
+2. **Muestra el listado:**
+   - Categorías: damage, lost, expired, defect, other
+   - Filtro por período (última semana, mes, etc.)
+   - Filtro por categoría
+3. **Muestra el resumen:**
+   - Total de partes perdidas
+   - Categoría más común
+4. **Explica la edición:**
+   - "Click en un registro para editar o eliminar"
+5. **Muestra el botón "Print PDF"**
+   - "Genera reporte de pérdidas en escala de grises"
+   - "Incluye el nombre de tu empresa en el header"
+
+**Key message:** "Trazabilidad de pérdidas para análisis y auditoría"
+
+---
+
+### Demostración 8: Demo Tools - Herramientas de Simulación (1 min)
+
+**Contexto:** "Herramientas para preparar demos y simular escenarios"
 
 1. **Vuelve a Admin → Demo Tools**
-2. **Muestra cada sección:**
-   - "Load Demo" = resetea a datos iniciales
-   - "Fill Overflow Warehouse" = llena todos los espacios
-   - "Simulate X Months of Orders" = crea histórico
-   - "Simulate Production" = auto-completa plan anual
+2. **Muestra cada card:**
+
+   **Load Demo State**
+   - Resetea a datos iniciales desde demo_seed.json
+   - Limpia todo y recarga demo limpio
+
+   **Fill Overflow Warehouse**
+   - Llena todos los espacios de overflow con partes aleatorias
+   - Cantidad: 90, 100 o 120 unidades por caja
+   - Garantiza que cada parte aparece al menos una vez
+   - **Botón "Clear"** dentro del mismo card elimina overflow
+
+   **Generate Random Work Order**
+   - Crea una orden con 8-16 gabinetes aleatorios
+   - Genera automáticamente job name y lot number
+   - Click múltiples veces para generar más órdenes
+
+   **Simulate X Months of Orders**
+   - Genera órdenes completadas con prefijo SIM-
+   - Distribuye órdenes en el pasado con fechas realistas
+   - Cantidad de gabinetes: 75%-100% de max_cart_slots
+   - Consume inventario de overflow durante la simulación
+   - Registros con cantidad ≤ 0 se eliminan automáticamente
+
+   **Clear Simulated Orders**
+   - Elimina todas las órdenes con prefijo SIM-
+   - Preserva órdenes reales e inventario
+
+   **Clear Everything**
+   - ⚠️ Borra ABSOLUTAMENTE TODO
+   - Colores, tipos, partes, usuarios, órdenes
+   - Solo usa si quieres empezar de cero
+
 3. **Explica el uso:**
    - "Para demos usamos esto"
    - "En producción real, tú cargas tus datos reales"
@@ -185,11 +250,20 @@ Lugares en el almacén donde aún cabe inventario. No todas las ubicaciones est�
 - Ayuda a saber dónde guardar una caja sin conflictos
 - La app previene que pongas dos cajas en el mismo lugar
 
-### "¿Qué hace 'Auto-Simulate'?"
-Completa automáticamente tu plan de producción basándose en el tamaño de cada gabinete.
-- Gabinetes pequeños = más cantidad/año (más rápidos de hacer)
-- Gabinetes grandes = menos cantidad/año (más lentos de hacer)
-Es un punto de partida realista que puedes editar.
+### "¿Cómo elige Analytics qué datos mostrar?"
+Analytics analiza en orden de prioridad:
+1. **Real:** órdenes completadas reales (sin prefijo SIM-)
+2. **Simulated:** órdenes con prefijo SIM- (cuando no hay reales)
+3. **Estimate:** valores por defecto (cuando no hay ningún dato)
+
+Así siempre tienes un número, aunque sea estimado.
+
+### "¿Qué hace 'Auto-Simulate' en Demo Tools?"
+Genera órdenes simuladas (prefijo SIM-) con consumo realista.
+- Cantidad de gabinetes por orden: aleatorio entre 75%-100% de max_cart_slots
+- Distribuye órdenes en el pasado con fechas realistas
+- Consume inventario de overflow
+- Perfecto para llenar el histórico sin esperar meses reales
 
 ### "¿Para qué simulamos X meses de órdenes?"
 Para probar el sistema con datos reales sin esperar meses.
@@ -218,14 +292,21 @@ Poco. Los módulos son intuitivos.
 Se puede editar o eliminar:
 - Inventory: edita ubicación, cantidad, o elimina el registro
 - Receiving: no se puede editar (es un log), pero sí compensar con otro registro
+- Losses: edita o elimina cualquier registro
 - Analytics: los números se recalculan automáticamente
 
 ### "¿Cómo sincroniza con mi sistema de producción?"
 PickFlow es independiente. Carga tus datos:
 - Partes manuales (Admin → Parts) o vía CSV
-- Cantidades anuales (Production Plan)
 - Luego funciona como sistema de control
-Puede conectarse a otros sistemas vía API en el futuro.
+- Puede conectarse a otros sistemas vía API en el futuro
+
+### "¿Por qué aparecen órdenes con prefijo 'SIM-'?"
+Son órdenes generadas por Demo Tools para simular histórico.
+- Aparecen en Order Entry y Pick como órdenes normales
+- Se pueden marcar como completadas como cualquier otra
+- Útiles para demos sin esperar datos reales
+- Se pueden limpiar con "Clear Simulated Orders" en Demo Tools
 
 ---
 
@@ -235,13 +316,14 @@ Puede conectarse a otros sistemas vía API en el futuro.
 
 ### 🔴 NUNCA presiones estos:
 
-1. **Admin → Demo Tools → "Clear All"**
+1. **Admin → Demo Tools → "Clear Everything"**
    - Borra ABSOLUTAMENTE TODO
    - Colores, tipos, partes, usuarios, órdenes
    - Solo usa si quieres empezar de cero
 
-2. **Admin → Demo Tools → "Clear Overflow"**
+2. **Admin → Demo Tools → Fill Overflow Warehouse → "Clear"**
    - Borra todo el inventario de overflow
+   - Está dentro del mismo card, cuidado no presiones por accidente
    - Queremos mostrar stock en la demo
 
 3. **Inventory → "Delete Record"**
@@ -260,23 +342,26 @@ Puede conectarse a otros sistemas vía API en el futuro.
 - Ver Analytics
 - Clickear drill-downs
 - Abrir/cerrar paneles
+- Cambiar inputs de período en Analytics
+- Ver histórico en Supervision
 
 ### 🛡️ Si algo se daña:
 
 1. Ve a **Admin → Demo Tools**
 2. **Clic en "Load Demo"** = resetea todo a estado inicial
-3. Luego **"Simulate Production"** + **"Simulate X Months"** para repopular
+3. Luego **"Simulate X Months"** (con valor 3) para repopular histórico
 4. Continúa demostrando
 
 ---
 
 ## 💡 Notas Finales
 
-- **Tiempo total demo:** 15-20 minutos
+- **Tiempo total demo:** 18-25 minutos
 - **Mejor horario:** después de "Load Demo", que tarda 10-15 seg
-- **Flujo natural:** Demo Tools → Receiving → Inventory → Analytics → Pick → Orders
+- **Flujo natural:** Demo Tools → Receiving → Inventory → Analytics → Pick → Supervision → Losses
 - **Si el cliente pregunta por API/integraciones:** "Está en roadmap, ahora es independiente"
 - **Si pregunta por móvil:** "Pick module optimizado para móvil, otros módulos en web"
+- **Si pregunta por roles:** "5 roles: admin, supervisor, order_entry, picker, warehouse"
 
 ---
 
@@ -291,4 +376,3 @@ Este documento se actualiza cuando aprendemos algo nuevo sobre cómo explicar la
 - Nuevas features que agreguemos
 
 Cuando descubras algo, avísale al equipo para actualizar aquí.
-
