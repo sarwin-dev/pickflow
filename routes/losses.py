@@ -98,6 +98,9 @@ def pdf():
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import inch
 
+    config = WarehouseConfig.query.first()
+    company_name = config.name if config and config.name else 'PickFlow'
+
     losses = Loss.query.order_by(Loss.reported_at.desc()).all()
     navy  = colors.HexColor('#1e1b4b')
     light = colors.HexColor('#f9fafb')
@@ -111,9 +114,11 @@ def pdf():
 
     title_s = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=navy, spaceAfter=2)
     meta_s  = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=colors.HexColor('#6b7280'), spaceAfter=10)
+    company_s = ParagraphStyle('c', fontSize=9, fontName='Helvetica', textColor=colors.HexColor('#9ca3af'), spaceAfter=4)
     summary_title_s = ParagraphStyle('st', fontSize=12, fontName='Helvetica-Bold', textColor=navy, spaceAfter=8)
 
     elements = [
+        Paragraph(company_name, company_s),
         Paragraph('LOSS & DAMAGE REPORT', title_s),
         Paragraph(f"Generated: {datetime.now().strftime('%m/%d/%Y %I:%M %p')}  ·  Total records: {len(losses)}", meta_s),
     ]

@@ -362,6 +362,9 @@ def generate_pdf(order_id):
     from flask import send_file
     from datetime import datetime as dt
 
+    config = WarehouseConfig.query.first()
+    company_name = config.name if config and config.name else 'PickFlow'
+
     order = WorkOrder.query.get(order_id)
 
     # misma logica de agrupacion que pick_order
@@ -409,9 +412,11 @@ def generate_pdf(order_id):
     title_s  = ParagraphStyle('t', fontSize=15, fontName='Helvetica-Bold', textColor=text_black, spaceAfter=2)
     meta_s   = ParagraphStyle('m', fontSize=9,  fontName='Helvetica', textColor=text_black, spaceAfter=8)
     cart_s   = ParagraphStyle('c', fontSize=12, fontName='Helvetica-Bold', textColor=text_black, spaceAfter=6)
+    company_s = ParagraphStyle('co', fontSize=9, fontName='Helvetica', textColor=colors.HexColor('#9ca3af'), spaceAfter=4)
 
     def build_section(cart_label, groups):
         elems = [
+            Paragraph(company_name, company_s),
             Paragraph('CASE PICK LIST', title_s),
             Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Picker: {session['user_name']}  ·  {now_str}", meta_s),
             Paragraph(f"▌ {cart_label}", cart_s),
