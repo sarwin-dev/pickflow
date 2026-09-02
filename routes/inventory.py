@@ -55,8 +55,47 @@ def index():
         else:
             parts = Part.query.order_by(Part.name).all()
 
+        # Query 1: todos los registros de inventario de las partes encontradas
+        part_ids = [p.id for p in parts]
+        all_records = Inventory.query.filter(
+            Inventory.part_id.in_(part_ids)
+        ).order_by(
+            cast(Inventory.aisle, Integer),
+            cast(Inventory.bay, Integer),
+            cast(Inventory.shelf, Integer),
+            nullslast(cast(Inventory.location, Integer))
+        ).all()
+
+        # Query 2: partes en shopping list
+        shopping_part_ids = {s.part_id for s in ShoppingListItem.query.with_entities(ShoppingListItem.part_id).all()}
+
+        # Agrupa registros por part_id en un dict
+        records_by_part = {}
+        for r in all_records:
+            records_by_part.setdefault(r.part_id, []).append(r)
+
+        # Loop optimizado sin build_part_item
         for part in parts:
-            item = build_part_item(part)
+            records = records_by_part.get(part.id, [])
+            overflow_total = sum(r.quantity for r in records if not r.is_active and r.quantity > 0)
+            active_total = sum(r.quantity for r in records if r.is_active and r.quantity > 0)
+            min_qty = records[0].min_quantity if records else 0
+            if overflow_total == 0:
+                status = 'out'
+            elif overflow_total <= min_qty:
+                status = 'low'
+            else:
+                status = 'ok'
+            in_list = part.id in shopping_part_ids
+            needs_pulldown = part.is_on_hold and overflow_total > 0
+            active_record = next((r for r in records if r.is_active and r.quantity > 0), None)
+            item = {
+                'part': part, 'records': records,
+                'overflow_total': overflow_total, 'active_total': active_total,
+                'min_qty': min_qty, 'status': status, 'in_list': in_list,
+                'needs_pulldown': needs_pulldown,
+                'active_record_id': active_record.id if active_record else None,
+            }
             if filter_mode == 'low' and item['status'] == 'ok':
                 continue
             if filter_mode == 'low' and item['in_list']:
