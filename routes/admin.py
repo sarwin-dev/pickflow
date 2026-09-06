@@ -230,6 +230,11 @@ def warehouse_config():
         config.total_shelves = int(request.form['total_shelves'])
         config.total_locations = int(request.form['total_locations'])
         config.active_shelves = int(request.form['active_shelves'])
+
+        if config.active_shelves >= config.total_shelves:
+            flash('Active shelves must be less than total shelves. You need at least 1 overflow shelf.', 'error')
+            return redirect(url_for('admin.warehouse_config'))
+
         config.max_cart_slots = int(request.form.get('max_cart_slots', 24))
         config.label_aisle = request.form.get('label_aisle', 'Aisle')
         config.label_bay = request.form.get('label_bay', 'Bay')
@@ -758,6 +763,9 @@ def setup_wizard():
         total_shelves = int(data.get('total_shelves', 6))
         active_shelves = int(data.get('active_shelves', 2))
         total_locations = int(data.get('total_locations', 4))
+
+        if active_shelves >= total_shelves:
+            return jsonify({'error': 'Active shelves must be less than total shelves. You need at least 1 overflow shelf.'}), 400
 
         warehouse_config = WarehouseConfig.query.first()
 
