@@ -412,6 +412,11 @@ body {
     color: #9d174d;
 }
 
+.role-warehouse {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
 /* ============================================
    FORMULARIO CARD - formularios en tarjeta
    ============================================ */
