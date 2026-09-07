@@ -224,6 +224,9 @@ window.freeLocationsData = null;
 // Carga ubicaciones libres al iniciar la página
 loadFreeLocations();
 
+// Refresca el contador cada 30 segundos
+setInterval(loadFreeLocations, 30000);
+
 freeLocationsBtn.addEventListener('click', () => {
     freeLocationsModal.style.display = 'block';
     loadFreeLocationsAndShowAisles();
