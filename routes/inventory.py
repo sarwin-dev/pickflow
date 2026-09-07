@@ -77,6 +77,14 @@ def index():
         # Loop optimizado sin build_part_item
         for part in parts:
             records = [r for r in records_by_part.get(part.id, []) if r.quantity > 0 or r.is_active]
+            # Ordena: Active primero, luego Overflow por aisle, bay, shelf, location
+            records.sort(key=lambda r: (
+                not r.is_active,  # is_active=True viene primero (0 antes que 1)
+                int(r.aisle) if r.aisle else 999,
+                int(r.bay) if r.bay else 999,
+                int(r.shelf) if r.shelf else 999,
+                int(r.location) if r.location else 999
+            ))
             overflow_total = sum(r.quantity for r in records if not r.is_active and r.quantity > 0)
             active_total = sum(r.quantity for r in records if r.is_active and r.quantity > 0)
             min_qty = records[0].min_quantity if records else 0
