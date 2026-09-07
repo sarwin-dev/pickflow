@@ -292,6 +292,11 @@
     document.getElementById('total-count-fixed').textContent = total;
     updateProgress();
 
+    // inicializa estado de botones "✓ All" / "✗ None" en cada grupo
+    document.querySelectorAll('.pick-group').forEach(group => {
+        checkGroupAllPicked(group);
+    });
+
     // nota: ya NO cierra automáticamente al cargar. El picker debe presionar "Complete Order" manualmente
 
     // aplica el estilo visual de cada estado al boton y su etiqueta
@@ -329,6 +334,28 @@
         }
     }
 
+    function checkGroupAllPicked(group) {
+        const buttons = group.querySelectorAll('.tristate-btn');
+        const allPicked = Array.from(buttons).every(btn => btn.dataset.state === 'picked');
+        const pickAllBtn = group.querySelector('.btn-pick-all');
+
+        if (pickAllBtn) {
+            if (allPicked) {
+                pickAllBtn.textContent = '✗ None';
+                pickAllBtn.style.background = '#fee2e2';
+                pickAllBtn.style.color = '#dc2626';
+                pickAllBtn.style.border = '1px solid #ef4444';
+                pickAllBtn.dataset.mode = 'none';
+            } else {
+                pickAllBtn.textContent = '✓ All';
+                pickAllBtn.style.background = '#16a34a';
+                pickAllBtn.style.color = 'white';
+                pickAllBtn.style.border = 'none';
+                pickAllBtn.dataset.mode = 'all';
+            }
+        }
+    }
+
     // cicla entre 2 estados: pending <-> picked
     allButtons.forEach(btn => {
         btn.addEventListener('click', async function () {
@@ -341,6 +368,12 @@
 
             // actualiza visualmente de inmediato (optimistic UI)
             applyState(this, label, nextState);
+
+            // verifica si el grupo tiene todos los items picked
+            const group = this.closest('.pick-group');
+            if (group) {
+                checkGroupAllPicked(group);
+            }
 
             try {
                 console.log(`Toggling pick ${pickId}: ${currentState} -> ${nextState}`);
@@ -507,12 +540,8 @@
                     missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
                     total = allButtons.length;
                     updateProgress();
-                    // Cambia el botón a modo "none"
-                    btn.textContent = '✗ None';
-                    btn.style.background = '#fee2e2';
-                    btn.style.color = '#dc2626';
-                    btn.style.border = '1px solid #ef4444';
-                    btn.dataset.mode = 'none';
+                    // Verifica estado del grupo
+                    checkGroupAllPicked(group);
                 })
                 .catch(e => {
                     console.error('Error in pickAllInGroup:', e);
@@ -543,12 +572,8 @@
                     missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
                     total = allButtons.length;
                     updateProgress();
-                    // Cambia el botón de vuelta a modo "all"
-                    btn.textContent = '✓ All';
-                    btn.style.background = '#16a34a';
-                    btn.style.color = 'white';
-                    btn.style.border = 'none';
-                    btn.dataset.mode = 'all';
+                    // Verifica estado del grupo
+                    checkGroupAllPicked(group);
                 })
                 .catch(e => {
                     console.error('Error in pickAllInGroup:', e);
@@ -584,6 +609,12 @@
 
                 // Aplicar el estado sin hacer fetch
                 applyState(btn, label, newState);
+
+                // Verifica estado del grupo
+                const group = btn.closest('.pick-group');
+                if (group) {
+                    checkGroupAllPicked(group);
+                }
 
                 // Recalcular contadores picked y missing contando todos los tristate-btn por su data-state
                 picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
