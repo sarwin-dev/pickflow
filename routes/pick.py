@@ -350,10 +350,14 @@ def clear_pulldown(order_id):
         return jsonify({'error': 'not found'}), 404
 
     # obtiene todos los PickItems con is_missing=True en esta orden
-    missing_picks = PickItem.query.join(OrderItem).filter(
+    missing_picks = PickItem.query.join(
+        OrderItem, PickItem.order_item_id == OrderItem.id
+    ).filter(
         OrderItem.work_order_id == order_id,
         PickItem.is_missing == True
     ).all()
+
+    print(f"[DEBUG] missing_picks: {len(missing_picks)}")
 
     # recolecta los part_ids únicos de estos picks
     part_ids = set()
@@ -361,6 +365,8 @@ def clear_pulldown(order_id):
         part_template = PartTemplate.query.get(pick.part_template_id)
         if part_template and part_template.part_id:
             part_ids.add(part_template.part_id)
+
+    print(f"[DEBUG] part_ids a limpiar: {part_ids}")
 
     # desactiva is_on_hold solo en esas partes
     for part_id in part_ids:
