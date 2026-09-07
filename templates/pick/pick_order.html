@@ -495,4 +495,49 @@
     }
 </script>
 
+<!-- Socket.IO para sincronización en tiempo real -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    // Conectar al servidor Socket.IO
+    const socket = io();
+    const orderId = {{ order.id }};
+
+    // Unirse al room de esta orden
+    socket.emit('join_order', { order_id: orderId });
+
+    // Escuchar actualizaciones de picks desde otros clientes
+    socket.on('pick_updated', (data) => {
+        if (data.order_id === orderId) {
+            const btn = document.getElementById(`tristate-${data.pick_id}`);
+            const label = document.getElementById(`label-${data.pick_id}`);
+
+            if (btn && label) {
+                // Determinar el nuevo estado
+                let newState = 'pending';
+                if (data.is_picked) {
+                    newState = 'picked';
+                } else if (data.is_missing) {
+                    newState = 'missing';
+                }
+
+                // Aplicar el estado sin hacer fetch
+                applyState(btn, label, newState);
+
+                // Recalcular contadores picked y missing contando todos los tristate-btn por su data-state
+                picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
+                missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
+                total = allButtons.length;
+
+                // Actualizar el progreso
+                updateProgress();
+            }
+        }
+    });
+
+    // Salir del room al cerrar la página
+    window.addEventListener('beforeunload', () => {
+        socket.emit('leave_order', { order_id: orderId });
+    });
+</script>
+
 {% endblock %}
