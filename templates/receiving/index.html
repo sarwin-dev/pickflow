@@ -496,7 +496,7 @@ function showBaysShelvesGrid(selectedAisle) {
             } else {
                 // Celda disponible (occupied < total)
                 cell.style.background = 'white';
-                cell.style.cursor = 'default';
+                cell.style.cursor = 'pointer';
 
                 // Si hay ocupación (0 < occupied < total), agregar mini barra de progreso
                 if (occupied > 0) {
@@ -514,58 +514,64 @@ function showBaysShelvesGrid(selectedAisle) {
                     cell.appendChild(progressBar);
                 }
 
-                // Panel de locations (tooltip)
-                const locationsPanel = document.createElement('div');
-                locationsPanel.style.cssText = 'display:none; position:absolute; top:100%; left:0; background:white; border:1px solid #d1d5db; border-radius:6px; box-shadow:0 4px 8px rgba(0,0,0,0.1); z-index:1000; min-width:160px; padding:8px; margin-top:4px;';
+                // Click en celda - mostrar panel de locations en el footer
+                cell.addEventListener('click', () => {
+                    selectedCellInfo = {
+                        aisle: selectedAisle.aisle,
+                        bay: bay.bay,
+                        shelf: shelf.shelf,
+                        occupied: occupied,
+                        total: total
+                    };
 
-                // Generar locations en el panel
-                for (let loc = 1; loc <= total; loc++) {
-                    const locItem = document.createElement('div');
-                    const isOccupied = loc <= occupied;
-                    const icon = isOccupied ? '❌' : '✅';
-                    const color = isOccupied ? '#9ca3af' : '#16a34a';
+                    // Actualizar panel del footer
+                    locationsPanelContainer.innerHTML = '';
+                    for (let loc = 1; loc <= total; loc++) {
+                        const locItem = document.createElement('div');
+                        const isOccupied = loc <= occupied;
+                        const icon = isOccupied ? '❌' : '✅';
+                        const color = isOccupied ? '#9ca3af' : '#16a34a';
 
-                    locItem.style.cssText = `padding:6px 8px; font-size:11px; font-family:monospace; cursor:${isOccupied ? 'default' : 'pointer'}; color:${color}; border-radius:4px; margin-bottom:2px;`;
-                    locItem.textContent = `${icon} A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
+                        locItem.style.cssText = `padding:6px 8px; font-size:11px; font-family:monospace; cursor:${isOccupied ? 'default' : 'pointer'}; color:${color}; border-radius:4px;`;
+                        locItem.textContent = `${icon} A${String(selectedCellInfo.aisle).padStart(2, '0')}.B${String(selectedCellInfo.bay).padStart(2, '0')}.S${String(selectedCellInfo.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
 
-                    if (!isOccupied) {
-                        // Location libre - clickeable
-                        locItem.addEventListener('mouseenter', () => {
-                            locItem.style.background = '#f0fdf4';
-                        });
-                        locItem.addEventListener('mouseleave', () => {
-                            locItem.style.background = 'transparent';
-                        });
-                        locItem.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            window.selectedLocation = {
-                                aisle: selectedAisle.aisle,
-                                bay: bay.bay,
-                                shelf: shelf.shelf,
-                                location: loc
-                            };
-                            document.querySelector('[name="aisle"]').value = window.selectedLocation.aisle;
-                            document.querySelector('[name="bay"]').value = window.selectedLocation.bay;
-                            document.querySelector('[name="shelf"]').value = window.selectedLocation.shelf;
-                            document.querySelector('[name="location"]').value = window.selectedLocation.location;
-                            document.getElementById('location-display').textContent = `A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
-                            closeFreeLocationsModal();
-                        });
+                        if (!isOccupied) {
+                            locItem.addEventListener('mouseenter', () => {
+                                locItem.style.background = '#f0fdf4';
+                            });
+                            locItem.addEventListener('mouseleave', () => {
+                                locItem.style.background = 'transparent';
+                            });
+                            locItem.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                window.selectedLocation = {
+                                    aisle: selectedCellInfo.aisle,
+                                    bay: selectedCellInfo.bay,
+                                    shelf: selectedCellInfo.shelf,
+                                    location: loc
+                                };
+                                document.querySelector('[name="aisle"]').value = window.selectedLocation.aisle;
+                                document.querySelector('[name="bay"]').value = window.selectedLocation.bay;
+                                document.querySelector('[name="shelf"]').value = window.selectedLocation.shelf;
+                                document.querySelector('[name="location"]').value = window.selectedLocation.location;
+                                document.getElementById('location-display').textContent = `A${String(selectedCellInfo.aisle).padStart(2, '0')}.B${String(selectedCellInfo.bay).padStart(2, '0')}.S${String(selectedCellInfo.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
+                                closeFreeLocationsModal();
+                            });
+                        }
+
+                        locationsPanelContainer.appendChild(locItem);
                     }
 
-                    locationsPanel.appendChild(locItem);
-                }
-
-                cell.appendChild(locationsPanel);
+                    // Mostrar footer
+                    footer.style.display = 'block';
+                });
 
                 cell.addEventListener('mouseenter', () => {
                     cell.style.background = '#f9fafb';
-                    locationsPanel.style.display = 'block';
                 });
 
                 cell.addEventListener('mouseleave', () => {
                     cell.style.background = 'white';
-                    locationsPanel.style.display = 'none';
                 });
             }
 
@@ -591,6 +597,15 @@ function showBaysShelvesGrid(selectedAisle) {
 
     gridContainer.appendChild(grid);
     screen.appendChild(gridContainer);
+
+    // Footer panel para mostrar locations
+    let selectedCellInfo = null;
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding:16px 20px; border-top:1px solid #e5e7eb; display:none; flex-shrink:0;';
+    const locationsPanelContainer = document.createElement('div');
+    locationsPanelContainer.style.cssText = 'display:grid; gap:8px; grid-auto-flow:column; grid-template-rows:repeat(auto-fill, minmax(24px, 1fr)); max-width:400px;';
+    footer.appendChild(locationsPanelContainer);
+    screen.appendChild(footer);
 
     document.getElementById('screen-aisles').style.display = 'none';
     document.getElementById('screen-bays').style.display = 'block';
