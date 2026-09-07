@@ -523,7 +523,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 <script>
     // Conectar al servidor Socket.IO
-    const socket = io();
+    const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
     const orderId = {{ order.id }};
 
     // Unirse al room de esta orden
