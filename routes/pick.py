@@ -358,6 +358,37 @@ def reset_order(order_id):
         db.session.commit()
     return redirect(url_for('supervision.index'))
 
+
+# limpia is_on_hold solo para las partes con missing en esta orden
+@pick_bp.route('/<int:order_id>/clear-pulldown', methods=['POST'])
+@supervisor_required
+def clear_pulldown(order_id):
+    order = WorkOrder.query.get(order_id)
+    if not order:
+        return jsonify({'error': 'not found'}), 404
+
+    # obtiene todos los PickItems con is_missing=True en esta orden
+    missing_picks = PickItem.query.join(OrderItem).filter(
+        OrderItem.work_order_id == order_id,
+        PickItem.is_missing == True
+    ).all()
+
+    # recolecta los part_ids únicos de estos picks
+    part_ids = set()
+    for pick in missing_picks:
+        part_template = PartTemplate.query.get(pick.part_template_id)
+        if part_template and part_template.part_id:
+            part_ids.add(part_template.part_id)
+
+    # desactiva is_on_hold solo en esas partes
+    for part_id in part_ids:
+        part = Part.query.get(part_id)
+        if part:
+            part.is_on_hold = False
+
+    db.session.commit()
+    return jsonify({'success': True})
+
 # genera el pdf de la pick list
 @pick_bp.route('/<int:order_id>/pdf')
 @picker_required
