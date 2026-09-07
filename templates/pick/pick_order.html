@@ -516,7 +516,7 @@
 
         if (mode === 'all') {
             // Marca todos los pending como picked
-            const pendingButtons = group.querySelectorAll('.tristate-btn[data-state="pending"]');
+            const pendingButtons = group.querySelectorAll('.tristate-btn[data-state="pending"], .tristate-btn[data-state="missing"]');
             const promises = Array.from(pendingButtons).map(btn => {
                 const pickId = btn.dataset.id;
                 const label = document.getElementById('label-' + pickId);
