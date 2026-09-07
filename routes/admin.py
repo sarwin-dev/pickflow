@@ -795,3 +795,71 @@ def setup_wizard():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
+
+
+@admin_bp.route('/parts/swap', methods=['POST'])
+@admin_required
+def swap_parts_locations():
+    from datetime import datetime
+
+    data = request.get_json()
+    part_id_a = data.get('part_id_a')
+    part_id_b = data.get('part_id_b')
+
+    if not part_id_a or not part_id_b:
+        return jsonify({'error': 'Missing part IDs'}), 400
+
+    # Buscar registros Inventory activos de ambas partes
+    record_a = Inventory.query.filter_by(part_id=part_id_a, is_active=True).first()
+    record_b = Inventory.query.filter_by(part_id=part_id_b, is_active=True).first()
+
+    if not record_a or not record_b:
+        return jsonify({'error': 'One or both parts do not have an active location assigned'}), 400
+
+    # Guardar ubicaciones originales
+    a_aisle, a_bay, a_shelf, a_location = record_a.aisle, record_a.bay, record_a.shelf, record_a.location
+    b_aisle, b_bay, b_shelf, b_location = record_b.aisle, record_b.bay, record_b.shelf, record_b.location
+
+    try:
+        # Buffer NULL para A (evita conflictos temporales)
+        record_a.aisle = None
+        record_a.bay = None
+        record_a.shelf = None
+        record_a.location = None
+        db.session.flush()
+
+        # B ocupa la posición original de A
+        record_b.aisle = a_aisle
+        record_b.bay = a_bay
+        record_b.shelf = a_shelf
+        record_b.location = a_location
+        db.session.flush()
+
+        # A ocupa la posición original de B
+        record_a.aisle = b_aisle
+        record_a.bay = b_bay
+        record_a.shelf = b_shelf
+        record_a.location = b_location
+        db.session.flush()
+
+        # Actualizar Part.active_* para ambas partes
+        part_a = Part.query.get(part_id_a)
+        part_b = Part.query.get(part_id_b)
+
+        if part_a:
+            part_a.active_aisle = record_a.aisle
+            part_a.active_bay = record_a.bay
+            part_a.active_shelf = record_a.shelf
+            part_a.active_location = record_a.location
+
+        if part_b:
+            part_b.active_aisle = record_b.aisle
+            part_b.active_bay = record_b.bay
+            part_b.active_shelf = record_b.shelf
+            part_b.active_location = record_b.location
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
