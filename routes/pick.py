@@ -147,6 +147,7 @@ def toggle(pick_item_id):
         depleted = False
         # cambia a in_progress en el primer pick
         order = pick_item.order_item.order
+        old_status = order.status
         if order.status == 'pending' and action == 'pick':
             order.status = 'in_progress'
 
@@ -225,7 +226,8 @@ def toggle(pick_item_id):
         if order.status in ('in_progress',):
             socketio.emit('order_status_changed', {
                 'order_id': order.id,
-                'new_status': order.status
+                'new_status': order.status,
+                'old_status': old_status
             }, room='supervision')
 
         # completa la orden solo si todo esta picked o missing
@@ -234,7 +236,8 @@ def toggle(pick_item_id):
             db.session.commit()
             socketio.emit('order_status_changed', {
                 'order_id': order.id,
-                'new_status': 'completed'
+                'new_status': 'completed',
+                'old_status': 'in_progress'
             }, room='supervision')
 
         return jsonify({
