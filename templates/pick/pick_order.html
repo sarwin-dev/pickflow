@@ -111,37 +111,39 @@
         <div class="pick-group-header" style="background:{% if group.is_on_hold %}#f3f4f6{% else %}#f9fafb{% endif %}; padding:10px 16px;
                     border-bottom:1px solid #e5e7eb;
                     display:flex; flex-direction:column; gap:8px;">
-            <!-- Línea 1: Ubicación (izq) | Cart badge (der) -->
+            <!-- Línea 1: Ubicación (izq) | Cart badge + QTY (der juntos) -->
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="pick-location" style="font-family:monospace; font-size:12px;
                              font-weight:500; color:#6b7280;">
                     {{ group.location }}
                 </span>
-                <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
-                    Cart {{ 'A' if group.cart == 1 else 'B' }}
-                </span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
+                        Cart {{ 'A' if group.cart == 1 else 'B' }}
+                    </span>
+                    <span style="font-size:clamp(16px, 4vw, 22px); font-weight:700; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">QTY: {{ group.slots|length }}</span>
+                </div>
             </div>
 
-            <!-- Línea 2: Nombre (izq) | QTY (der) -->
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <!-- Línea 2: Nombre + Botón ✓ All pegado -->
+            <div style="display:flex; align-items:center; gap:10px;">
                 <span class="pick-part-name" style="font-size:clamp(16px, 4vw, 22px); font-weight:700; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">
                     {{ group.part_name }}
                 </span>
-                <span style="font-size:clamp(16px, 4vw, 22px); font-weight:700; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">QTY: {{ group.slots|length }}</span>
-            </div>
-
-            <!-- Línea 3: Botón ✓ All (izq) | Waiting for Pulldown (der) -->
-            <div style="display:flex; justify-content:space-between; align-items:center;">
                 <button type="button" onclick="pickAllInGroup(this)" class="btn-pick-all"
                     style="font-size:11px; padding:2px 8px; border-radius:4px; background:#16a34a; color:white; border:none; cursor:pointer; white-space:nowrap;">
                     ✓ All
                 </button>
-                {% if group.is_on_hold %}
+            </div>
+
+            <!-- Línea 3: Waiting for Pulldown (si aplica) -->
+            {% if group.is_on_hold %}
+            <div>
                 <span style="font-size:12px; background:#fee2e2; color:#dc2626; padding:2px 8px; border-radius:4px; font-weight:500;">
                     🔴 Waiting for Pulldown
                 </span>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
 
         <div class="pick-slots" style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px; opacity:{% if group.is_on_hold %}0.5{% else %}1{% endif %};">
