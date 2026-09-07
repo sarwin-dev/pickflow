@@ -125,13 +125,13 @@
                 <td>{{ order.items|length }}</td>
                 <td>
                     {% if order.status == 'pending' %}
-                    <span class="badge badge-pending">Pending</span>
+                    <span class="badge badge-pending" data-status-order-id="{{ order.id }}">Pending</span>
                     {% elif order.status == 'in_progress' %}
-                    <span class="badge badge-progress">In Progress</span>
+                    <span class="badge badge-progress" data-status-order-id="{{ order.id }}">In Progress</span>
                     {% elif order.status == 'completed' %}
-                    <span class="badge badge-done">Completed</span>
+                    <span class="badge badge-done" data-status-order-id="{{ order.id }}">Completed</span>
                     {% else %}
-                    <span class="badge badge-cancelled">Cancelled</span>
+                    <span class="badge badge-cancelled" data-status-order-id="{{ order.id }}">Cancelled</span>
                     {% endif %}
                 </td>
                 <td style="min-width:160px;">
@@ -333,6 +333,16 @@ setTimeout(() => location.reload(), 60000);
             fill.style.width = percentage + '%';
             fill.style.background = percentage === 100 ? '#16a34a' : (percentage > 0 ? '#f59e0b' : '#e5e7eb');
             text.textContent = pickedCount + '/' + totalCount;
+
+            // Actualizar badge de status dinámicamente
+            const badge = document.querySelector(`.badge[data-status-order-id="${orderId}"]`);
+            if (badge && percentage === 100) {
+                badge.className = 'badge badge-done';
+                badge.textContent = 'Completed';
+            } else if (badge && percentage > 0) {
+                badge.className = 'badge badge-progress';
+                badge.textContent = 'In Progress';
+            }
         }
     });
 </script>
