@@ -344,6 +344,7 @@
             applyState(this, label, nextState);
 
             try {
+                console.log(`Toggling pick ${pickId}: ${currentState} -> ${nextState}`);
                 const response = await fetch(`/pick/toggle/${pickId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -362,7 +363,7 @@
                 }
             } catch (e) {
                 applyState(this, label, currentState);
-                console.error('Error:', e);
+                console.error(`Failed to toggle pick ${pickId}:`, e);
             }
         });
     });
