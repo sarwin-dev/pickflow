@@ -470,18 +470,9 @@ function showBaysShelvesGrid(selectedAisle) {
     const grid = document.createElement('div');
     grid.style.cssText = 'display:grid; grid-template-columns:60px ' + bays.map(() => '1fr').join(' ') + '; gap:8px;';
 
-    // Headers: Bay numbers
-    const cornerHeader = document.createElement('div');
-    grid.appendChild(cornerHeader);
-    bays.forEach(bay => {
-        const header = document.createElement('div');
-        header.style.cssText = 'text-align:center; font-weight:600; font-size:12px; color:#666;';
-        header.textContent = `B${String(bay.bay).padStart(2, '0')}`;
-        grid.appendChild(header);
-    });
-
-    // Rows: Shelves (descending order)
+    // Rows: Shelves (descending order) - agregar primero
     const shelvesDesc = [...shelves].reverse();
+    let currentRow = 1;
     shelvesDesc.forEach(shelf => {
         const shelfLabel = document.createElement('div');
         shelfLabel.style.cssText = 'text-align:right; font-weight:600; font-size:12px; color:#666; padding-right:8px;';
@@ -548,6 +539,21 @@ function showBaysShelvesGrid(selectedAisle) {
             cell.setAttribute('data-cell', '1');
             grid.appendChild(cell);
         });
+
+        currentRow++;
+    });
+
+    // Headers de Bay en la última fila
+    const headerRowStyle = `grid-row: ${currentRow}; `;
+    const cornerHeader = document.createElement('div');
+    cornerHeader.style.cssText = headerRowStyle + 'grid-column: 1;';
+    grid.appendChild(cornerHeader);
+
+    bays.forEach(bay => {
+        const header = document.createElement('div');
+        header.style.cssText = headerRowStyle + 'text-align:center; font-weight:600; font-size:12px; color:#666;';
+        header.textContent = `B${String(bay.bay).padStart(2, '0')}`;
+        grid.appendChild(header);
     });
 
     gridContainer.appendChild(grid);
