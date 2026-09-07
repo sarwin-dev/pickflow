@@ -379,8 +379,8 @@
                 total = data.total;
                 updateProgress();
 
-                // notificacion al usuario
-                alert(`✓ Marked ${data.parts_on_hold} parts as missing.\nWarehouse manager will be notified for pulldown.`);
+                // notificacion al usuario (usa mensaje del servidor)
+                alert(data.message);
             } else {
                 alert('Error: ' + (data.error || 'Failed to mark items as missing'));
             }

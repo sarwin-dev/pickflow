@@ -218,6 +218,14 @@ def mark_missing_all(order_id):
         PickItem.is_missing == False
     ).all()
 
+    # si no hay nada para marcar, devuelve mensaje diferente
+    if len(pending_items) == 0:
+        return jsonify({
+            'marked': 0,
+            'message': 'Nothing to mark — all parts were already picked.',
+            'notified': False
+        })
+
     # recolecta las partes para activar is_on_hold
     parts_to_hold = set()
     for pi in pending_items:
@@ -251,6 +259,7 @@ def mark_missing_all(order_id):
 
     return jsonify({
         'success': True,
+        'message': f'✓ Marked {len(parts_to_hold)} parts as missing.\nWarehouse manager will be notified for pulldown.',
         'picked': picked,
         'missing': missing,
         'total': total,
