@@ -313,11 +313,15 @@ setTimeout(() => location.reload(), 60000);
     const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
 
     // Unirse a todos los rooms de las órdenes visibles en la página
+    console.log('Orders found:', document.querySelectorAll('[data-order-id]').length);
     document.querySelectorAll('[data-order-id]').forEach(el => {
-        socket.emit('join_order', { order_id: parseInt(el.dataset.orderId) });
+        const orderId = parseInt(el.dataset.orderId);
+        console.log('Joining room:', orderId);
+        socket.emit('join_order', { order_id: orderId });
     });
 
     socket.on('pick_updated', (data) => {
+        console.log('pick_updated received:', data);
         const orderId = data.order_id;
         const pickedCount = data.picked_count;
         const totalCount = data.total_count;
