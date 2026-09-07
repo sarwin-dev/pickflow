@@ -341,7 +341,7 @@ def reset_order(order_id):
     return jsonify({'success': True})
 
 
-# limpia is_on_hold solo para las partes con missing en esta orden
+# limpia is_on_hold para todas las partes que pertenecen a los cabinet types de esta orden
 @pick_bp.route('/<int:order_id>/clear-pulldown', methods=['POST'])
 @supervisor_required
 def clear_pulldown(order_id):
@@ -349,26 +349,14 @@ def clear_pulldown(order_id):
     if not order:
         return jsonify({'error': 'not found'}), 404
 
-    # obtiene todos los PickItems con is_missing=True en esta orden
-    missing_picks = PickItem.query.join(
-        OrderItem, PickItem.order_item_id == OrderItem.id
-    ).filter(
-        OrderItem.work_order_id == order_id,
-        PickItem.is_missing == True
-    ).all()
-
-    print(f"[DEBUG] missing_picks: {len(missing_picks)}")
-
-    # recolecta los part_ids únicos de estos picks
+    # recolecta todas las partes que pertenecen a los cabinet types de esta orden
     part_ids = set()
-    for pick in missing_picks:
-        part_template = PartTemplate.query.get(pick.part_template_id)
-        if part_template and part_template.part_id:
-            part_ids.add(part_template.part_id)
+    for item in order.items:
+        for part_template in item.cabinet.parts:
+            if part_template.part_id:
+                part_ids.add(part_template.part_id)
 
-    print(f"[DEBUG] part_ids a limpiar: {part_ids}")
-
-    # desactiva is_on_hold solo en esas partes
+    # desactiva is_on_hold en todas esas partes
     for part_id in part_ids:
         part = Part.query.get(part_id)
         if part:
