@@ -119,6 +119,10 @@
                 <span class="pick-part-name" style="font-size:20px; font-weight:600; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">
                     {{ group.part_name }}
                 </span>
+                <button type="button" onclick="pickAllInGroup(this)" class="btn-pick-all"
+                    style="font-size:11px; padding:2px 8px; border-radius:4px; background:#16a34a; color:white; border:none; cursor:pointer; white-space:nowrap;">
+                    ✓ All
+                </button>
                 {% if group.is_on_hold %}
                 <span style="font-size:12px; background:#fee2e2; color:#dc2626; padding:2px 8px; border-radius:4px; font-weight:500;">
                     🔴 Waiting for Pulldown
@@ -458,6 +462,27 @@
         document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
         event.target.classList.add('active-filter');
         applyFilters();
+    }
+
+    function pickAllInGroup(btn) {
+        // Obtiene el grupo (pick-group) que contiene este botón
+        const group = btn.closest('.pick-group');
+        if (!group) return;
+
+        // Encuentra todos los tristate-btn en este grupo que estén en estado 'pending'
+        const pendingButtons = group.querySelectorAll('.tristate-btn[data-state="pending"]');
+
+        pendingButtons.forEach(btn => {
+            const pickId = btn.dataset.id;
+            const label = document.getElementById('label-' + pickId);
+            // Aplica el estado 'picked' sin hacer fetch
+            applyState(btn, label, 'picked');
+        });
+
+        // Actualiza el progreso general
+        picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
+        total = allButtons.length;
+        updateProgress();
     }
 </script>
 
