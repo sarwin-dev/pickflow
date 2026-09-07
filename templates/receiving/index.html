@@ -516,6 +516,12 @@ function showBaysShelvesGrid(selectedAisle) {
 
                 // Click en celda - mostrar panel de locations en el footer
                 cell.addEventListener('click', () => {
+                    // Remover outline de celdas previamente seleccionadas
+                    document.querySelectorAll('#screen-bays [data-cell]').forEach(c => c.style.outline = 'none');
+
+                    // Aplicar outline de selección a esta celda
+                    cell.style.outline = '3px solid #f97316';
+
                     selectedCellInfo = {
                         aisle: selectedAisle.aisle,
                         bay: bay.bay,
