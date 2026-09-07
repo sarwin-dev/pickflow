@@ -155,6 +155,10 @@
         var header = document.querySelector('.dashboard-header');
         if (!header) return;
 
+        // crea un contenedor sticky para el botón Back
+        var container = document.createElement('div');
+        container.className = 'btn-back-sticky';
+
         var link = document.createElement('a');
         link.href = parent;
         link.innerHTML = '&#8592; Back';
@@ -177,7 +181,8 @@
             this.style.borderColor = '#d1d5db';
         });
 
-        header.insertBefore(link, header.firstChild);
+        container.appendChild(link);
+        header.insertBefore(container, header.firstChild);
     })();
     </script>
 </body>

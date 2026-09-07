@@ -680,6 +680,16 @@ body {
     }
 }
 
+/* Sticky back button for mobile */
+.btn-back-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    background: white;
+    padding: 8px 0;
+    display: block;
+}
+
 /* Mobile phones (480px and down) */
 @media (max-width: 480px) {
     .main-content {
