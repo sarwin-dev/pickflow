@@ -11,7 +11,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
-socketio.init_app(app, async_mode='eventlet', cors_allowed_origins='*')
+socketio.init_app(app, async_mode='threading', cors_allowed_origins='*')
 
 database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:agosto28@localhost/cabinets_db')
 # Railway a veces entrega postgres:// en lugar de postgresql://
