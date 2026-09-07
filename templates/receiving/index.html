@@ -534,7 +534,7 @@ function showBaysShelvesGrid(selectedAisle) {
                     locationsPanelContainer.innerHTML = '';
                     for (let loc = 1; loc <= total; loc++) {
                         const locItem = document.createElement('div');
-                        const isOccupied = loc <= occupied;
+                        const isOccupied = shelfData.occupied_locations.includes(loc);
                         const icon = isOccupied ? '❌' : '✅';
                         const color = isOccupied ? '#9ca3af' : '#16a34a';
 

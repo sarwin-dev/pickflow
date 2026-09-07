@@ -340,14 +340,25 @@ def free_locations():
                 # Total posiciones en este shelf
                 positions_per_shelf = config.total_locations if config.total_locations > 0 else 1
 
-                # Ocupadas en este shelf
-                occupied_in_shelf = Inventory.query.filter(
+                # Obtiene las locations exactas ocupadas en este shelf
+                occupied_records = Inventory.query.filter(
                     Inventory.is_active == False,
                     Inventory.aisle == aisle_str,
                     Inventory.bay == bay_str,
                     Inventory.shelf == shelf_str
-                ).count()
+                ).all()
 
+                # Extrae los números de location reales ocupados
+                occupied_locations = []
+                for record in occupied_records:
+                    if record.location:
+                        try:
+                            loc_num = int(record.location)
+                            occupied_locations.append(loc_num)
+                        except (ValueError, TypeError):
+                            pass
+
+                occupied_in_shelf = len(occupied_records)
                 free_in_shelf = positions_per_shelf - occupied_in_shelf
                 total_free += free_in_shelf
 
@@ -355,7 +366,8 @@ def free_locations():
                     'shelf': shelf_num,
                     'free': free_in_shelf,
                     'occupied': occupied_in_shelf,
-                    'total': positions_per_shelf
+                    'total': positions_per_shelf,
+                    'occupied_locations': sorted(occupied_locations)
                 })
 
             bays_data.append({
