@@ -121,7 +121,7 @@
                     <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
                         Cart {{ 'A' if group.cart == 1 else 'B' }}
                     </span>
-                    <span style="font-size:clamp(16px, 4vw, 22px); font-weight:700; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">QTY: {{ group.slots|length }}</span>
+                    <span style="font-size:14px; font-weight:700; color:{% if group.is_on_hold %}#9ca3af{% else %}#1f2937{% endif %};">QTY: {{ group.slots|length }}</span>
                 </div>
             </div>
 
