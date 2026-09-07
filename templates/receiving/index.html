@@ -481,7 +481,7 @@ function showBaysShelvesGrid(selectedAisle) {
 
         bays.forEach(bay => {
             const cell = document.createElement('div');
-            cell.style.cssText = 'aspect-ratio:1; border:2px solid #d1d5db; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-direction:column; position:relative; overflow:hidden;';
+            cell.style.cssText = 'aspect-ratio:1; border:2px solid #d1d5db; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-direction:column; position:relative; overflow:visible;';
 
             const shelfData = bay.shelves.find(s => String(s.shelf) === String(shelf.shelf));
             const occupied = shelfData?.occupied || 0;
@@ -496,7 +496,7 @@ function showBaysShelvesGrid(selectedAisle) {
             } else {
                 // Celda disponible (occupied < total)
                 cell.style.background = 'white';
-                cell.style.cursor = 'pointer';
+                cell.style.cursor = 'default';
 
                 // Si hay ocupación (0 < occupied < total), agregar mini barra de progreso
                 if (occupied > 0) {
@@ -514,25 +514,58 @@ function showBaysShelvesGrid(selectedAisle) {
                     cell.appendChild(progressBar);
                 }
 
-                cell.addEventListener('click', () => {
-                    const nextLocation = occupied + 1;
-                    window.selectedLocation = {
-                        aisle: selectedAisle.aisle,
-                        bay: bay.bay,
-                        shelf: shelf.shelf,
-                        location: nextLocation
-                    };
-                    document.getElementById('location-display').textContent = `A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}.L${String(nextLocation).padStart(2, '0')}`;
-                    document.querySelectorAll('#screen-bays [data-cell]').forEach(c => c.style.boxShadow = 'none');
-                    cell.style.boxShadow = '0 0 0 3px #3b82f6, 0 0 12px #93c5fd';
+                // Panel de locations (tooltip)
+                const locationsPanel = document.createElement('div');
+                locationsPanel.style.cssText = 'display:none; position:absolute; top:100%; left:0; background:white; border:1px solid #d1d5db; border-radius:6px; box-shadow:0 4px 8px rgba(0,0,0,0.1); z-index:1000; min-width:160px; padding:8px; margin-top:4px;';
+
+                // Generar locations en el panel
+                for (let loc = 1; loc <= total; loc++) {
+                    const locItem = document.createElement('div');
+                    const isOccupied = loc <= occupied;
+                    const icon = isOccupied ? '❌' : '✅';
+                    const color = isOccupied ? '#9ca3af' : '#16a34a';
+
+                    locItem.style.cssText = `padding:6px 8px; font-size:11px; font-family:monospace; cursor:${isOccupied ? 'default' : 'pointer'}; color:${color}; border-radius:4px; margin-bottom:2px;`;
+                    locItem.textContent = `${icon} A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
+
+                    if (!isOccupied) {
+                        // Location libre - clickeable
+                        locItem.addEventListener('mouseenter', () => {
+                            locItem.style.background = '#f0fdf4';
+                        });
+                        locItem.addEventListener('mouseleave', () => {
+                            locItem.style.background = 'transparent';
+                        });
+                        locItem.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            window.selectedLocation = {
+                                aisle: selectedAisle.aisle,
+                                bay: bay.bay,
+                                shelf: shelf.shelf,
+                                location: loc
+                            };
+                            document.querySelector('[name="aisle"]').value = window.selectedLocation.aisle;
+                            document.querySelector('[name="bay"]').value = window.selectedLocation.bay;
+                            document.querySelector('[name="shelf"]').value = window.selectedLocation.shelf;
+                            document.querySelector('[name="location"]').value = window.selectedLocation.location;
+                            document.getElementById('location-display').textContent = `A${String(selectedAisle.aisle).padStart(2, '0')}.B${String(bay.bay).padStart(2, '0')}.S${String(shelf.shelf).padStart(2, '0')}.L${String(loc).padStart(2, '0')}`;
+                            closeFreeLocationsModal();
+                        });
+                    }
+
+                    locationsPanel.appendChild(locItem);
+                }
+
+                cell.appendChild(locationsPanel);
+
+                cell.addEventListener('mouseenter', () => {
+                    cell.style.background = '#f9fafb';
+                    locationsPanel.style.display = 'block';
                 });
 
-                cell.addEventListener('mouseover', () => {
-                    if (!cell.style.boxShadow) cell.style.background = '#f9fafb';
-                });
-
-                cell.addEventListener('mouseout', () => {
-                    if (!cell.style.boxShadow) cell.style.background = 'white';
+                cell.addEventListener('mouseleave', () => {
+                    cell.style.background = 'white';
+                    locationsPanel.style.display = 'none';
                 });
             }
 
@@ -558,36 +591,6 @@ function showBaysShelvesGrid(selectedAisle) {
 
     gridContainer.appendChild(grid);
     screen.appendChild(gridContainer);
-
-    // Button
-    const footer = document.createElement('div');
-    footer.style.cssText = 'padding:16px 20px; border-top:1px solid #e5e7eb; text-align:center; flex-shrink:0;';
-    const useBtn = document.createElement('button');
-    useBtn.textContent = 'Use this location';
-    useBtn.style.cssText = 'background:#1e1b4b; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600; font-size:14px;';
-    useBtn.disabled = true;
-    useBtn.style.opacity = '0.5';
-    useBtn.addEventListener('click', () => {
-        if (window.selectedLocation) {
-            document.querySelector('[name="aisle"]').value = window.selectedLocation.aisle;
-            document.querySelector('[name="bay"]').value = window.selectedLocation.bay;
-            document.querySelector('[name="shelf"]').value = window.selectedLocation.shelf;
-            document.querySelector('[name="location"]').value = window.selectedLocation.location;
-            closeFreeLocationsModal();
-        }
-    });
-    footer.appendChild(useBtn);
-
-    // Habilitar botón cuando hay selección
-    const checkBtn = setInterval(() => {
-        if (window.selectedLocation) {
-            useBtn.disabled = false;
-            useBtn.style.opacity = '1';
-            clearInterval(checkBtn);
-        }
-    }, 100);
-
-    screen.appendChild(footer);
 
     document.getElementById('screen-aisles').style.display = 'none';
     document.getElementById('screen-bays').style.display = 'block';
