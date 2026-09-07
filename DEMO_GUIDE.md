@@ -33,19 +33,20 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
    - Part: escribe "toe" - verás autocomplete filtrando
    - Quantity: ingresa 100
    - Tipo: selecciona "To Overflow Location"
-   - Elige Aisle/Bay/Shelf/Location manualmente
+   - **Location es OBLIGATORIA** - campo rojo si no está completo
 3. **Abre el panel "Free Locations"** (botón abajo)
-   - **Muestra la navegación de 3 pantallas:**
-     - Pantalla 1: Lista de aisles con espacio disponible
-     - Click en un aisle → Pantalla 2
-     - Pantalla 2: Bays dentro de ese aisle
-     - Click en un bay → Pantalla 3
-     - Pantalla 3: Shelves con espacio libre
-   - "Esto evita que guardes cajas donde no caben"
+   - **Muestra la grilla dinámica:**
+     - Barras de progreso por location (verde/amarillo/naranja/rojo según ocupación)
+     - Verde: 0-25% lleno | Amarillo: 26-50% | Naranja: 51-75% | Rojo: 76-100%
+     - Click en una celda → panel en el footer con:
+       - ❌ Locations ocupadas (en rojo)
+       - ✅ Locations libres (en verde)
+     - Click en una location libre auto-llena el campo Location del formulario
+   - "La app previene que pongas dos cajas en el mismo lugar"
 4. **NO presiones Register** (solo mostración)
 5. **Muestra "Recent Entries"** - historial de lo que se recibió
 
-**Key message:** "Un registro central, sin errores de duplicados"
+**Key message:** "Un registro central, sin errores de duplicados, con validación obligatoria de ubicación"
 
 ---
 
@@ -66,7 +67,11 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
    - Rojo "OUT" = completamente agotada
 5. **Abre el badge rojo** (si hay partes agotadas)
    - "Esto notifica de inmediato qué falta"
-6. **Muestra Shopping List** (botón abajo)
+6. **Muestra botón "Free Locations"** (esquina superior derecha)
+   - Similar a Receiving: muestra grilla con barras de progreso
+   - ❌ Locations ocupadas | ✅ Locations libres
+   - "Modo informativo: solo consulta, no asigna"
+7. **Muestra Shopping List** (botón abajo)
    - "Aquí agregamos partes a reabastecer"
    - "Click en PDF para generar lista de compra con el nombre de tu empresa"
 
@@ -138,14 +143,20 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
    - Verde = ya recogidas
    - Gris = esperando
    - Rojo = no hay stock
-6. **Muestra botón "Complete"** (visible para admin/supervisor)
+6. **Muestra botón "✓ All" por cada parte**
+   - Click marca TODOS los slots de esa parte como picked de una vez
+   - "Ahorra clicks cuando la parte tiene múltiples unidades"
+   - **Tiempo real:** cambios se sincronizan instantáneamente entre dispositivos
+     - Si otro picker está en la misma orden, ve los cambios sin recargar
+     - "Múltiples almaceneros pueden pick la misma orden simultáneamente"
+7. **Muestra botón "Complete"** (visible para admin/supervisor)
    - "Este botón marca automáticamente todas las partes como seleccionadas"
    - "Útil cuando terminas de pick la orden"
-7. **Muestra botón "Print PDF"**
+8. **Muestra botón "Print PDF"**
    - "Genera lista de picking con ubicaciones exactas"
    - "Incluye el nombre de tu empresa en el header"
 
-**Key message:** "Guía visual para el almacenero, sin confusiones"
+**Key message:** "Guía visual para el almacenero, sin confusiones, con sincronización en tiempo real"
 
 ---
 
@@ -161,7 +172,12 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 3. **Explica el filtro:**
    - "Click en el selector de fecha para ver histórico"
    - "Se actualiza automáticamente cada 60 segundos"
-4. **Muestra el botón "Complete"** (verde, solo para admin/supervisor)
+4. **Muestra el botón "Reset"** (solo para admin/supervisor)
+   - Click abre modal con dos checkboxes:
+     - ✓ "Reset pick progress" (marcado por defecto) = borra todos los picks de la orden
+     - ☐ "Clear pulldown alerts (this order only)" (sin marcar) = elimina solo las alertas de esta orden
+   - "Flexibilidad para resetear lo que necesites"
+5. **Muestra el botón "Complete"** (verde, solo para admin/supervisor)
    - "Click aquí marca toda la orden como completada"
    - "Genera automáticamente los picks si no existen"
 
