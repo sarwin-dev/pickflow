@@ -381,6 +381,9 @@
 
                 // notificacion al usuario (usa mensaje del servidor)
                 alert(data.message);
+            } else if (data.marked === 0) {
+                // caso especial: nada para marcar (todos ya estaban picked)
+                alert(data.message);
             } else {
                 alert('Error: ' + (data.error || 'Failed to mark items as missing'));
             }
