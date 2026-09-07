@@ -32,7 +32,7 @@
         <div style="font-size:11px; color:#666; text-transform:uppercase; margin-bottom:6px;">
             Missing Items
         </div>
-        <div style="font-size:24px; font-weight:700; color:{% if total_missing > 0 %}#dc2626{% else %}#1e1b4b{% endif %};">
+        <div id="total-missing-count" style="font-size:24px; font-weight:700; color:{% if total_missing > 0 %}#dc2626{% else %}#1e1b4b{% endif %};">
             {{ total_missing }}
         </div>
     </div>
@@ -150,7 +150,7 @@
                         </span>
                     </div>
                     {% if stat.missing > 0 %}
-                    <div class="supervision-progress-missing" style="font-size:11px; color:#dc2626; margin-top:2px;">
+                    <div class="supervision-progress-missing" data-missing-order-id="{{ order.id }}" style="font-size:11px; color:#dc2626; margin-top:2px;">
                         ⚠ {{ stat.missing }} missing
                     </div>
                     {% endif %}
@@ -342,6 +342,26 @@ setTimeout(() => location.reload(), 60000);
             } else if (badge && percentage > 0) {
                 badge.className = 'badge badge-progress';
                 badge.textContent = 'In Progress';
+            }
+
+            // Actualizar missing por orden
+            const missingDiv = document.querySelector(`[data-missing-order-id="${orderId}"]`);
+            if (missingDiv) {
+                if (data.missing_count === 0) {
+                    missingDiv.remove();
+                } else {
+                    missingDiv.textContent = '⚠ ' + data.missing_count + ' missing';
+                }
+            }
+
+            // Actualizar contador global de missing
+            const totalMissingEl = document.getElementById('total-missing-count');
+            if (totalMissingEl) {
+                const currentTotal = parseInt(totalMissingEl.textContent) || 0;
+                const diff = data.missing_count - (missingDiv ? parseInt(missingDiv.textContent.match(/\d+/)?.[0] || 0) : 0);
+                const newTotal = Math.max(0, currentTotal + diff);
+                totalMissingEl.textContent = newTotal;
+                totalMissingEl.style.color = newTotal > 0 ? '#dc2626' : '#1e1b4b';
             }
         }
     });

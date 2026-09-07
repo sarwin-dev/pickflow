@@ -212,7 +212,8 @@ def toggle(pick_item_id):
             'is_missing': pick_item.is_missing,
             'order_id': order.id,
             'picked_count': picked,
-            'total_count': total
+            'total_count': total,
+            'missing_count': missing
         }, room=f'order_{order.id}')
 
         # completa la orden solo si todo esta picked o missing
