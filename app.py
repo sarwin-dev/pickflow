@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.security import check_password_hash
-from extensions import db
+from extensions import db, socketio
 from dotenv import load_dotenv
 
 # Carga variables de entorno desde .env.local (desarrollo) o .env (producción)
@@ -10,6 +10,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+
+socketio.init_app(app, async_mode='eventlet', cors_allowed_origins='*')
 
 database_url = os.environ.get('DATABASE_URL', 'postgresql://cabinets_user:agosto28@localhost/cabinets_db')
 # Railway a veces entrega postgres:// en lugar de postgresql://
@@ -328,4 +330,4 @@ def reset_password_cmd():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

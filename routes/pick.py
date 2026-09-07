@@ -1,10 +1,29 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
+from flask_socketio import emit, join_room, leave_room
 from extensions import db
 from models import WorkOrder, OrderItem, PickItem, Part, Inventory, PartTemplate, WarehouseConfig
 from datetime import datetime
 from routes.auth import picker_required, supervisor_required
 
 pick_bp = Blueprint('pick', __name__, url_prefix='/pick')
+
+# ========== EVENTOS SOCKETIO ==========
+
+from extensions import socketio
+
+@socketio.on('join_order')
+def on_join_order(data):
+    order_id = data.get('order_id')
+    if order_id:
+        join_room(f'order_{order_id}')
+        emit('status', {'msg': f'Joined order {order_id}'})
+
+@socketio.on('leave_order')
+def on_leave_order(data):
+    order_id = data.get('order_id')
+    if order_id:
+        leave_room(f'order_{order_id}')
+        emit('status', {'msg': f'Left order {order_id}'})
 
 # lista de ordenes disponibles para pick
 @pick_bp.route('/')
@@ -171,6 +190,14 @@ def toggle(pick_item_id):
                 order.status = 'in_progress'
 
         db.session.commit()
+
+        # emite evento SocketIO para actualizar otros clientes en tiempo real
+        socketio.emit('pick_updated', {
+            'pick_id': pick_item.id,
+            'is_picked': pick_item.is_picked,
+            'is_missing': pick_item.is_missing,
+            'order_id': order.id
+        }, room=f'order_{order.id}')
 
         # recuenta desde la base de datos
         order = pick_item.order_item.order
