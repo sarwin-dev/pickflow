@@ -71,6 +71,12 @@ def receive():
         aisle = request.form.get('aisle')
         bay = request.form.get('bay')
         shelf = int(request.form.get('shelf', 0))
+        location = request.form.get('location')
+
+        # Valida que location sea obligatoria
+        if not location or location.strip() == '':
+            flash('Location is required. Please select a location from the grid.', 'error')
+            return redirect(url_for('receiving.index'))
 
         # overflow siempre es overflow, independientemente del numero de shelf
         is_active = False
@@ -243,15 +249,13 @@ def demo_fill():
     for aisle in range(1, config.total_aisles + 1):
         for bay in range(1, config.total_bays + 1):
             for shelf in range(config.active_shelves + 1, config.total_shelves + 1):
-                if config.total_locations > 0:
-                    for loc in range(1, config.total_locations + 1):
-                        key = (str(aisle), str(bay), str(shelf), str(loc))
-                        if key not in occupied:
-                            free_slots.append((str(aisle), str(bay), str(shelf), str(loc)))
-                else:
-                    key = (str(aisle), str(bay), str(shelf), '')
+                # Determinar cuántas locations generar para este shelf
+                locations_to_fill = config.total_locations if config.total_locations > 0 else 1
+
+                for loc in range(1, locations_to_fill + 1):
+                    key = (str(aisle), str(bay), str(shelf), str(loc))
                     if key not in occupied:
-                        free_slots.append((str(aisle), str(bay), str(shelf), None))
+                        free_slots.append((str(aisle), str(bay), str(shelf), str(loc)))
 
     if not free_slots:
         return jsonify({'filled': 0, 'full': True})
