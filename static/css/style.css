@@ -680,14 +680,21 @@ body {
     }
 }
 
-/* Sticky back button for mobile */
-.btn-back-sticky {
+/* Pick progress panel - sticky on desktop, fixed on mobile */
+.pick-progress-panel {
     position: sticky;
     top: 0;
-    z-index: 99;
-    background: white;
-    padding: 8px 0;
-    display: block;
+    z-index: 100;
+}
+
+@media (max-width: 768px) {
+    .pick-progress-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
 }
 
 /* Mobile phones (480px and down) */
