@@ -289,6 +289,12 @@ document.addEventListener('click', function (e) {
 function toggleLocation() {
     const type = document.getElementById('receiving_type').value;
     document.getElementById('location-fields').style.display = type === 'direct' ? 'none' : 'block';
+    if (type === 'direct') {
+        document.querySelector('[name="aisle"]').value = '';
+        document.querySelector('[name="bay"]').value = '';
+        document.querySelector('[name="shelf"]').value = '';
+        document.querySelector('[name="location"]').value = '';
+    }
 }
 
 // Validación: el usuario debe seleccionar una parte y completar location si es overflow
