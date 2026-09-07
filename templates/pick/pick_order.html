@@ -482,17 +482,46 @@
         // Encuentra todos los tristate-btn en este grupo que estén en estado 'pending'
         const pendingButtons = group.querySelectorAll('.tristate-btn[data-state="pending"]');
 
-        pendingButtons.forEach(btn => {
+        // Crea un array de promesas, una por cada botón pending
+        const promises = Array.from(pendingButtons).map(btn => {
             const pickId = btn.dataset.id;
             const label = document.getElementById('label-' + pickId);
-            // Aplica el estado 'picked' sin hacer fetch
+
+            // Actualiza visualmente de inmediato (optimistic UI)
             applyState(btn, label, 'picked');
+
+            // Hace el fetch real a /pick/toggle/{pickId}
+            return fetch(`/pick/toggle/${pickId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'pick' })
+            })
+            .then(response => response.json())
+            .catch(e => {
+                console.error(`Failed to toggle pick ${pickId}:`, e);
+                applyState(btn, label, 'pending');
+                throw e;
+            });
         });
 
-        // Actualiza el progreso general
-        picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
-        total = allButtons.length;
-        updateProgress();
+        // Espera a que todas las promesas se resuelvan
+        Promise.all(promises)
+            .then(results => {
+                // Recalcula los contadores desde el servidor usando los datos del último response
+                if (results.length > 0) {
+                    const lastResponse = results[results.length - 1];
+                    if (lastResponse.success) {
+                        picked = lastResponse.picked;
+                        missing = lastResponse.missing;
+                        total = lastResponse.total;
+                    }
+                }
+                // Actualiza el progreso
+                updateProgress();
+            })
+            .catch(e => {
+                console.error('Error in pickAllInGroup:', e);
+            });
     }
 </script>
 
