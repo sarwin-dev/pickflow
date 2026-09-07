@@ -323,7 +323,7 @@ def complete_all(order_id):
 
 
 # resetea una orden a pending - solo supervisor y admin
-@pick_bp.route('/reset/<int:order_id>')
+@pick_bp.route('/reset/<int:order_id>', methods=['POST'])
 @supervisor_required
 def reset_order(order_id):
     order = WorkOrder.query.get(order_id)
@@ -336,27 +336,9 @@ def reset_order(order_id):
                 pick.picked_by = None
                 pick.picked_at = None
 
-        # recolecta part_template_id de los picks y desactiva is_on_hold
-        part_template_ids = set()
-        for item in order.items:
-            for pick in item.picks:
-                if pick.part_template_id:
-                    part_template_ids.add(pick.part_template_id)
-
-        part_ids = set()
-        for template_id in part_template_ids:
-            template = PartTemplate.query.get(template_id)
-            if template and template.part_id:
-                part_ids.add(template.part_id)
-
-        for part_id in part_ids:
-            part = Part.query.get(part_id)
-            if part:
-                part.is_on_hold = False
-
         order.status = 'pending'
         db.session.commit()
-    return redirect(url_for('supervision.index'))
+    return jsonify({'success': True})
 
 
 # limpia is_on_hold solo para las partes con missing en esta orden
