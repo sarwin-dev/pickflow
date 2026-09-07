@@ -112,12 +112,12 @@
                     border-bottom:1px solid #e5e7eb;
                     display:flex; flex-direction:column; gap:8px;">
             <!-- Línea 1: Ubicación (izq) | Cart badge + QTY (der juntos) -->
-            <div style="display:flex; align-items:center;">
+            <div style="display:flex; align-items:center; min-width:0;">
                 <span class="pick-location" style="font-family:monospace; font-size:12px;
-                             font-weight:500; color:#6b7280;">
+                             font-weight:500; color:#6b7280; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                     {{ group.location }}
                 </span>
-                <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+                <div style="display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0;">
                     <span class="role-badge {% if group.cart == 1 %}role-order_entry{% else %}role-receiving{% endif %}" style="font-size:11px;">
                         Cart {{ 'A' if group.cart == 1 else 'B' }}
                     </span>
