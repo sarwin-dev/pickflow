@@ -353,9 +353,9 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    picked = data.picked;
-                    missing = data.missing;
-                    total = data.total;
+                    picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
+                    missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
+                    total = allButtons.length;
                     updateProgress();
                     // nota: NO cierra automáticamente. El picker controla cuándo completar la orden
                 } else {
