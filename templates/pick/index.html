@@ -190,6 +190,11 @@
 <script>
     const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
 
+    // Unirse a todos los rooms de las órdenes visibles en la página
+    document.querySelectorAll('[data-order-id]').forEach(el => {
+        socket.emit('join_order', { order_id: parseInt(el.dataset.orderId) });
+    });
+
     socket.on('pick_updated', (data) => {
         const orderId = data.order_id;
         const pickedCount = data.picked_count;
