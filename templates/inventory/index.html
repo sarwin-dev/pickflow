@@ -68,11 +68,12 @@
             <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
             {% endif %}
         </form>
-        <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#6b7280; cursor:pointer;">
+        <label style="display:flex; align-items:center; gap:6px; padding:8px 12px; font-size:13px; font-weight:600; color:#374151; background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; cursor:pointer; white-space:nowrap; user-select:none;">
             <input type="checkbox" id="show-all-checkbox"
                    {% if show_all %}checked{% endif %}
-                   onchange="toggleShowAll(this)">
-            Mostrar todo el inventario
+                   onchange="toggleShowAll(this)"
+                   style="cursor:pointer;">
+            Show All
         </label>
     </div>
 </div>
