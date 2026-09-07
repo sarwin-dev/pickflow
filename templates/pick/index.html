@@ -188,7 +188,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-    const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
+    const socket = io({ transports: ['polling'], reconnection: true, reconnectionAttempts: 10, reconnectionDelay: 2000, timeout: 10000 });
 
     // Unirse a todos los rooms de las órdenes visibles en la página
     document.querySelectorAll('[data-order-id]').forEach(el => {
