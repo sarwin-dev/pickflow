@@ -507,15 +507,10 @@
         // Espera a que todas las promesas se resuelvan
         Promise.all(promises)
             .then(results => {
-                // Recalcula los contadores desde el servidor usando los datos del último response
-                if (results.length > 0) {
-                    const lastResponse = results[results.length - 1];
-                    if (lastResponse.success) {
-                        picked = lastResponse.picked;
-                        missing = lastResponse.missing;
-                        total = lastResponse.total;
-                    }
-                }
+                // Recalcula los contadores contando todos los tristate-btn por su data-state en el DOM
+                picked = document.querySelectorAll('.tristate-btn[data-state="picked"]').length;
+                missing = document.querySelectorAll('.tristate-btn[data-state="missing"]').length;
+                total = allButtons.length;
                 // Actualiza el progreso
                 updateProgress();
             })
