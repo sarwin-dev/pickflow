@@ -45,6 +45,7 @@ def build_part_item(part):
 def index():
     search = request.args.get('search', '').strip()
     filter_mode = request.args.get('filter', '')
+    show_all = request.args.get('show_all', '') == '1'
     part_results = []
 
     if True:
@@ -110,6 +111,10 @@ def index():
                 continue
             part_results.append(item)
 
+        # Si no hay búsqueda, filtro, ni show_all: solo mostrar pulldowns
+        if not search and not filter_mode and not show_all:
+            part_results = [x for x in part_results if x['needs_pulldown']]
+
         # partes que necesitan pulldown primero
         part_results.sort(key=lambda x: (not x['needs_pulldown'], x['part'].name))
 
@@ -120,6 +125,7 @@ def index():
                            part_results=part_results,
                            search=search,
                            filter_mode=filter_mode,
+                           show_all=show_all,
                            shopping_count=shopping_count,
                            pending_loc_edit=pending_loc_edit)
 

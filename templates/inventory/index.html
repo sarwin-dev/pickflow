@@ -57,16 +57,24 @@
 
 <!-- barra de busqueda sticky -->
 <div style="position:sticky; top:0; z-index:20; background:white; padding:10px 0 12px; margin-bottom:1rem; border-bottom:1px solid #e5e7eb;">
-    <form method="GET" action="/inventory/" style="display:flex; gap:8px; max-width:500px; width:100%;">
-        <input type="text" name="search" value="{{ search }}"
-               placeholder="Search part name (e.g. toe33, Left Panel...)"
-               style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
-               >
-        <button type="submit" class="btn-primary" style="padding:10px 20px;">Search</button>
-        {% if search %}
-        <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
-        {% endif %}
-    </form>
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <form method="GET" action="/inventory/" style="display:flex; gap:8px; flex:1; min-width:300px;">
+            <input type="text" name="search" value="{{ search }}"
+                   placeholder="Search part name (e.g. toe33, Left Panel...)"
+                   style="flex:1; padding:10px 14px; border:1px solid #e5e7eb; border-radius:6px; font-size:15px;"
+                   >
+            <button type="submit" class="btn-primary" style="padding:10px 20px;">Search</button>
+            {% if search %}
+            <a href="/inventory/" class="btn-secondary" style="padding:10px 14px;">Clear</a>
+            {% endif %}
+        </form>
+        <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#6b7280; cursor:pointer;">
+            <input type="checkbox" id="show-all-checkbox"
+                   {% if show_all %}checked{% endif %}
+                   onchange="toggleShowAll(this)">
+            Mostrar todo el inventario
+        </label>
+    </div>
 </div>
 
 {% if session['user_role'] in ['admin', 'supervisor'] and shopping_count > 0 %}
@@ -500,6 +508,16 @@ function showBaysShelvesGrid(selectedAisle) {
 
     document.getElementById('screen-aisles').style.display = 'none';
     document.getElementById('screen-bays').style.display = 'block';
+}
+
+function toggleShowAll(cb) {
+    const url = new URL(window.location.href);
+    if (cb.checked) {
+        url.searchParams.set('show_all', '1');
+    } else {
+        url.searchParams.delete('show_all');
+    }
+    window.location.href = url.toString();
 }
 
 </script>
