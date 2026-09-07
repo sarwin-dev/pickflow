@@ -53,6 +53,7 @@ def receive():
             # suma la cantidad al registro activo existente
             existing.quantity += quantity
             existing.updated_at = datetime.utcnow()
+            existing.received_at = datetime.utcnow()
         else:
             # crea nuevo registro activo con ubicacion de la parte maestra
             new_record = Inventory(
