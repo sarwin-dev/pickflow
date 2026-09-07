@@ -767,6 +767,9 @@ def setup_wizard():
         if active_shelves >= total_shelves:
             return jsonify({'error': 'Active shelves must be less than total shelves. You need at least 1 overflow shelf.'}), 400
 
+        if total_locations < 1 or total_locations > 9:
+            return jsonify({'error': 'Locations per shelf must be between 1 and 9'}), 400
+
         warehouse_config = WarehouseConfig.query.first()
 
         if warehouse_config:
