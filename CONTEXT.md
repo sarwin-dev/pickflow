@@ -3,13 +3,60 @@
 ## Propósito
 Sistema de gestión de almacén para fabricantes de muebles. Permite recibir inventario en ubicaciones de overflow, seleccionar partes para órdenes de trabajo, rastrear entregas, registrar pérdidas/daños y supervisar el flujo operacional.
 
-## Stack
-- Backend: Python/Flask + PostgreSQL
-- Frontend: HTML5/CSS3 + JavaScript (vanilla)
+## Stack & Infrastructure
+
+### Backend
+- **Framework:** Flask 3.1.3
+- **ORM:** Flask-SQLAlchemy 3.1.1
+- **WebSockets:** Flask-SocketIO 5.6.1 (async_mode='eventlet')
+- **Server:** Gunicorn 21.2.0 (worker-class eventlet, workers=1)
+- **Async Runtime:** eventlet 0.41.2 (bugfix mode — funcional pero sin nuevas features, migración futura posible a threading)
+- **WebSocket Protocol:** simple-websocket 1.1.0
+- **Environment:** python-dotenv 1.0.0
+- **PDF Generation:** ReportLab 4.4.10
+
+### Frontend
+- HTML5/CSS3 + JavaScript (vanilla, sin frameworks)
 - Autenticación: Flask sessions con decorators @auth
-- Base de datos: PostgreSQL con SQLAlchemy ORM
-- Servidor: Linux (Fedora), local: Debian Server en MacBook Air
-- GitHub: https://github.com/sarwin-dev/pickflow
+- Socket.IO client (cargado desde CDN)
+- Responsive design con CSS Grid y Flexbox
+
+### Database
+- **Engine:** PostgreSQL
+- **Driver:** psycopg2-binary 2.9.11
+- **ORM:** SQLAlchemy (via Flask-SQLAlchemy)
+- **Migrations:** Manual (sin Alembic aún)
+
+### Deployment
+- **OS:** Linux (Fedora en producción, Debian Server local en MacBook Air)
+- **Git:** https://github.com/sarwin-dev/pickflow
+- **Environment:** Python 3.14.7, virtual environment en `/home/sarwin/pickflow/venv`
+
+### WebSockets Architecture
+
+**Real-time Synchronization:**
+- Cliente se une a room `order_{order_id}` cuando accede a la orden de picking
+- Evento `join_order` enviado al servidor al cargar `/pick/<order_id>`
+- Evento `leave_order` emitido al cerrar la pestaña (beforeunload)
+
+**Eventos de sincronización:**
+- `pick_updated`: Emitido por el servidor cuando un picker marca un slot
+  - Payload: `{ pick_id, is_picked, is_missing, order_id }`
+  - Destinatarios: todos los clientes en room `order_{order_id}`
+  - Resultado: actualización visual instantánea en tristate-btn sin fetch
+
+**Flujo de actualización:**
+1. Picker A hace clic en un slot → toggle() POST
+2. Servidor actualiza PickItem en BD
+3. Servidor emite `pick_updated` al room `order_{order_id}`
+4. Picker B (mismo room) recibe evento
+5. Cliente actualiza tristate-btn con applyState() sin recargar
+
+**Ventajas:**
+- Múltiples pickers en la misma orden ven cambios en tiempo real
+- Sin polling ni refreshes manuales
+- Baja latencia (< 100ms típico)
+- Escalable a N pickers en la misma orden
 
 ## Arquitectura de Almacén
 
