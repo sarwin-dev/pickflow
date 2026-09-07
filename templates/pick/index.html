@@ -76,13 +76,13 @@
                 </td>
                 <td style="min-width:140px;">
                     {% if stat.total > 0 %}
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="pick-progress-bar" data-order-id="{{ order.id }}" style="display:flex; align-items:center; gap:8px;">
                         <div style="flex:1; background:#e5e7eb; border-radius:4px; height:6px; overflow:hidden;">
-                            <div style="width:{{ (stat.picked / stat.total * 100)|int }}%;
+                            <div class="pick-progress-fill" style="width:{{ (stat.picked / stat.total * 100)|int }}%;
                                         background:{% if stat.missing > 0 %}#f59e0b{% elif stat.picked == stat.total %}#16a34a{% else %}#6366f1{% endif %};
                                         height:100%; border-radius:4px;"></div>
                         </div>
-                        <span style="font-size:12px; color:#666; white-space:nowrap;">
+                        <span class="pick-progress-text" style="font-size:12px; color:#666; white-space:nowrap;">
                             {{ stat.picked }}/{{ stat.total }}
                         </span>
                     </div>
@@ -138,13 +138,13 @@
             {% endif %}
         </div>
         {% if stat.total > 0 %}
-        <div style="margin-bottom:12px;">
+        <div class="pick-progress-bar-mobile" data-order-id="{{ order.id }}" style="margin-bottom:12px;">
             <div style="background:#e5e7eb; border-radius:4px; height:6px; overflow:hidden;">
-                <div style="width:{{ (stat.picked / stat.total * 100)|int }}%;
+                <div class="pick-progress-fill" style="width:{{ (stat.picked / stat.total * 100)|int }}%;
                             background:{% if stat.missing > 0 %}#f59e0b{% elif stat.picked == stat.total %}#16a34a{% else %}#6366f1{% endif %};
                             height:100%; border-radius:4px;"></div>
             </div>
-            <div style="font-size:12px; color:#6b7280; margin-top:4px;">{{ stat.picked }} picked · {{ stat.missing }} missing · {{ stat.total }} total</div>
+            <div class="pick-progress-text-mobile" style="font-size:12px; color:#6b7280; margin-top:4px;">{{ stat.picked }} picked · {{ stat.missing }} missing · {{ stat.total }} total</div>
         </div>
         {% endif %}
         <div style="font-size:13px; color:#6b7280; margin-bottom:14px;">
@@ -185,5 +185,36 @@
     .pick-mobile { display: block; }
 }
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
+
+    socket.on('pick_updated', (data) => {
+        const orderId = data.order_id;
+        const pickedCount = data.picked_count;
+        const totalCount = data.total_count;
+
+        // Actualizar barra de progreso en tabla desktop
+        const desktopBar = document.querySelector(`.pick-progress-bar[data-order-id="${orderId}"]`);
+        if (desktopBar) {
+            const fill = desktopBar.querySelector('.pick-progress-fill');
+            const text = desktopBar.querySelector('.pick-progress-text');
+            const percentage = totalCount > 0 ? Math.round(pickedCount / totalCount * 100) : 0;
+            fill.style.width = percentage + '%';
+            text.textContent = pickedCount + '/' + totalCount;
+        }
+
+        // Actualizar barra de progreso en cards móvil
+        const mobileBar = document.querySelector(`.pick-progress-bar-mobile[data-order-id="${orderId}"]`);
+        if (mobileBar) {
+            const fill = mobileBar.querySelector('.pick-progress-fill');
+            const text = mobileBar.querySelector('.pick-progress-text-mobile');
+            const percentage = totalCount > 0 ? Math.round(pickedCount / totalCount * 100) : 0;
+            fill.style.width = percentage + '%';
+            text.textContent = pickedCount + ' picked · ' + (totalCount - pickedCount) + ' remaining · ' + totalCount + ' total';
+        }
+    });
+</script>
 
 {% endblock %}

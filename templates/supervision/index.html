@@ -136,21 +136,21 @@
                 </td>
                 <td style="min-width:160px;">
                     {% if stat.total > 0 %}
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="supervision-progress-bar" data-order-id="{{ order.id }}" style="display:flex; align-items:center; gap:8px;">
                         <div style="flex:1; background:#e5e7eb; border-radius:4px; height:8px; overflow:hidden;">
-                            <div style="width:{{ stat.percent }}%; background:
+                            <div class="supervision-progress-fill" style="width:{{ stat.percent }}%; background:
                                 {% if stat.percent == 100 %}#16a34a
                                 {% elif stat.percent > 0 %}#f59e0b
                                 {% else %}#e5e7eb{% endif %};
                                 height:100%; border-radius:4px;">
                             </div>
                         </div>
-                        <span style="font-size:12px; color:#666; white-space:nowrap;">
+                        <span class="supervision-progress-text" style="font-size:12px; color:#666; white-space:nowrap;">
                             {{ stat.picked }}/{{ stat.total }}
                         </span>
                     </div>
                     {% if stat.missing > 0 %}
-                    <div style="font-size:11px; color:#dc2626; margin-top:2px;">
+                    <div class="supervision-progress-missing" style="font-size:11px; color:#dc2626; margin-top:2px;">
                         ⚠ {{ stat.missing }} missing
                     </div>
                     {% endif %}
@@ -306,6 +306,29 @@ document.getElementById('reset-modal').addEventListener('click', (e) => {
 });
 
 setTimeout(() => location.reload(), 60000);
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io({ reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000, timeout: 5000 });
+
+    socket.on('pick_updated', (data) => {
+        const orderId = data.order_id;
+        const pickedCount = data.picked_count;
+        const totalCount = data.total_count;
+
+        // Actualizar barra de progreso en tabla de supervision
+        const progressBar = document.querySelector(`.supervision-progress-bar[data-order-id="${orderId}"]`);
+        if (progressBar) {
+            const fill = progressBar.querySelector('.supervision-progress-fill');
+            const text = progressBar.querySelector('.supervision-progress-text');
+            const percentage = totalCount > 0 ? Math.round(pickedCount / totalCount * 100) : 0;
+
+            fill.style.width = percentage + '%';
+            fill.style.background = percentage === 100 ? '#16a34a' : (percentage > 0 ? '#f59e0b' : '#e5e7eb');
+            text.textContent = pickedCount + '/' + totalCount;
+        }
+    });
 </script>
 
 {% endblock %}

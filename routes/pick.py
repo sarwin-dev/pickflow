@@ -191,14 +191,6 @@ def toggle(pick_item_id):
 
         db.session.commit()
 
-        # emite evento SocketIO para actualizar otros clientes en tiempo real
-        socketio.emit('pick_updated', {
-            'pick_id': pick_item.id,
-            'is_picked': pick_item.is_picked,
-            'is_missing': pick_item.is_missing,
-            'order_id': order.id
-        }, room=f'order_{order.id}')
-
         # recuenta desde la base de datos
         order = pick_item.order_item.order
         total = PickItem.query.join(OrderItem).filter(
@@ -212,6 +204,16 @@ def toggle(pick_item_id):
             OrderItem.work_order_id == order.id,
             PickItem.is_missing == True
         ).count()
+
+        # emite evento SocketIO para actualizar otros clientes en tiempo real
+        socketio.emit('pick_updated', {
+            'pick_id': pick_item.id,
+            'is_picked': pick_item.is_picked,
+            'is_missing': pick_item.is_missing,
+            'order_id': order.id,
+            'picked_count': picked,
+            'total_count': total
+        }, room=f'order_{order.id}')
 
         # completa la orden solo si todo esta picked o missing
         if picked + missing == total:
