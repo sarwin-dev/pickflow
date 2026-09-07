@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.security import check_password_hash
 from extensions import db
 from dotenv import load_dotenv
@@ -173,6 +173,10 @@ def dashboard():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(app.static_folder, 'favicon.png', mimetype='image/png')
 
 @app.route('/clear-data')
 def clear_data():
