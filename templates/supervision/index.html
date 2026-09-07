@@ -317,6 +317,9 @@ setTimeout(() => location.reload(), 60000);
         socket.emit('join_order', { order_id: parseInt(el.dataset.orderId) });
     });
 
+    // Unirse al room de supervision para recibir cambios de status
+    socket.emit('join_supervision');
+
     socket.on('pick_updated', (data) => {
         const orderId = data.order_id;
         const pickedCount = data.picked_count;
@@ -362,6 +365,24 @@ setTimeout(() => location.reload(), 60000);
                 const newTotal = Math.max(0, currentTotal + diff);
                 totalMissingEl.textContent = newTotal;
                 totalMissingEl.style.color = newTotal > 0 ? '#dc2626' : '#1e1b4b';
+            }
+        }
+    });
+
+    socket.on('order_status_changed', (data) => {
+        const orderId = data.order_id;
+        const newStatus = data.new_status;
+        const badge = document.querySelector(`.badge[data-status-order-id="${orderId}"]`);
+        if (badge) {
+            if (newStatus === 'in_progress') {
+                badge.className = 'badge badge-progress';
+                badge.textContent = 'In Progress';
+            } else if (newStatus === 'completed') {
+                badge.className = 'badge badge-done';
+                badge.textContent = 'Completed';
+            } else if (newStatus === 'pending') {
+                badge.className = 'badge badge-pending';
+                badge.textContent = 'Pending';
             }
         }
     });

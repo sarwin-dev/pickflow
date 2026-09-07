@@ -18,6 +18,11 @@ def on_join_order(data):
         join_room(f'order_{order_id}')
         emit('status', {'msg': f'Joined order {order_id}'})
 
+@socketio.on('join_supervision')
+def on_join_supervision():
+    join_room('supervision')
+    emit('status', {'msg': 'Joined supervision room'})
+
 @socketio.on('leave_order')
 def on_leave_order(data):
     order_id = data.get('order_id')
@@ -216,10 +221,21 @@ def toggle(pick_item_id):
             'missing_count': missing
         }, room=f'order_{order.id}')
 
+        # notifica a supervision si el status cambió
+        if order.status in ('in_progress',):
+            socketio.emit('order_status_changed', {
+                'order_id': order.id,
+                'new_status': order.status
+            }, room='supervision')
+
         # completa la orden solo si todo esta picked o missing
         if picked + missing == total:
             order.status = 'completed'
             db.session.commit()
+            socketio.emit('order_status_changed', {
+                'order_id': order.id,
+                'new_status': 'completed'
+            }, room='supervision')
 
         return jsonify({
             'success': True,
