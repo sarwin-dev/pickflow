@@ -32,31 +32,44 @@ Sistema de gestión de almacén para fabricantes de muebles. Permite recibir inv
 - **Git:** https://github.com/sarwin-dev/pickflow
 - **Environment:** Python 3.14.7, virtual environment en `/home/sarwin/pickflow/venv`
 
-### WebSockets Architecture
+### WebSockets Architecture (Socket.IO 4.7.5)
+
+**Configuración:**
+- Async mode: `eventlet` (0.41.2) con fallback a polling
+- Transport: `['polling']` para estabilidad en navegadores
+- Reconnection: 10 intentos, 2000ms delay, 10000ms timeout
+- CORS: `'*'` habilitado para desarrollo
 
 **Real-time Synchronization:**
-- Cliente se une a room `order_{order_id}` cuando accede a la orden de picking
+- Cliente se une a rooms: `order_{order_id}` (picking) y `supervision` (supervisión)
 - Evento `join_order` enviado al servidor al cargar `/pick/<order_id>`
+- Evento `join_supervision` emitido al cargar `/supervision/`
 - Evento `leave_order` emitido al cerrar la pestaña (beforeunload)
 
 **Eventos de sincronización:**
-- `pick_updated`: Emitido por el servidor cuando un picker marca un slot
-  - Payload: `{ pick_id, is_picked, is_missing, order_id }`
-  - Destinatarios: todos los clientes en room `order_{order_id}`
-  - Resultado: actualización visual instantánea en tristate-btn sin fetch
+- `pick_updated`: Emitido cuando un picker marca un slot
+  - Payload: `{ pick_id, is_picked, is_missing, order_id, picked, missing, total }`
+  - Destinatarios: todos en room `order_{order_id}` y `supervision`
+  - Resultado: actualización visual instantánea + contadores delta
+  
+- `order_status_changed`: Emitido cuando una orden cambia de estado
+  - Payload: `{ order_id, status, picked, missing, total }`
+  - Destinatarios: supervisión + picking
+  - Resultado: badge y métricas en tiempo real
 
 **Flujo de actualización:**
 1. Picker A hace clic en un slot → toggle() POST
-2. Servidor actualiza PickItem en BD
-3. Servidor emite `pick_updated` al room `order_{order_id}`
-4. Picker B (mismo room) recibe evento
-5. Cliente actualiza tristate-btn con applyState() sin recargar
+2. Servidor actualiza PickItem, emite `pick_updated` y `order_status_changed`
+3. Picker B (mismo room) recibe evento sin latencia
+4. Cliente actualiza tristate-btn + contadores dinámicamente
+5. Supervisor ve badge actualizado en tiempo real
 
 **Ventajas:**
-- Múltiples pickers en la misma orden ven cambios en tiempo real
-- Sin polling ni refreshes manuales
-- Baja latencia (< 100ms típico)
-- Escalable a N pickers en la misma orden
+- Múltiples pickers ven cambios en tiempo real sin refresh
+- Supervisor ve métricas actualizadas cada segundo
+- Baja latencia con polling transport
+- Contadores delta (+1/-1) evitan race conditions
+- Escalable a N pickers + supervisores
 
 ## Arquitectura de Almacén
 
@@ -98,10 +111,12 @@ Configuración del almacén y gestión de datos maestros.
 
 **Secciones:**
 - Usuarios y roles (admin, supervisor, warehouse, order_entry, picker)
-- Warehouse Configuration (aisles, bays, shelves activos/overflow, locations, nombre empresa)
+- Warehouse Configuration (aisles, bays, shelves activos/overflow, locations, nombre empresa, total_carts)
 - Cabinet Types (tipos de muebles: base, wall, tall, etc.)
 - Colors (colores disponibles para órdenes)
-- Parts (partes del inventario con ubicación activa)
+- Parts (partes del inventario con ubicación activa, botón Swap)
+  - Edit form: solo muestra campo Name (ubicación activa manejada por Swap)
+  - Botón Swap: cambiar aisle/bay/shelf/location de una parte
 - Demo Tools (cargar/limpiar datos de prueba, simular órdenes)
 
 **Endpoints principales:**
@@ -143,29 +158,39 @@ Registro de cajas entrantes en ubicaciones de overflow.
 ---
 
 ### 3. **Inventory** (`routes/inventory.py`, `templates/inventory/`)
-Visualización del stock actual por parte, con filtros y búsqueda.
+Visualización del stock actual por parte, con carga lazy y filtros.
 
 **Optimización reciente:**
 - 3 queries globales en el loop de `index()` en lugar de N queries por parte
 - Registros con quantity ≤ 0 se filtran y ocultan
 - Registros vacíos se eliminan automáticamente cuando son consumidos por simulación
 
+**Carga Lazy por defecto:**
+- Solo muestra partes que necesitan pulldown (`is_on_hold=True`)
+- Checkbox "Show All" alterna entre vista filtrada y vista completa
+- Evita sobrecargar la UI con centenas de partes
+- Búsqueda, filtros y "Show All" desactivan el filtro automático
+- URL parameter: `?show_all=1` para enlaces directos
+
 **Vistas:**
-- Listado de partes activas y overflow
+- Listado lazy (solo pulldowns por defecto)
 - Búsqueda por nombre con normalización (toe33 → Toe 33)
 - Filtros: solo bajo stock, en shopping list
 - Notificación badge rojo en botón Inventory si hay partes agotadas
+- Auto-refresh badge cada 30 segundos vía `/api/pulldown-count`
 
 **Features:**
-- Badge rojo con número en esquina superior derecha del botón Inventory
+- Badge rojo con número que se actualiza automáticamente
 - Muestra cantidad de partes completamente agotadas (quantity = 0)
 - Shopping List para partes a reabastecer
 - PDF de Reorder List con nombre de empresa en header
+- Botón Swap para cambiar ubicación de partes (junto a Edit)
 
 **Endpoints:**
-- `GET /inventory/` - listado con filtros y búsqueda
+- `GET /inventory/` - listado con filtros, búsqueda y show_all
 - `GET /inventory/search-parts` - búsqueda en tiempo real (JSON)
 - `GET /inventory/shopping/pdf` - exportar lista de compra como PDF
+- `GET /api/pulldown-count` - cantidad actual de parts con is_on_hold=True
 
 ---
 
@@ -204,27 +229,35 @@ Work Order
 ---
 
 ### 5. **Pick** (`routes/pick.py`, `templates/pick/`)
-Seleccionar partes para órdenes confirmadas.
+Seleccionar partes para órdenes confirmadas con soporte multi-carrito.
 
 **Tristate por parte:**
 - ✓ Picked (seleccionada)
 - ✗ Missing (no hay stock)
 - ⏳ Pending (sin marcar)
 
+**Multi-Cart Support (dual-cart mode: config.total_carts=2):**
+- Selector de carrito (Cart A / Cart B) con filtro dinámico
+- Dos barras de progreso separadas (una por carro)
+- Botones "Mark Missing" integrados en cada barra (pequeños, low-profile)
+- Filtro Cart A por defecto en carga
+- Mark Missing acepta parámetro `cart` para filtrar por carrito específico
+- Single-cart mode (total_carts=1): interfaz heredada sin cambios
+
 **Features:**
-- Barra de progreso: cuántas partes seleccionadas vs total
-- Búsqueda/filtro de órdenes
-- Botón "Mark as Completed" cuando todas partes están picked
-- Botón "Complete" para admin/supervisor: genera PickItems si no existen y marca todas como picked
-- PDF de Case Pick List con nombre de empresa en header
-- Interfaz responsive
+- ✅ Barra de progreso dinámica (recuento por DOM, sin variables globales)
+- ✅ Búsqueda/filtro de órdenes por aisle
+- ✅ Botón "✓ All" / "✗ None" por parte (checkbox multi-unit)
+- ✅ PDF de Case Pick List con nombre de empresa en header
+- ✅ Sincronización Socket.IO en tiempo real para múltiples pickers
+- ❌ Botón "Complete Order" eliminado (uso de Mark Missing + status tracking)
+- ✅ Interfaz responsive con selección de carrito
 
 **Endpoints:**
 - `GET /pick/` - listado de órdenes
-- `GET /pick/<order_id>` - detalles de picking
-- `POST /pick/mark-part` - marcar parte como picked/missing/pending
-- `POST /pick/complete-order` - marcar orden como completada
-- `POST /pick/<order_id>/complete-all` - admin/supervisor completa todos los picks
+- `GET /pick/<order_id>` - detalles de picking con config
+- `POST /pick/<order_id>/toggle` - marcar parte (emite pick_updated)
+- `POST /pick/<order_id>/mark-missing-all` - marcar todos pending como missing (acepta cart param)
 - `GET /pick/<order_id>/pdf` - generar PDF de picking
 
 ---
@@ -249,24 +282,32 @@ Registrar daños y pérdidas de inventario.
 
 ---
 
-### 7. **Supervision** (Completamente implementado)
-Supervisar estado general del almacén y control de calidad.
+### 7. **Supervision** (Completamente implementado con Socket.IO)
+Supervisar estado general del almacén en tiempo real.
 
-**Métricas:**
-- Active Orders: órdenes en progreso
-- Completed Today: órdenes finalizadas hoy
-- Missing Items: partes sin stock en órdenes activas
+**Métricas en Tiempo Real:**
+- Active Orders: órdenes en progreso (actualizado por Socket.IO)
+- Completed Today: órdenes finalizadas hoy (actualizado por Socket.IO)
+- Missing Items: partes sin stock en órdenes activas (actualizado por Socket.IO)
 
 **Features:**
 - Filtro por fecha
-- Auto-refresh cada 60 segundos
-- Botón "Complete Order" para admin/supervisor que llama a `/pick/<order_id>/complete-all`
+- Socket.IO join a room `supervision` al cargar
+- Recibe eventos `pick_updated` y `order_status_changed` sin polling
+- Métricas actualizadas instantáneamente cada vez que un picker marca algo
+- Badge status: Pending / In Progress / Completed
 - Progreso calculado como picked/total (no incluye missing)
-- Interfaz responsive
+- Interfaz responsive con modal de órdenes
+
+**Socket.IO Integration:**
+- Cliente se une a room `supervision` al cargar
+- Escucha `pick_updated`: actualiza contadores missing, reconoce cambios de estado
+- Escucha `order_status_changed`: actualiza estado de orden sin refresh
+- Delta-based updates: +1/-1 en lugar de recuento completo
 
 **Endpoints:**
-- `GET /supervision/` - dashboard de supervisión
-- `POST /supervision/refresh` - actualizar métricas (JSON)
+- `GET /supervision/` - dashboard de supervisión con Socket.IO
+- Socket.IO event listeners: `pick_updated`, `order_status_changed`
 
 ---
 
@@ -429,7 +470,14 @@ WarehouseConfig:
   - total_aisles, total_bays, total_shelves, total_locations
   - active_shelves (número de shelves para picking)
   - max_cart_slots (slot máximos por carrito)
+  - total_carts (1=single, 2=dual-cart mode, default=1)
   - label_* y prefix_* (etiquetas y prefijos dinámicos)
+  
+  # Cuando total_carts=2:
+  # - Pick UI muestra dos barras de progreso
+  # - Selector de carrito (Cart A / Cart B)
+  # - Botones Mark Missing por carrito
+  # - PDF pick list con secciones separadas por carrito
 ```
 
 ### WorkOrder
@@ -462,24 +510,49 @@ Loss:
 
 ## Cambios Recientes (Septiembre 2026)
 
-### Optimizaciones de Performance
-1. **Inventory Index:** 3 queries globales en lugar de N queries por parte
-2. **Shopping List:** set() para búsquedas O(1)
-3. **Demo Simulate:** elimina registros con quantity ≤ 0 en lugar de dejar en 0
+### Real-time Synchronization (Socket.IO 4.7.5 + eventlet)
+1. **Pick Sync:** Múltiples pickers ven cambios instantáneamente en la misma orden
+2. **Supervision Live:** Métricas actualizadas en tiempo real sin polling
+3. **Event Architecture:** room-based (order_{id}, supervision) con delta-based updates
+4. **Reliable Transport:** eventlet async_mode con polling fallback
+
+### Multi-Cart Picking (Configurable 1 o 2 carts)
+1. **Dual-Cart Mode:** config.total_carts=2 activa interfaz dual
+   - Selector Cart A / Cart B en pick_order.html
+   - Dos barras de progreso independientes
+   - Mark Missing buttons integrados (pequeños, al lado de cada barra)
+   - Filter Cart A por defecto
+2. **Backend Filtering:** mark_missing_all() filtra por PartTemplate.cart cuando se especifica
+3. **UI Responsive:** updateProgress() recuenta desde DOM dinámicamente
+
+### Inventory Improvements
+1. **Lazy Loading:** Solo muestra partes con is_on_hold=True por defecto
+2. **Show All Toggle:** Checkbox para ver todas las partes
+3. **Auto-refresh Badge:** Actualización cada 30 segundos vía /api/pulldown-count
+4. **Swap Button:** Cambiar ubicación activa de partes (junto a Edit)
+   - Edit form simplificado: solo nombre visible
+
+### Admin/Parts Enhancements
+1. **Botón Swap:** Interfaz separada para cambiar aisle/bay/shelf/location
+2. **Edit Formulario:** Solo muestra campo Name
+3. **Validación:** Evita errores de ubicación duplicada
 
 ### Completado
 1. Losses module: categorías, filtros, resumen, PDF
-2. Supervision module: métricas, auto-refresh, Complete Order button
+2. Supervision module: Socket.IO real-time, métricas live
 3. Analytics module: proyecciones, tres fuentes de datos, period/history inputs
 4. PDFs: nombre de empresa en headers
 5. Auth: decorators pattern en todos los routes
 6. Demo Tools: reorganizado, simulación con SIM- prefix
+7. Pick module: dual-cart support, Mark Missing por carrito, progreso dual
+8. Dashboard: badge Inventory auto-refresh cada 30 segundos
 
 ### Eliminado
 1. ProductionPlan model y table
 2. annual_qty de CabinetType
 3. is_simulated flag en WorkOrder
 4. stack_confirmed y pending_receive en Receiving
+5. Botón "Complete Order" en Pick (reemplazado por Mark Missing + status tracking)
 
 ---
 

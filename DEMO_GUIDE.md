@@ -55,27 +55,33 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 **Contexto:** "Supervisor ve dónde está cada parte y cuántas hay"
 
 1. **Navega a Inventory**
-2. **Busca una parte** (escribe "side" en search)
-3. **Muestra la lista:**
+2. **Explica la carga lazy:**
+   - "Por defecto solo muestra partes que necesitan pulldown"
+   - "Checkbox 'Show All' revela todo el inventario"
+   - "Búsqueda automáticamente desactiva el filtro"
+3. **Busca una parte** (escribe "side" en search)
+4. **Muestra la lista:**
    - Nombre de la parte
    - Badge rojo si está agotada
    - Ubicaciones activas y overflow
    - Cantidad en cada lugar
-4. **Explica los estados:**
+   - Botón "Swap" para cambiar ubicación activa de la parte
+5. **Explica los estados:**
    - Verde "OK" = hay stock suficiente
    - Amarillo "LOW" = poca cantidad
    - Rojo "OUT" = completamente agotada
-5. **Abre el badge rojo** (si hay partes agotadas)
+6. **Muestra badge rojo** (auto-actualizado cada 30 segundos)
    - "Esto notifica de inmediato qué falta"
-6. **Muestra botón "Free Locations"** (esquina superior derecha)
+   - "Se actualiza automáticamente sin que hagas nada"
+7. **Muestra botón "Free Locations"** (esquina superior derecha)
    - Similar a Receiving: muestra grilla con barras de progreso
    - ❌ Locations ocupadas | ✅ Locations libres
    - "Modo informativo: solo consulta, no asigna"
-7. **Muestra Shopping List** (botón abajo)
+8. **Muestra Shopping List** (botón abajo)
    - "Aquí agregamos partes a reabastecer"
    - "Click en PDF para generar lista de compra con el nombre de tu empresa"
 
-**Key message:** "Visibilidad total del inventario en tiempo real"
+**Key message:** "Visibilidad total del inventario, actualizaciones automáticas, control de ubicaciones"
 
 ---
 
@@ -129,59 +135,89 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 
 ---
 
-### Demostración 5: Pick - Seleccionar Partes (2 min)
+### Demostración 4.5: Admin - Partes y Swap (1 min)
+
+**Contexto:** "Gestión de partes: crear, editar, cambiar ubicación"
+
+1. **Navega a Admin → Parts**
+2. **Muestra el listado de partes:**
+   - Nombre, ubicación activa, estado
+   - Botones de acción: Edit, Swap, Pulldown
+3. **Muestra formulario Edit:**
+   - "Solo puedes editar el nombre aquí"
+   - "Ubicación se maneja con Swap para evitar errores"
+4. **Muestra botón Swap:**
+   - Click abre diálogo para cambiar aisle/bay/shelf/location
+   - "Cambias la ubicación activa donde los pickers buscan esta parte"
+   - "Sistema evita conflictos automáticamente"
+
+**Key message:** "Gestión de ubicaciones segura, sin confusiones"
+
+---
+
+### Demostración 5: Pick - Seleccionar Partes (3 min)
 
 **Contexto:** "El almacenero va aquí con esta lista y recoge las partes"
 
 1. **Navega a Pick**
 2. **Selecciona una orden existente** (de las simuladas)
-3. **Muestra la barra de progreso:**
-   - "3 de 15 partes seleccionadas"
-   - Color cambia según progreso
-4. **Marca una parte como "Picked"** (ej: click checkbox)
-5. **Muestra "Pending", "Picked", "Missing":**
+3. **Muestra el selector de carrito** (si total_carts=2):
+   - Dropdown "Cart A" / "Cart B"
+   - "Picker puede seleccionar qué carrito está usando"
+   - "La pantalla muestra solo las partes de ese carrito"
+4. **Muestra las barras de progreso:**
+   - Dual-cart: "Cart A: 3 de 8" | "Cart B: 1 de 7" (si total_carts=2)
+   - Single-cart: "3 de 15 partes seleccionadas"
+   - Botones "Mark Missing" pequeños al lado de cada barra
+   - "Marca todas las partes de ese carrito como faltantes de una vez"
+5. **Marca una parte como "Picked"** (ej: click checkbox)
+6. **Muestra "Pending", "Picked", "Missing":**
    - Verde = ya recogidas
    - Gris = esperando
    - Rojo = no hay stock
-6. **Muestra botón "✓ All" por cada parte**
-   - Click marca TODOS los slots de esa parte como picked de una vez
+7. **Muestra botón "✓ All" / "✗ None" por cada parte**
+   - Click marca TODOS los slots de esa parte como picked/pending de una vez
    - "Ahorra clicks cuando la parte tiene múltiples unidades"
-   - **Tiempo real:** cambios se sincronizan instantáneamente entre dispositivos
-     - Si otro picker está en la misma orden, ve los cambios sin recargar
-     - "Múltiples almaceneros pueden pick la misma orden simultáneamente"
-7. **Muestra botón "Complete"** (visible para admin/supervisor)
-   - "Este botón marca automáticamente todas las partes como seleccionadas"
-   - "Útil cuando terminas de pick la orden"
-8. **Muestra botón "Print PDF"**
+   - Cambia automáticamente según estado (✓ si todos picked, ✗ si todos pending)
+8. **Explica sincronización en tiempo real:**
+   - "Si otro picker está en la misma orden, ve los cambios SIN recargar"
+   - "Múltiples almaceneros pueden pick la misma orden simultáneamente"
+   - "Los contadores se actualizan instantáneamente"
+9. **Muestra botón "Print PDF"**
    - "Genera lista de picking con ubicaciones exactas"
+   - "Dual-cart: incluye secciones separadas por carrito"
    - "Incluye el nombre de tu empresa en el header"
 
-**Key message:** "Guía visual para el almacenero, sin confusiones, con sincronización en tiempo real"
+**Key message:** "Picking dual-carrito flexible, sincronización real-time, sin conflictos entre almaceneros"
 
 ---
 
 ### Demostración 6: Supervision - Supervisar Estado General (2 min)
 
-**Contexto:** "El supervisor ve métricas en tiempo real"
+**Contexto:** "El supervisor ve métricas en tiempo real sin hacer nada"
 
 1. **Navega a Supervision**
 2. **Muestra las tres métricas principales:**
    - **Active Orders** - órdenes en progreso ahora mismo
    - **Completed Today** - cuántas órdenes se terminaron hoy
    - **Missing Items** - cuántas partes no tienen stock en órdenes activas
-3. **Explica el filtro:**
-   - "Click en el selector de fecha para ver histórico"
-   - "Se actualiza automáticamente cada 60 segundos"
-4. **Muestra el botón "Reset"** (solo para admin/supervisor)
-   - Click abre modal con dos checkboxes:
-     - ✓ "Reset pick progress" (marcado por defecto) = borra todos los picks de la orden
-     - ☐ "Clear pulldown alerts (this order only)" (sin marcar) = elimina solo las alertas de esta orden
-   - "Flexibilidad para resetear lo que necesites"
-5. **Muestra el botón "Complete"** (verde, solo para admin/supervisor)
+   - "Todas se actualizan instantáneamente conforme los pickers marcan partes"
+3. **Abre otra pestaña con Pick:**
+   - "Ahora marca una parte como picked"
+   - **Supervision auto-actualiza SIN refresh** ✨
+   - "Los números cambian en tiempo real porque usa WebSockets"
+4. **Muestra modal de órdenes:**
+   - Click en una orden activa abre panel con detalles
+   - Progreso por carrito (si dual-cart mode)
+   - "Puedes ver exactamente dónde está cada orden"
+5. **Explica el auto-refresh:**
+   - "Cada 60 segundos se verifica si algo cambió"
+   - "Pero la sincronización Socket.IO es instantánea"
+6. **Muestra el botón "Complete"** (verde, solo para admin/supervisor)
    - "Click aquí marca toda la orden como completada"
    - "Genera automáticamente los picks si no existen"
 
-**Key message:** "Supervisión en tiempo real sin abrir cinco pantallas"
+**Key message:** "Supervisión en tiempo real, sin polling, instantáneo con Socket.IO"
 
 ---
 
@@ -215,8 +251,9 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 2. **Muestra cada card:**
 
    **Load Demo State**
-   - Resetea a datos iniciales desde demo_seed.json
+   - Resetea a datos iniciales desde demo_seed.json (incluye total_carts=2)
    - Limpia todo y recarga demo limpio
+   - Dual-cart mode habilitado automáticamente
 
    **Fill Overflow Warehouse**
    - Llena todos los espacios de overflow con partes aleatorias
@@ -248,8 +285,9 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 3. **Explica el uso:**
    - "Para demos usamos esto"
    - "En producción real, tú cargas tus datos reales"
+   - "Dual-cart mode incluido en seed: carts A y B automáticos"
 
-**Key message:** "Fácil de preparar, fácil de resetear"
+**Key message:** "Fácil de preparar, fácil de resetear, dual-cart listo para usar"
 
 ---
 
