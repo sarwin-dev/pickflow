@@ -115,13 +115,13 @@
     <!-- inventory -->
     {% if session['user_role'] in ['admin', 'supervisor'] %}
     <a href="/inventory" class="module-card inventory" style="position:relative;">
-        {% if stats.waiting_for_pulldown > 0 %}
-        <div style="position:absolute; top:-8px; right:-8px; background:#dc2626; color:white;
+        <div id="inventory-badge"
+             style="position:absolute; top:-8px; right:-8px; background:#dc2626; color:white;
                     border-radius:50%; width:28px; height:28px; font-size:12px; font-weight:700;
-                    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                    display:{% if stats.waiting_for_pulldown > 0 %}flex{% else %}none{% endif %};
+                    align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
             {{ stats.waiting_for_pulldown }}
         </div>
-        {% endif %}
         <div class="module-icon">□</div>
         <div class="module-info">
             <h3>Inventory</h3>
@@ -296,5 +296,21 @@ function wizardNext() {
 }
 </script>
 {% endif %}
+
+<script>
+function refreshPulldownBadge() {
+    fetch('/api/pulldown-count')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('inventory-badge');
+            if (!badge) return;
+            badge.textContent = data.count;
+            badge.style.display = data.count > 0 ? 'flex' : 'none';
+        })
+        .catch(e => console.error('Error fetching pulldown count:', e));
+}
+
+setInterval(refreshPulldownBadge, 30000);
+</script>
 
 {% endblock %}

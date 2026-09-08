@@ -171,6 +171,14 @@ def dashboard():
 
     return render_template('dashboard.html', stats=stats, show_wizard=show_wizard)
 
+@app.route('/api/pulldown-count')
+def pulldown_count():
+    if 'user_id' not in session:
+        return jsonify({'count': 0})
+    from models import Part
+    count = Part.query.filter_by(is_on_hold=True).count()
+    return jsonify({'count': count})
+
 @app.route('/logout')
 def logout():
     session.clear()
