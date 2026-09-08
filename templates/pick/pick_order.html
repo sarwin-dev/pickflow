@@ -52,11 +52,18 @@
             </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="button"
-                    onclick="markAllMissing()"
-                    class="btn-mark-missing">
+            {% if config.total_carts == 2 %}
+            <button type="button" onclick="markAllMissing(1)" class="btn-mark-missing">
+                Mark Missing Cart A
+            </button>
+            <button type="button" onclick="markAllMissing(2)" class="btn-mark-missing">
+                Mark Missing Cart B
+            </button>
+            {% else %}
+            <button type="button" onclick="markAllMissing(null)" class="btn-mark-missing">
                 Mark Missing (All)
             </button>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -64,11 +71,12 @@
 <!-- selector de carrito y filtros -->
 <div class="pick-controls" style="display:flex; gap:10px; margin-bottom:1rem; align-items:center;">
     <label style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap;">Cart:</label>
-    <select onchange="filterCart(this.value)"
+    <select id="cart-select" onchange="filterCart(this.value)"
         style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:140px;">
-        <option value="all">All</option>
-        <option value="1">Cart A</option>
+        <option value="1" selected>Cart A</option>
+        {% if config.total_carts == 2 %}
         <option value="2">Cart B</option>
+        {% endif %}
     </select>
 </div>
 
@@ -394,13 +402,18 @@
         });
     });
 
-    async function markAllMissing() {
+    async function markAllMissing(cart) {
         if (!confirm('Mark all unpicked items as missing? This will trigger a pulldown alert.')) return;
 
         // Resetear filtro a All Aisles para mostrar todos los items
         filterAisle('all');
         document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
         document.querySelector('.aisle-filter[onclick*="\'all\'"]')?.classList.add('active-filter');
+
+        // Si se especifica un cart, filtrar a ese carrito
+        if (cart !== null) {
+            filterCart(cart);
+        }
 
         try {
             // llama al servidor para marcar todos los pending como missing
@@ -412,8 +425,16 @@
             const data = await response.json();
 
             if (data.success) {
-                // marca visualmente TODAS las casillas pending como missing
-                document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
+                // marca visualmente las casillas pending como missing
+                let buttonsToMark;
+                if (cart !== null) {
+                    // Si es un carrito específico, solo marcar los botones visibles de ese carrito
+                    buttonsToMark = document.querySelectorAll('.pick-group[data-cart="' + cart + '"] .tristate-btn[data-state="pending"]');
+                } else {
+                    // Si es null (single cart mode), marcar todos
+                    buttonsToMark = document.querySelectorAll('.tristate-btn[data-state="pending"]');
+                }
+                buttonsToMark.forEach(b => {
                     const lbl = document.getElementById('label-' + b.dataset.id);
                     applyState(b, lbl, 'missing');
                 });

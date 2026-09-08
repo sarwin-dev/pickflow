@@ -236,6 +236,7 @@ def warehouse_config():
             return redirect(url_for('admin.warehouse_config'))
 
         config.max_cart_slots = int(request.form.get('max_cart_slots', 24))
+        config.total_carts = int(request.form.get('total_carts', 1))
         config.label_aisle = request.form.get('label_aisle', 'Aisle')
         config.label_bay = request.form.get('label_bay', 'Bay')
         config.label_shelf = request.form.get('label_shelf', 'Shelf')

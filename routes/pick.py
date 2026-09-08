@@ -133,9 +133,11 @@ def pick_order(order_id):
         key=lambda x: (x['cart'], x['aisle'], x['bay'], x['shelf'], x['loc'])
     )
 
+    config = WarehouseConfig.query.first()
     return render_template('pick/pick_order.html',
                            order=order,
-                           groups=sorted_groups)
+                           groups=sorted_groups,
+                           config=config)
 
 @pick_bp.route('/toggle/<int:pick_item_id>', methods=['POST'])
 @picker_required
@@ -260,12 +262,21 @@ def mark_missing_all(order_id):
     if not order:
         return jsonify({'error': 'not found'}), 404
 
-    # obtiene todos los pending PickItems de la orden
-    pending_items = PickItem.query.join(OrderItem).filter(
+    cart = request.json.get('cart') if request.json else None
+
+    # obtiene todos los pending PickItems de la orden (filtrados por cart si aplica)
+    query = PickItem.query.join(OrderItem).filter(
         OrderItem.work_order_id == order.id,
         PickItem.is_picked == False,
         PickItem.is_missing == False
-    ).all()
+    )
+
+    if cart is not None:
+        query = query.join(PartTemplate).filter(
+            PartTemplate.cart == int(cart)
+        )
+
+    pending_items = query.all()
 
     # si no hay nada para marcar, devuelve mensaje diferente
     if len(pending_items) == 0:
