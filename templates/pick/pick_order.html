@@ -322,7 +322,9 @@
 
     // Aplicar filtro Cart A por defecto al cargar
     {% if config.total_carts == 2 %}
-    filterCart(1);
+    document.addEventListener('DOMContentLoaded', function() {
+        filterCart(1);
+    });
     {% endif %}
 
     // inicializa estado de botones "✓ All" / "✗ None" en cada grupo
