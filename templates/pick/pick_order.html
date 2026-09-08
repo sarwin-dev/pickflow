@@ -320,13 +320,6 @@
     document.getElementById('total-count-fixed').textContent = total;
     updateProgress();
 
-    // Aplicar filtro Cart A por defecto al cargar
-    {% if config.total_carts == 2 %}
-    document.addEventListener('DOMContentLoaded', function() {
-        filterCart(1);
-    });
-    {% endif %}
-
     // inicializa estado de botones "✓ All" / "✗ None" en cada grupo
     document.querySelectorAll('.pick-group').forEach(group => {
         checkGroupAllPicked(group);
@@ -622,6 +615,11 @@
                 });
         }
     }
+
+    // Aplicar filtro Cart A por defecto al cargar
+    {% if config.total_carts == 2 %}
+    filterCart(1);
+    {% endif %}
 </script>
 
 <!-- Socket.IO para sincronización en tiempo real -->
