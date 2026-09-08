@@ -57,12 +57,6 @@
                     class="btn-mark-missing">
                 Mark Missing (All)
             </button>
-            <button id="btn-complete-order"
-                    onclick="completeOrder({{ order.id }})"
-                    class="btn-complete-panel"
-                    disabled>
-                Complete Order
-            </button>
         </div>
     </div>
 </div>
@@ -439,44 +433,12 @@
         }
     }
 
-    async function completeOrder(orderId) {
-        if (!confirm('Complete this order?')) return;
-        try {
-            const response = await fetch(`/pick/${orderId}/complete`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-            if (data.success) {
-                // marca visualmente todos los pendientes como missing antes de cerrar
-                document.querySelectorAll('.tristate-btn[data-state="pending"]').forEach(b => {
-                    const lbl = document.getElementById('label-' + b.dataset.id);
-                    applyState(b, lbl, 'missing');
-                });
-                setTimeout(() => {
-                    document.getElementById('pick-list').style.display = 'none';
-                    document.getElementById('order-complete').style.display = 'block';
-                }, 400);
-            }
-        } catch (e) {
-            console.error('Error:', e);
-        }
-    }
-
     function updateProgress() {
         // actualiza el panel fijo con los conteos
         document.getElementById('picked-count-fixed').textContent = picked;
         document.getElementById('total-count-fixed').textContent = total;
         const pct = total > 0 ? Math.round(picked / total * 100) : 0;
         document.getElementById('progress-bar-fixed').style.width = pct + '%';
-
-        // actualiza estado del botón Complete Order
-        // solo está activo si se completaron todos los items (picked + missing === total)
-        const completeBtn = document.getElementById('btn-complete-order');
-        if (completeBtn) {
-            const canComplete = (picked + missing) === total;
-            completeBtn.disabled = !canComplete;
-        }
     }
 
     document.querySelectorAll('.color-swatch[data-hex]').forEach(el => {
