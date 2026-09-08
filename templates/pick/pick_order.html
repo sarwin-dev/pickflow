@@ -420,7 +420,8 @@
             // también activa is_on_hold en las partes correspondientes
             const response = await fetch(`/pick/{{ order.id }}/mark-missing-all`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: cart })
             });
             const data = await response.json();
 
