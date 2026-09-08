@@ -203,6 +203,12 @@ def pulldown(record_id):
         db.session.commit()
         if request.headers.get('HX-Request'):
             item = build_part_item(part)
+            # Si ya no necesita pulldown y no hay búsqueda, eliminar tarjeta del DOM
+            search = request.args.get('search', '')
+            filter_mode = request.args.get('filter', '')
+            show_all = request.args.get('show_all', '') == '1'
+            if not item['needs_pulldown'] and not search and not filter_mode and not show_all:
+                return '', 200
             return render_template('inventory/partials/part_card.html', item=item,
                                    search='', filter_mode='')
         flash(f'Box pulled down to active location A{part.active_aisle} B{part.active_bay} S{part.active_shelf}.', 'success')
