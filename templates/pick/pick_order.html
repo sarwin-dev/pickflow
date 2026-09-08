@@ -317,7 +317,9 @@
     });
 
     // inicializa el panel fijo con los conteos
+    {% if config.total_carts != 2 %}
     document.getElementById('total-count-fixed').textContent = total;
+    {% endif %}
     updateProgress();
 
     // inicializa estado de botones "✓ All" / "✗ None" en cada grupo
