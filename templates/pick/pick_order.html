@@ -397,6 +397,11 @@
     async function markAllMissing() {
         if (!confirm('Mark all unpicked items as missing? This will trigger a pulldown alert.')) return;
 
+        // Resetear filtro a All Aisles para mostrar todos los items
+        filterAisle('all');
+        document.querySelectorAll('.aisle-filter').forEach(b => b.classList.remove('active-filter'));
+        document.querySelector('.aisle-filter[onclick*="\'all\'"]')?.classList.add('active-filter');
+
         try {
             // llama al servidor para marcar todos los pending como missing
             // también activa is_on_hold en las partes correspondientes
