@@ -320,6 +320,11 @@
     document.getElementById('total-count-fixed').textContent = total;
     updateProgress();
 
+    // Aplicar filtro Cart A por defecto al cargar
+    {% if config.total_carts == 2 %}
+    filterCart(1);
+    {% endif %}
+
     // inicializa estado de botones "✓ All" / "✗ None" en cada grupo
     document.querySelectorAll('.pick-group').forEach(group => {
         checkGroupAllPicked(group);
