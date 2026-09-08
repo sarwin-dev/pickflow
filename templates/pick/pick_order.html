@@ -40,16 +40,32 @@
             {% if config.total_carts == 2 %}
             <div style="font-size:12px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Progress</div>
             <div style="margin-bottom:8px;">
-                <div style="font-size:12px; color:#374151; margin-bottom:3px;">
-                    Cart A: <span id="picked-a-fixed">0</span> / <span id="total-a-fixed">0</span> picked
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:3px;">
+                    <div style="font-size:12px; color:#374151;">
+                        Cart A: <span id="picked-a-fixed">0</span> / <span id="total-a-fixed">0</span> picked
+                    </div>
+                    <button type="button" onclick="markAllMissing(1)"
+                        style="font-size:11px; padding:2px 8px; border:1px solid #fca5a5;
+                               border-radius:4px; background:#fff; color:#dc2626;
+                               cursor:pointer; white-space:nowrap; line-height:1.4;">
+                        Mark Missing
+                    </button>
                 </div>
                 <div style="width:100%; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
                     <div id="progress-bar-a" style="height:100%; background:#059669; width:0%; transition:width 0.3s;"></div>
                 </div>
             </div>
             <div>
-                <div style="font-size:12px; color:#374151; margin-bottom:3px;">
-                    Cart B: <span id="picked-b-fixed">0</span> / <span id="total-b-fixed">0</span> picked
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:3px;">
+                    <div style="font-size:12px; color:#374151;">
+                        Cart B: <span id="picked-b-fixed">0</span> / <span id="total-b-fixed">0</span> picked
+                    </div>
+                    <button type="button" onclick="markAllMissing(2)"
+                        style="font-size:11px; padding:2px 8px; border:1px solid #fca5a5;
+                               border-radius:4px; background:#fff; color:#dc2626;
+                               cursor:pointer; white-space:nowrap; line-height:1.4;">
+                        Mark Missing
+                    </button>
                 </div>
                 <div style="width:100%; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
                     <div id="progress-bar-b" style="height:100%; background:#4f46e5; width:0%; transition:width 0.3s;"></div>
@@ -69,20 +85,6 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            {% if config.total_carts == 2 %}
-            <button type="button" onclick="markAllMissing(1)" class="btn-mark-missing">
-                Mark Missing Cart A
-            </button>
-            <button type="button" onclick="markAllMissing(2)" class="btn-mark-missing">
-                Mark Missing Cart B
-            </button>
-            {% else %}
-            <button type="button" onclick="markAllMissing(null)" class="btn-mark-missing">
-                Mark Missing (All)
-            </button>
             {% endif %}
         </div>
     </div>
@@ -299,6 +301,10 @@
 </style>
 
 <script>
+    // Variables globales para filtros
+    let activeCart = 'all';
+    let activeAisle = 'all';
+
     const allButtons = document.querySelectorAll('.tristate-btn');
     let total = allButtons.length;
     let picked = 0;
@@ -514,9 +520,6 @@
     document.querySelectorAll('.color-swatch[data-hex]').forEach(el => {
         el.style.background = el.dataset.hex;
     });
-
-    let activeCart = 'all';
-    let activeAisle = 'all';
 
     function applyFilters() {
         document.querySelectorAll('.pick-group').forEach(group => {
