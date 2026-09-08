@@ -1132,7 +1132,8 @@
     "prefix_aisle": "A",
     "prefix_bay": "B",
     "prefix_shelf": "S",
-    "prefix_location": "L"
+    "prefix_location": "L",
+    "total_carts": 2
   },
   "active_inventory": [
     {

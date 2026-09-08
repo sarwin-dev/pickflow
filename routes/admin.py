@@ -458,6 +458,7 @@ def demo_reset():
                 label_shelf=cfg.get('label_shelf', 'Shelf'), label_location=cfg.get('label_location', 'Location'),
                 prefix_aisle=cfg.get('prefix_aisle', 'A'), prefix_bay=cfg.get('prefix_bay', 'B'),
                 prefix_shelf=cfg.get('prefix_shelf', 'S'), prefix_location=cfg.get('prefix_location', 'L'),
+                total_carts=cfg.get('total_carts', 1),
             ))
 
     # Restaurar registros activos
