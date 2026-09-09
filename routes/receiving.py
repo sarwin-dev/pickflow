@@ -52,8 +52,8 @@ def receive():
         if existing:
             # suma la cantidad al registro activo existente
             existing.quantity += quantity
-            existing.updated_at = datetime.utcnow()
-            existing.received_at = datetime.utcnow()
+            existing.updated_at = datetime.now()
+            existing.received_at = datetime.now()
         else:
             # crea nuevo registro activo con ubicacion de la parte maestra
             new_record = Inventory(
@@ -64,7 +64,7 @@ def receive():
                 location=part.active_location,
                 quantity=quantity,
                 is_active=True,
-                received_at=datetime.utcnow()
+                received_at=datetime.now()
             )
             db.session.add(new_record)
     else:
@@ -129,7 +129,7 @@ def receive():
             location=location,
             quantity=quantity,
             is_active=is_active,
-            received_at=datetime.utcnow()
+            received_at=datetime.now()
         )
         db.session.add(new_record)
 
@@ -178,7 +178,7 @@ def pulldown(record_id):
         if active_record:
             # actualiza la cantidad en la active location (reemplaza o suma)
             active_record.quantity = overflow_quantity
-            active_record.updated_at = datetime.utcnow()
+            active_record.updated_at = datetime.now()
         else:
             # crea un nuevo registro en la active location (en caso de que no exista)
             active_record = Inventory(
@@ -189,7 +189,7 @@ def pulldown(record_id):
                 location=part.active_location,
                 quantity=overflow_quantity,
                 is_active=True,
-                received_at=datetime.utcnow()
+                received_at=datetime.now()
             )
             db.session.add(active_record)
 

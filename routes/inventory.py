@@ -311,7 +311,7 @@ def shopping_add(part_id):
             quantity_needed=quantity,
             notes=notes,
             added_by=session['user_id'],
-            added_at=datetime.utcnow()
+            added_at=datetime.now()
         )
         db.session.add(item)
         db.session.commit()

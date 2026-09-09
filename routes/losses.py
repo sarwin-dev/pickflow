@@ -16,7 +16,7 @@ def index():
     category = request.args.get('category', '')
 
     query = Loss.query
-    now = datetime.utcnow()
+    now = datetime.now()
 
     if period == 'today':
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -83,7 +83,7 @@ def report():
         category=category,
         comments=comments,
         reported_by=session['user_id'],
-        reported_at=datetime.utcnow()
+        reported_at=datetime.now()
     )
     db.session.add(new_loss)
     db.session.commit()

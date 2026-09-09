@@ -165,7 +165,7 @@ def toggle(pick_item_id):
                 pi.is_picked = True
                 pi.is_missing = False
                 pi.picked_by = session['user_id']
-                pi.picked_at = datetime.utcnow()
+                pi.picked_at = datetime.now()
 
         elif action == 'deplete':
             # elimina el registro activo de inventario de la parte específica
@@ -375,7 +375,7 @@ def complete_all(order_id):
         pick.is_picked = True
         pick.is_missing = False
         pick.picked_by = session['user_id']
-        pick.picked_at = datetime.utcnow()
+        pick.picked_at = datetime.now()
 
     order.status = 'completed'
     db.session.commit()
