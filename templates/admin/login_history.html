@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Login History - PickFlow{% endblock %}
+{% block content %}
+
+<div class="dashboard-header">
+    <h1>Login History</h1>
+    <p>Track user login activity</p>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Date/Time</th>
+                <th>Device</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if logs %}
+                {% for log in logs %}
+                <tr>
+                    <td><strong>{{ log.user.name }}</strong></td>
+                    <td>
+                        <span class="role-badge role-{{ log.user.role }}">
+                            {{ log.user.role }}
+                        </span>
+                    </td>
+                    <td style="font-size:12px; color:#666;">
+                        {{ log.logged_in_at.strftime('%m/%d/%Y %I:%M %p') }}
+                    </td>
+                    <td>
+                        {% if 'Mobile' in log.user_agent or 'Android' in log.user_agent or 'iPhone' in log.user_agent %}
+                        <span style="font-size:14px;">📱 Mobile</span>
+                        {% else %}
+                        <span style="font-size:14px;">💻 Desktop</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align:center; color:#999; padding:20px;">
+                    No login records found
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

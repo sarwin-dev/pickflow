@@ -865,3 +865,14 @@ def swap_parts_locations():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+# ============================================
+# LOGIN HISTORY
+# ============================================
+
+@admin_bp.route('/login-history')
+@admin_required
+def login_history():
+    from models import LoginLog, User
+    logs = LoginLog.query.order_by(LoginLog.logged_in_at.desc()).limit(100).all()
+    return render_template('admin/login_history.html', logs=logs)
