@@ -502,8 +502,8 @@ def generate_pdf(order_id):
         ]
         for g in groups:
             slots_str = '   '.join([f"#{s}" for s in g['slots']])
-            data = [[g['location'], f"QTY: {len(g['slots'])}", g['part_name']], [slots_str, '', '']]
-            t = Table(data, colWidths=[1.8*inch, 0.8*inch, 4.4*inch])
+            data = [[g['location'], g['part_name'], f"QTY: {len(g['slots'])}"], [slots_str, '', '']]
+            t = Table(data, colWidths=[1.8*inch, 4.4*inch, 0.8*inch])
             t.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,0), header_bg),
                 ('TEXTCOLOR',  (0,0), (-1,0), text_black),
@@ -515,6 +515,7 @@ def generate_pdf(order_id):
                 ('FONTSIZE',   (0,1), (-1,1), 9),
                 ('PADDING',    (0,1), (-1,1), 4),
                 ('SPAN',       (0,1), (-1,1)),
+                ('ALIGN',      (2,0), (2,0), 'RIGHT'),
                 ('BOX',        (0,0), (-1,-1), 0.5, border),
                 ('LINEBELOW',  (0,0), (-1,0), 0.5, border),
             ]))
