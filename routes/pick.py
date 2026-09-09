@@ -235,6 +235,7 @@ def toggle(pick_item_id):
         # completa la orden solo si todo esta picked o missing
         if picked + missing == total:
             order.status = 'completed'
+            order.updated_at = datetime.now()
             db.session.commit()
             socketio.emit('order_status_changed', {
                 'order_id': order.id,
@@ -344,6 +345,7 @@ def complete_order(order_id):
         pi.is_missing = True
 
     order.status = 'completed'
+    order.updated_at = datetime.now()
     db.session.commit()
     return jsonify({'success': True})
 
@@ -378,6 +380,7 @@ def complete_all(order_id):
         pick.picked_at = datetime.now()
 
     order.status = 'completed'
+    order.updated_at = datetime.now()
     db.session.commit()
     return jsonify({'success': True})
 
