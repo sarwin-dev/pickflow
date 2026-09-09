@@ -291,6 +291,28 @@ Una guía práctica para demostrar PickFlow a clientes. Fresca, directa, sin tec
 
 ---
 
+### Demostración 8.5: Admin - Login History (1 min)
+
+**Contexto:** "Panel de auditoría para rastrear acceso de usuarios"
+
+1. **Navega a Admin → Login History**
+2. **Muestra la tabla:**
+   - Usuario (nombre en negrita)
+   - Rol (con badge de color)
+   - Fecha/Hora del login
+   - Dispositivo (📱 Mobile o 💻 Desktop - detectado automáticamente)
+3. **Explica el registro:**
+   - "Cada login se registra automáticamente"
+   - "Útil para auditoría y seguimiento de acceso"
+   - "Último 100 logins disponibles"
+4. **Muestra detección de dispositivo:**
+   - "Mobile detecta: teléfonos, tablets, navegadores móviles"
+   - "Desktop para acceso desde computadoras"
+
+**Key message:** "Auditoría completa de acceso a la plataforma"
+
+---
+
 ## ❓ Sección 2: Preguntas Frecuentes de Clientes
 
 ### "¿Qué es 'Months Remaining'?"

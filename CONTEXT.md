@@ -29,8 +29,11 @@ Sistema de gestión de almacén para fabricantes de muebles. Permite recibir inv
 
 ### Deployment
 - **OS:** Linux (Fedora en producción, Debian Server local en MacBook Air)
+- **Reverse Proxy:** Caddy 2.x con headers X-Forwarded-For y X-Real-IP
+- **Web Server:** Gunicorn 21.2.0 con ProxyFix middleware para leer IP real del cliente
 - **Git:** https://github.com/sarwin-dev/pickflow
 - **Environment:** Python 3.14.7, virtual environment en `/home/sarwin/pickflow/venv`
+- **Timezone:** datetime.now() (hora local del servidor, no UTC)
 
 ### WebSockets Architecture (Socket.IO 4.7.5)
 
@@ -536,6 +539,24 @@ Loss:
 1. **Botón Swap:** Interfaz separada para cambiar aisle/bay/shelf/location
 2. **Edit Formulario:** Solo muestra campo Name
 3. **Validación:** Evita errores de ubicación duplicada
+
+### Infrastructure & Security (Septiembre 8, 2026)
+1. **Timezone Fix:** datetime.utcnow() → datetime.now() en receiving.py, inventory.py, pick.py, losses.py
+   - Timestamps ahora reflejan hora local del servidor (no UTC)
+2. **Reverse Proxy (Caddy):** Headers X-Forwarded-For y X-Real-IP configurados
+   - Puerto 8080: `/webhook` → 5001, `/` → 5000
+3. **Flask ProxyFix:** Middleware agregado para leer IP real del cliente
+   - x_for=1 (X-Forwarded-For), x_proto=1 (X-Forwarded-Proto), x_host=1 (X-Forwarded-Host)
+4. **LoginLog Model:** Nuevo modelo para auditoría de acceso
+   - Tabla: user_id, logged_in_at (datetime.now), user_agent (string 255)
+   - Registra cada login exitoso con timestamp y dispositivo
+5. **Admin/Login History:** Nueva página en Admin para ver último 100 logins
+   - Filtro automático por dispositivo (📱 Mobile / 💻 Desktop) basado en User-Agent
+   - Badge de rol por cada usuario
+6. **Pick UI Cleanup:**
+   - Botón "View" en órdenes completadas usa btn-create (azul) en lugar de btn-secondary (gris)
+   - Eliminado div `order-complete` huérfano (dialog de confirmación no usado)
+7. **Demo Seed:** total_carts=2 incluido en seed, dual-cart mode activo por defecto
 
 ### Completado
 1. Losses module: categorías, filtros, resumen, PDF
