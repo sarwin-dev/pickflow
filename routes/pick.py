@@ -494,10 +494,12 @@ def generate_pdf(order_id):
     company_s = ParagraphStyle('co', fontSize=9, fontName='Helvetica', textColor=colors.HexColor('#9ca3af'), spaceAfter=4)
 
     def build_section(cart_label, groups):
+        title_text = 'CASE PICK LIST' if cart_label == 'CART A' else 'DOORS / SHELVES / DRAWERS PICK LIST'
         elems = [
             Paragraph(company_name, company_s),
-            Paragraph('CASE PICK LIST', title_s),
-            Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Cabinets: {len(order.items)}  ·  Color: {order.color.name if order.color else '—'}  ·  Picker: {session['user_name']}  ·  {now_str}", meta_s),
+            Paragraph(title_text, title_s),
+            Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Cabinets: {len(order.items)}  ·  Color: {order.color.name if order.color else '—'}", meta_s),
+            Paragraph(f"Picker: {session['user_name']}  ·  {now_str}", meta_s),
             Paragraph(f"▌ {cart_label}", cart_s),
         ]
         for g in groups:
