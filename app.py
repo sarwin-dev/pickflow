@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory, jsonify
 from werkzeug.security import check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, socketio
 from dotenv import load_dotenv
 
@@ -9,6 +10,7 @@ load_dotenv('.env.local')
 load_dotenv()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
 socketio.init_app(app, async_mode='eventlet', cors_allowed_origins='*')
