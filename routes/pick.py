@@ -497,7 +497,7 @@ def generate_pdf(order_id):
         elems = [
             Paragraph(company_name, company_s),
             Paragraph('CASE PICK LIST', title_s),
-            Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Picker: {session['user_name']}  ·  {now_str}", meta_s),
+            Paragraph(f"{order.job_name or ''}{' — ' + order.lot_number if order.lot_number else ''}  ·  W.O: {order.order_number}  ·  Cabinets: {order.cabinets}  ·  Color: {order.color or '—'}  ·  Picker: {session['user_name']}  ·  {now_str}", meta_s),
             Paragraph(f"▌ {cart_label}", cart_s),
         ]
         for g in groups:
