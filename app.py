@@ -109,6 +109,15 @@ def login():
             session['user_id'] = user.id
             session['user_role'] = user.role
             session['user_name'] = user.name
+
+            from models import LoginLog
+            log = LoginLog(
+                user_id=user.id,
+                user_agent=request.headers.get('User-Agent', '')[:255]
+            )
+            db.session.add(log)
+            db.session.commit()
+
             return redirect(url_for('dashboard'))
         else:
             error = 'Invalid email or password'

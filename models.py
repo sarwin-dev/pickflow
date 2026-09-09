@@ -179,3 +179,11 @@ class ReceivingLog(db.Model):
     received_at = db.Column(db.DateTime, default=datetime.utcnow)
     part = db.relationship('Part', backref='receiving_logs')
     receiver = db.relationship('User', backref='receiving_logs')
+
+class LoginLog(db.Model):
+    __tablename__ = 'login_log'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    logged_in_at = db.Column(db.DateTime, default=datetime.now)
+    user_agent = db.Column(db.String(255), nullable=True)
+    user = db.relationship('User', backref='login_logs')
