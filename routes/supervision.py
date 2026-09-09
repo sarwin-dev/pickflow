@@ -24,7 +24,7 @@ def index():
         or_(WorkOrder.status == 'pending', WorkOrder.status == 'in_progress')
     ).count()
 
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     completed_today = WorkOrder.query.filter(
         WorkOrder.status == 'completed',
         WorkOrder.updated_at >= today_start
