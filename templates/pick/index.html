@@ -89,7 +89,7 @@
                     {% endif %}
                 </td>
                 <td style="display:flex; gap:8px; align-items:center;">
-                    <a href="/pick/{{ order.id }}" class="{% if order.status == 'completed' and stat.missing == 0 %}btn-secondary{% elif order.status == 'completed' %}btn-create{% else %}btn-create{% endif %}"
+                    <a href="/pick/{{ order.id }}" class="btn-create"
                        style="font-size:12px; padding:4px 12px;">
                         {% if order.status == 'pending' %}Start Pick
                         {% elif order.status == 'completed' and stat.missing == 0 %}View
