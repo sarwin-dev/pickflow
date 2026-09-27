@@ -18,7 +18,7 @@ def webhook():
         abort(403)
     subprocess.Popen([
         'bash', '-c',
-        'cd /var/www/pickflow && git pull && sudo systemctl restart pickflow'
+        'cd /opt/pickflow && timeout 120 git pull && sudo systemctl restart pickflow'
     ])
     return 'OK', 200
 
