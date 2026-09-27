@@ -268,10 +268,10 @@ def reset_demo():
     session.clear()
     return 'Demo reset complete. <a href="/login">Login</a>', 200
 
-# ===========================================
+# ============================================
 # REGISTRAMOS LOS BLUEPRINTS
 # cada modulo se conecta a la app aqui
-# ===========================================
+# ============================================
 from routes.admin import admin_bp
 app.register_blueprint(admin_bp)
 
