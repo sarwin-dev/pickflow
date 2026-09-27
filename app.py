@@ -323,9 +323,9 @@ def change_password():
     return render_template('change_password.html', error=error)
 
 
-# ============================================
+# ============================================+
 # FLASK CLI COMMANDS
-# ============================================
+# ============================================+
 
 @app.cli.command('reset-password')
 def reset_password_cmd():
